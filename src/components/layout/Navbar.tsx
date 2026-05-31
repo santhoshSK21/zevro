@@ -51,6 +51,7 @@ export default function Navbar() {
   return (
     <>
       <header 
+        className="nav-container"
         onMouseLeave={() => setHoveredCategory(null)}
         style={{
           position: 'sticky',
@@ -64,8 +65,7 @@ export default function Navbar() {
           boxShadow: navShadow,
           transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
           display: 'flex',
-          alignItems: 'center',
-          padding: '0 32px'
+          alignItems: 'center'
         }}
       >
         {/* Mobile Hamburger */}
@@ -152,7 +152,9 @@ export default function Navbar() {
       </header>
 
       <style dangerouslySetInnerHTML={{__html: `
+        .nav-container { padding: 0 32px; }
         @media (max-width: 1024px) {
+          .nav-container { padding: 0 16px; }
           .desktop-nav { display: none !important; }
           .hide-desktop { display: block !important; }
         }

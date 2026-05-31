@@ -34,7 +34,7 @@ export default function Footer() {
         </div>
       </div>
       
-      <div className="container" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '48px', marginBottom: '64px', paddingTop: '64px' }}>
+      <div className="container footer-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '48px', marginBottom: '64px', paddingTop: '64px' }}>
         <div style={{ flex: 1.5 }}>
           <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '28px', letterSpacing: '0.15em', marginBottom: '16px' }}>ZEVRO</h2>
           <p style={{ fontSize: '12px', letterSpacing: '0.2em', color: 'var(--gold)', marginBottom: '24px' }}>WEAR TO INSPIRE</p>
@@ -97,6 +97,9 @@ export default function Footer() {
       <style dangerouslySetInnerHTML={{__html: `
         .footer-cat-icon { transition: transform 0.3s; }
         .footer-cat-icon:hover { transform: translateY(-4px); }
+        @media (max-width: 768px) {
+          .footer-grid { padding-top: 40px !important; gap: 32px !important; margin-bottom: 40px !important; }
+        }
       `}} />
     </footer>
   );

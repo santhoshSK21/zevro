@@ -11,9 +11,9 @@ export default function TrustBar() {
 
   return (
     <div style={{ backgroundColor: 'var(--black)', padding: '32px 0' }}>
-      <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '24px' }}>
+      <div className="container trust-bar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '24px' }}>
         {items.map((item, i) => (
-          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <div key={i} className="trust-item" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             <span style={{ fontSize: '28px', color: 'var(--gold)' }}>{item.icon}</span>
             <div>
               <h4 style={{ fontFamily: 'var(--font-body)', fontSize: '11px', letterSpacing: '0.15em', fontWeight: 500, color: 'var(--ivory)', marginBottom: '4px' }}>{item.title}</h4>
@@ -22,6 +22,13 @@ export default function TrustBar() {
           </div>
         ))}
       </div>
+      <style dangerouslySetInnerHTML={{__html: `
+        @media (max-width: 768px) {
+          .trust-bar { flex-wrap: nowrap !important; overflow-x: auto; padding-bottom: 8px; justify-content: flex-start !important; }
+          .trust-bar::-webkit-scrollbar { display: none; }
+          .trust-item { min-width: 200px; flex-shrink: 0; }
+        }
+      `}} />
     </div>
   );
 }

@@ -42,13 +42,13 @@ export default function HeroSection() {
   }, []);
 
   return (
-    <section style={{ height: '100vh', position: 'relative', overflow: 'hidden', backgroundColor: 'var(--ivory)' }}>
+    <section style={{ height: '100vh', position: 'relative', overflow: 'hidden', backgroundColor: 'var(--black)' }}>
       {slides.map((slide, index) => {
         const isActive = index === current;
         return (
           <div 
             key={index}
-            className={isActive ? 'hero-slide-enter' : 'hero-slide-exit'}
+            className={isActive ? 'hero-slide hero-slide-enter' : 'hero-slide hero-slide-exit'}
             style={{
               position: 'absolute', inset: 0,
               display: isActive ? 'flex' : 'none',
@@ -56,11 +56,11 @@ export default function HeroSection() {
               zIndex: isActive ? 1 : 0
             }}
           >
-            {/* Left Content (40%) */}
-            <div style={{ flex: '0 0 40%', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '0 10%', position: 'relative', zIndex: 2 }}>
+            {/* Left Content */}
+            <div className="hero-content" style={{ flex: '0 0 40%', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '0 10%', position: 'relative', zIndex: 2 }}>
               <div className={isActive ? 'fade-up fade-up-delay-1' : ''}>
                 <p style={{ fontSize: '10px', color: 'var(--gold)', letterSpacing: '0.3em', textTransform: 'uppercase', fontWeight: 500, marginBottom: '16px' }}>{slide.eyebrow}</p>
-                <h2 className="hero-title" style={{ fontFamily: 'var(--font-display)', fontSize: '88px', color: 'var(--espresso)', lineHeight: 1.1, marginBottom: '24px' }}>
+                <h2 className="hero-title" style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(48px, 8vw, 88px)', color: 'var(--ivory)', lineHeight: 1.1, marginBottom: '24px' }}>
                   {slide.title.split(' ')[0]} <br/> <em style={{ fontStyle: 'italic', fontWeight: 300 }}>{slide.title.split(' ').slice(1).join(' ')}</em>
                 </h2>
               </div>
@@ -75,9 +75,9 @@ export default function HeroSection() {
               </div>
             </div>
 
-            {/* Right Image (60%) */}
-            <div style={{ flex: '1', position: 'relative' }}>
-              <div style={{ position: 'absolute', inset: 0, zIndex: 1, background: 'linear-gradient(to right, var(--ivory) 0%, transparent 15%)' }} />
+            {/* Right Image */}
+            <div className="hero-image-container" style={{ flex: '1', position: 'relative' }}>
+              <div className="hero-gradient" style={{ position: 'absolute', inset: 0, zIndex: 1, background: 'linear-gradient(to right, var(--black) 0%, transparent 15%)' }} />
               <Image 
                 src={slide.image} 
                 alt={slide.title} 
@@ -95,14 +95,14 @@ export default function HeroSection() {
       })}
 
       {/* Dots */}
-      <div style={{ position: 'absolute', bottom: '40px', left: '10%', display: 'flex', gap: '12px', zIndex: 10 }}>
+      <div className="hero-dots" style={{ position: 'absolute', bottom: '40px', left: '10%', display: 'flex', gap: '12px', zIndex: 10 }}>
         {slides.map((_, i) => (
           <button 
             key={i} 
             onClick={() => setCurrent(i)}
             style={{ 
               width: '8px', height: '8px', borderRadius: '50%', 
-              backgroundColor: i === current ? 'var(--gold)' : 'rgba(0,0,0,0.2)',
+              backgroundColor: i === current ? 'var(--gold)' : 'rgba(255,255,255,0.2)',
               transition: 'all 0.3s'
             }} 
             aria-label={`Slide ${i + 1}`}
@@ -116,10 +116,11 @@ export default function HeroSection() {
           to { transform: scale(1); }
         }
         @media (max-width: 1024px) {
-          .hero-slide-enter, .hero-slide-exit { flex-direction: column-reverse !important; }
-          .hero-slide-enter > div:first-child { flex: 1 !important; padding: 40px !important; text-align: center; align-items: center; }
-          .hero-slide-enter > div:last-child { flex: 1.5 !important; }
-          .hero-slide-enter > div:last-child > div { background: linear-gradient(to top, var(--ivory) 0%, transparent 40%) !important; }
+          .hero-slide { flex-direction: column-reverse !important; }
+          .hero-content { flex: 1 !important; padding: 40px !important; text-align: center; align-items: center; }
+          .hero-image-container { flex: 1.5 !important; }
+          .hero-gradient { background: linear-gradient(to top, var(--black) 0%, transparent 40%) !important; }
+          .hero-dots { left: 50% !important; transform: translateX(-50%) !important; bottom: 20px !important; }
         }
       `}} />
     </section>
