@@ -1,0 +1,65 @@
+'use client';
+
+import React from 'react';
+import Link from 'next/link';
+import { useCartStore } from '../../store/cartStore';
+
+export default function OrderSummary() {
+  const { total, savings, itemCount } = useCartStore();
+
+  if (itemCount === 0) return null;
+
+  const tax = total * 0.05; // Dummy 5% GST
+  const shipping = total > 99900 ? 0 : 15000;
+  const finalTotal = total + tax + shipping;
+
+  return (
+    <div style={{ backgroundColor: '#fff', padding: '32px', boxShadow: 'var(--shadow-sm)', position: 'sticky', top: '100px' }}>
+      <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '20px', letterSpacing: '0.1em', marginBottom: '24px' }}>ORDER SUMMARY</h3>
+      
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '24px', borderBottom: '1px solid var(--linen)', paddingBottom: '24px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
+          <span style={{ color: 'var(--warm-grey)' }}>Subtotal ({itemCount} items)</span>
+          <span style={{ fontFamily: 'var(--font-mono)' }}>₹{(total / 100).toLocaleString('en-IN')}</span>
+        </div>
+        
+        {savings > 0 && (
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', color: 'var(--success)' }}>
+            <span>Discount</span>
+            <span style={{ fontFamily: 'var(--font-mono)' }}>−₹{(savings / 100).toLocaleString('en-IN')}</span>
+          </div>
+        )}
+        
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
+          <span style={{ color: 'var(--warm-grey)' }}>Estimated GST (5%)</span>
+          <span style={{ fontFamily: 'var(--font-mono)' }}>₹{(tax / 100).toLocaleString('en-IN')}</span>
+        </div>
+        
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
+          <span style={{ color: 'var(--warm-grey)' }}>Shipping</span>
+          <span style={{ fontFamily: 'var(--font-mono)' }}>
+            {shipping === 0 ? 'FREE' : `₹${(shipping / 100).toLocaleString('en-IN')}`}
+          </span>
+        </div>
+      </div>
+
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
+        <span style={{ fontSize: '16px', fontWeight: 600 }}>Total</span>
+        <span style={{ fontFamily: 'var(--font-mono)', fontSize: '24px', fontWeight: 600 }}>
+          ₹{(finalTotal / 100).toLocaleString('en-IN')}
+        </span>
+      </div>
+
+      <Link href="/checkout" className="btn btn-primary btn-full" style={{ padding: '16px', display: 'flex', justifyContent: 'center' }}>
+        PROCEED TO CHECKOUT
+      </Link>
+
+      <div style={{ marginTop: '24px', display: 'flex', gap: '16px', justifyContent: 'center' }}>
+        {/* Payment Icons Placeholder */}
+        <span style={{ fontSize: '24px', color: 'var(--warm-grey)' }}>💳</span>
+        <span style={{ fontSize: '24px', color: 'var(--warm-grey)' }}>🏦</span>
+        <span style={{ fontSize: '24px', color: 'var(--warm-grey)' }}>📱</span>
+      </div>
+    </div>
+  );
+}

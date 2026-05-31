@@ -1,0 +1,51 @@
+:root {
+  /* Core palette from luxury reference */
+  --black:          #000000;   /* Pitch black */
+  --off-black:      #0C0C0C;   /* Slightly softer black for cards */
+  --ivory:          #F8F5F0;   /* Clean ivory for light sections */
+  --beige:          #E2D5C4;   /* Warm champagne/taupe for newsletter/cards */
+  --cream:          #F3EDE4;   /* Muted cream */
+  --gold:           #C5A059;   /* Signature rich gold */
+  --bronze:         #9D7C41;   /* Darker gold for hover */
+  --espresso:       #1A110B;   /* Deepest brown for text on light backgrounds */
+  --warm-grey:      #7A7068;   /* Muted grey */
+  --linen:          #D0C4B4;   /* Borders */
+
+  /* Semantic */
+  --bg-primary:     var(--black);
+  --bg-secondary:   var(--beige);
+  --bg-dark:        var(--black);
+  --text-primary:   var(--ivory);
+  --text-muted:     var(--warm-grey);
+  --text-dark:      var(--espresso);
+  --accent:         var(--gold);
+  --accent-hover:   var(--bronze);
+  --border:         var(--linen);
+
+  /* Status */
+  --success:        #4A7C59;
+  --error:          #C0392B;
+  --warning:        #C8850A;
+  --info:           #2C5F8A;
+
+  /* Typography */
+  --font-display:   'Cormorant Garamond', 'Playfair Display', Georgia, serif;
+  --font-body:      'Jost', 'DM Sans', system-ui, sans-serif;
+  --font-mono:      'DM Mono', 'Courier New', monospace;
+
+  /* Spacing */
+  --nav-height:     80px;
+  --nav-height-sm:  64px;
+  --max-width:      1440px;
+  --section-pad:    96px;
+  --section-pad-sm: 56px;
+
+  /* Effects */
+  --radius:         2px;
+  --radius-md:      6px;
+  --shadow-sm:      0 1px 4px rgba(5,5,5,0.06);
+  --shadow-md:      0 4px 24px rgba(5,5,5,0.10);
+  --shadow-lg:      0 12px 48px rgba(5,5,5,0.16);
+  --transition:     0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
