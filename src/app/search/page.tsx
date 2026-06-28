@@ -10,25 +10,26 @@ function SearchResults() {
   const searchParams = useSearchParams();
   const query = searchParams.get('q');
   
-  // Demo products (in a real app, this would be a fetch call to /api/products/search?q=query)
-  const results = [
-    {
-      _id: '1',
-      name: 'Banarasi Silk Saree in Deep Maroon',
-      slug: 'banarasi-silk-saree-deep-maroon',
-      price: 429900,
-      originalPrice: 599900,
-      variants: [{ images: ['https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=600'] }]
-    },
-    {
-      _id: '2',
-      name: 'Heavy Embroidered Anarkali in Ivory',
-      slug: 'heavy-embroidered-anarkali-ivory',
-      price: 549900,
-      originalPrice: 749900,
-      variants: [{ images: ['https://images.unsplash.com/photo-1583391733956-6c78276477e2?w=600'] }]
+  const [results, setResults] = React.useState<any[]>([]);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    if (query) {
+      setLoading(true);
+      fetch('/api/products?q=' + encodeURIComponent(query))
+        .then(res => res.json())
+        .then(data => {
+          setResults(data);
+          setLoading(false);
+        })
+        .catch(() => setLoading(false));
+    } else {
+      setResults([]);
+      setLoading(false);
     }
-  ];
+  }, [query]);
+
+  if (loading) return <div style={{ padding: '80px', textAlign: 'center' }}>Loading...</div>;
 
   return (
     <main className="container" style={{ padding: '80px 24px', flex: 1 }}>

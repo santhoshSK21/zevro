@@ -1,126 +1,150 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-
-const slides = [
-  {
-    eyebrow: 'ZEVRO',
-    title: 'WEAR TO INSPIRE',
-    subtitle: 'Timeless designs. Modern elegance.',
-    cta: 'EXPLORE COLLECTION',
-    link: '/products',
-    image: 'https://images.unsplash.com/photo-1583391733956-6c78276477e2?w=1400&q=80'
-  },
-  {
-    eyebrow: 'NEW IN',
-    title: 'JUST DROPPED',
-    subtitle: 'Be the first to wear the latest.',
-    cta: 'SHOP NEW IN',
-    link: '/new-in',
-    image: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=1400&q=80'
-  },
-  {
-    eyebrow: 'ETHNIC WEAR',
-    title: 'TRADITION REIMAGINED',
-    subtitle: 'Heritage craftsmanship for the modern woman.',
-    cta: 'SHOP ETHNIC',
-    link: '/products?category=ethnic-wear',
-    image: 'https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=1400&q=80'
-  }
-];
+import { motion, useReducedMotion } from 'framer-motion';
 
 export default function HeroSection() {
-  const [current, setCurrent] = useState(0);
+  const prefersReducedMotion = useReducedMotion();
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrent((prev) => (prev + 1) % slides.length);
-    }, 5000);
-    return () => clearInterval(timer);
-  }, []);
+  const ease: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
   return (
-    <section style={{ height: '100vh', position: 'relative', overflow: 'hidden', backgroundColor: 'var(--black)' }}>
-      {slides.map((slide, index) => {
-        const isActive = index === current;
-        return (
-          <div 
-            key={index}
-            className={isActive ? 'hero-slide hero-slide-enter' : 'hero-slide hero-slide-exit'}
-            style={{
-              position: 'absolute', inset: 0,
-              display: isActive ? 'flex' : 'none',
-              opacity: isActive ? 1 : 0,
-              zIndex: isActive ? 1 : 0
-            }}
-          >
-            {/* Left Content */}
-            <div className="hero-content" style={{ flex: '0 0 40%', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '0 10%', position: 'relative', zIndex: 2 }}>
-              <div className={isActive ? 'fade-up fade-up-delay-1' : ''}>
-                <p style={{ fontSize: '10px', color: 'var(--gold)', letterSpacing: '0.3em', textTransform: 'uppercase', fontWeight: 500, marginBottom: '16px' }}>{slide.eyebrow}</p>
-                <h2 className="hero-title" style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(48px, 8vw, 88px)', color: 'var(--ivory)', lineHeight: 1.1, marginBottom: '24px' }}>
-                  {slide.title.split(' ')[0]} <br/> <em style={{ fontStyle: 'italic', fontWeight: 300 }}>{slide.title.split(' ').slice(1).join(' ')}</em>
-                </h2>
-              </div>
-              <div className={isActive ? 'fade-up fade-up-delay-2' : ''}>
-                <div className="gold-rule" />
-                <p style={{ fontFamily: 'var(--font-display)', fontSize: '20px', fontStyle: 'italic', color: 'var(--warm-grey)', marginBottom: '40px' }}>{slide.subtitle}</p>
-              </div>
-              <div className={isActive ? 'fade-up fade-up-delay-3' : ''}>
-                <Link href={slide.link} className="btn btn-primary" style={{ padding: '16px 48px' }}>
-                  {slide.cta} <span style={{ marginLeft: '8px' }}>→</span>
-                </Link>
-              </div>
-            </div>
+    <section className="hero-editorial">
+      {/* Full-bleed background image */}
+      <Image
+        src="https://images.unsplash.com/photo-1583391733956-6c78276477e2?w=1400&q=80"
+        alt="Zevro editorial hero — luxury fashion"
+        fill
+        priority
+        style={{ objectFit: 'cover' }}
+        className="hero-bg-image"
+      />
 
-            {/* Right Image */}
-            <div className="hero-image-container" style={{ flex: '1', position: 'relative' }}>
-              <div className="hero-gradient" style={{ position: 'absolute', inset: 0, zIndex: 1, background: 'linear-gradient(to right, var(--black) 0%, transparent 15%)' }} />
-              <Image 
-                src={slide.image} 
-                alt={slide.title} 
-                fill 
-                priority={index === 0}
-                style={{ 
-                  objectFit: 'cover', 
-                  animation: isActive ? 'scaleIn 5s linear forwards' : 'none',
-                  transformOrigin: 'center right'
-                }} 
-              />
-            </div>
-          </div>
-        );
-      })}
+      {/* Dark overlay gradient */}
+      <div className="hero-overlay" />
 
-      {/* Dots */}
-      <div className="hero-dots" style={{ position: 'absolute', bottom: '40px', left: '10%', display: 'flex', gap: '12px', zIndex: 10 }}>
-        {slides.map((_, i) => (
-          <button 
-            key={i} 
-            onClick={() => setCurrent(i)}
-            style={{ 
-              width: '8px', height: '8px', borderRadius: '50%', 
-              backgroundColor: i === current ? 'var(--gold)' : 'rgba(255,255,255,0.2)',
-              transition: 'all 0.3s'
-            }} 
-            aria-label={`Slide ${i + 1}`}
-          />
-        ))}
+      {/* Text block — bottom-left */}
+      <div className="hero-text-block">
+        <motion.p
+          className="label-caps hero-eyebrow"
+          initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
+          animate={{ opacity: 0.7, y: 0 }}
+          transition={{ delay: 0.3, duration: 0.7, ease }}
+        >
+          The New Collection
+        </motion.p>
+
+        <motion.h1
+          className="display-serif hero-headline"
+          initial={prefersReducedMotion ? false : { opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5, duration: 0.9, ease }}
+        >
+          Wear to <em>Inspire</em>
+        </motion.h1>
+
+        <motion.div
+          initial={prefersReducedMotion ? false : { opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.8, duration: 0.7, ease }}
+        >
+          <Link href="/products" className="btn-ghost hero-cta">
+            Explore Collection
+          </Link>
+        </motion.div>
       </div>
 
+      {/* Scroll indicator — bottom-right */}
+      <motion.div
+        className="hero-scroll-indicator"
+        initial={prefersReducedMotion ? false : { opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1.2, duration: 0.7, ease }}
+      >
+        <motion.div
+          className="hero-scroll-line"
+          initial={prefersReducedMotion ? false : { scaleY: 0 }}
+          animate={{ scaleY: 1 }}
+          transition={{ delay: 1.4, duration: 0.8, ease }}
+        />
+        <span className="label-caps hero-scroll-label">Scroll</span>
+      </motion.div>
+
       <style dangerouslySetInnerHTML={{__html: `
-        @keyframes scaleIn {
-          from { transform: scale(1.05); }
-          to { transform: scale(1); }
+        .hero-editorial {
+          position: relative;
+          height: 100svh;
+          overflow: hidden;
+          background-color: var(--color-ink);
         }
-        @media (max-width: 1024px) {
-          .hero-slide { flex-direction: column-reverse !important; }
-          .hero-content { flex: 1 !important; padding: 40px !important; text-align: center; align-items: center; }
-          .hero-image-container { flex: 1.5 !important; }
-          .hero-gradient { background: linear-gradient(to top, var(--black) 0%, transparent 40%) !important; }
-          .hero-dots { left: 50% !important; transform: translateX(-50%) !important; bottom: 20px !important; }
+        .hero-bg-image {
+          z-index: 1;
+        }
+        .hero-overlay {
+          position: absolute;
+          inset: 0;
+          z-index: 2;
+          background: linear-gradient(to bottom, rgba(13,13,13,0.15) 0%, rgba(13,13,13,0.55) 100%);
+        }
+        .hero-text-block {
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          z-index: 3;
+          padding: var(--space-16) var(--container-gutter);
+        }
+        .hero-eyebrow {
+          color: var(--color-white);
+          margin-bottom: var(--space-4);
+        }
+        .hero-headline {
+          font-size: var(--text-hero);
+          color: var(--color-white);
+          max-width: 14ch;
+          margin-bottom: var(--space-8);
+        }
+        .hero-headline em {
+          font-style: italic;
+          font-weight: 300;
+        }
+        .hero-cta {
+          border-color: var(--color-white);
+          color: var(--color-white);
+        }
+        .hero-cta:hover {
+          background: var(--color-white);
+          color: var(--color-ink);
+        }
+        .hero-scroll-indicator {
+          position: absolute;
+          bottom: var(--space-8);
+          right: var(--container-gutter);
+          z-index: 3;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: var(--space-2);
+        }
+        .hero-scroll-line {
+          width: 1px;
+          height: 40px;
+          background: var(--color-white);
+          transform-origin: top;
+        }
+        .hero-scroll-label {
+          color: var(--color-white);
+          font-size: 9px;
+          letter-spacing: var(--tracking-wider);
+        }
+        @media (max-width: 768px) {
+          .hero-text-block {
+            padding: var(--space-8) var(--space-6);
+          }
+          .hero-scroll-indicator {
+            display: none;
+          }
         }
       `}} />
     </section>

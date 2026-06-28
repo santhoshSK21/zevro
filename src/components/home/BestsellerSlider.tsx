@@ -12,15 +12,14 @@ export default function BestsellerSlider() {
   const [products, setProducts] = useState<any[]>([]);
 
   useEffect(() => {
-    // In real app: fetch /api/products?isBestseller=true
-    // Using dummy data to avoid fetch error without DB
-    setProducts([
-      { sku: '1', slug: 'p1', name: 'Zevro Gold Tunic', price: 299900, originalPrice: 399900, image: 'https://images.unsplash.com/photo-1583391733956-6c78276477e2?w=500', category: 'ethnic-wear' },
-      { sku: '2', slug: 'p2', name: 'Silk Blend Saree', price: 499900, originalPrice: 599900, image: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=500', category: 'ethnic-wear' },
-      { sku: '3', slug: 'p3', name: 'Ivory Maxi Dress', price: 199900, originalPrice: 249900, image: 'https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=500', category: 'western-wear' },
-      { sku: '4', slug: 'p4', name: 'Bronze Velvet Kurti', price: 159900, originalPrice: 199900, image: 'https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=500', category: 'ethnic-wear' },
-      { sku: '5', slug: 'p5', name: 'Classic Handbag', price: 349900, originalPrice: 400000, image: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=500', category: 'accessories' },
-    ]);
+    fetch('/api/products')
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) {
+          setProducts(data.filter(p => p.isFeatured).slice(0, 6));
+        }
+      })
+      .catch(console.error);
   }, []);
 
   if (products.length === 0) return null;

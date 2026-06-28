@@ -1,26 +1,28 @@
+/* ============================================================
+   ZEVRO — Animation System
+   Slow, intentional motion — 0.6s–1.2s ease curves
+   ============================================================ */
+
 /* Page entry */
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(24px); }
   to   { opacity: 1; transform: translateY(0); }
 }
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes lineGrow {
+  from { transform: scaleY(0); transform-origin: top; }
+  to   { transform: scaleY(1); transform-origin: top; }
+}
+
 .fade-up { animation: fadeUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 .fade-up-delay-1 { animation-delay: 0.1s; opacity: 0; animation-fill-mode: forwards; }
 .fade-up-delay-2 { animation-delay: 0.2s; opacity: 0; animation-fill-mode: forwards; }
 .fade-up-delay-3 { animation-delay: 0.35s; opacity: 0; animation-fill-mode: forwards; }
-
-/* Gold shimmer text */
-@keyframes goldShimmer {
-  0%   { background-position: -200% center; }
-  100% { background-position: 200% center; }
-}
-.gold-shimmer-text {
-  background: linear-gradient(90deg, var(--gold) 0%, #E8C87A 50%, var(--gold) 100%);
-  background-size: 200% auto;
-  animation: goldShimmer 3s linear infinite;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
 
 /* Hero slide crossfade */
 @keyframes heroFadeIn  { from { opacity: 0; } to { opacity: 1; } }
@@ -34,14 +36,22 @@
 .success-circle { stroke-dasharray: 196; stroke-dashoffset: 196; animation: drawCircle 0.6s ease forwards; }
 .success-check  { stroke-dasharray: 70;  stroke-dashoffset: 70;  animation: drawCheck 0.4s ease 0.5s forwards; }
 
-/* Underline hover (nav links) */
-.nav-link-underline {
-  position: relative;
+/* Marquee */
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
 }
-.nav-link-underline::after {
-  content: ''; position: absolute; bottom: -2px; left: 0;
-  width: 0; height: 1px; background: var(--gold);
-  transition: width var(--transition);
+
+/* Scale in (hero image) */
+@keyframes scaleIn {
+  from { transform: scale(1.05); }
+  to { transform: scale(1); }
 }
-.nav-link-underline:hover::after,
-.nav-link-underline.active::after { width: 100%; }
+
+/* ─── REDUCED MOTION ─── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

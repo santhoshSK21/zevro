@@ -3,22 +3,33 @@ import ProductGallery from '../../../components/product/ProductGallery';
 import ProductInfo from '../../../components/product/ProductInfo';
 import ProductAccordion from '../../../components/product/ProductAccordion';
 import RelatedProducts from '../../../components/product/RelatedProducts';
+import dbConnect from '../../../lib/mongodb';
+import { Product } from '../../../models/Product';
+import { notFound } from 'next/navigation';
 
-export default function ProductDetailPage({ params }: { params: { slug: string } }) {
-  // In a real app, you would fetch product data server-side here using params.slug
+export default async function ProductDetailPage({ params }: { params: Promise<{ slug: string }> }) {
+  await dbConnect();
+  
+  // Use param explicitly via await to comply with Next.js 15+ async params
+  const { slug } = await params;
+  
+  const productDoc = await Product.findOne({ slug }).lean();
+  
+  if (!productDoc) {
+    notFound();
+  }
+
   const mockProduct = {
-    _id: '123',
-    slug: params.slug,
-    name: 'LUXURY SILK ENSEMBLE',
-    price: 499900,
-    originalPrice: 650000,
-    category: 'ethnic-wear',
-    color: 'Ivory / Gold',
-    images: [
-      'https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=800&q=80',
-      'https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=800&q=80',
-      'https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=800&q=80'
-    ]
+    _id: productDoc._id?.toString() || '123',
+    slug: productDoc.slug,
+    name: productDoc.name,
+    price: productDoc.price,
+    originalPrice: productDoc.originalPrice,
+    category: productDoc.category,
+    color: productDoc.variants?.[0]?.colorName || 'Standard',
+    images: productDoc.variants?.[0]?.images || [],
+    description: productDoc.description,
+    sizes: productDoc.variants?.[0]?.sizes?.map((s: any) => ({ size: s.size, stock: s.stock })) || [],
   };
 
   return (

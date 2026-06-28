@@ -7,8 +7,7 @@ const ProductSchema = new Schema({
   shortDescription: String,
   
   category: {
-    type: String, required: true,
-    enum: ['western-wear','ethnic-wear','indo-western','accessories','new-in']
+    type: String, required: true
   },
   subcategory: String,
   occasion: [String],         // ['festive','casual','wedding','office']

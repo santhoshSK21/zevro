@@ -8,6 +8,15 @@ const nextConfig: NextConfig = {
       { protocol: 'https', hostname: 'picsum.photos' },
     ]
   },
+  async rewrites() {
+    return [
+      { source: '/new-in', destination: '/category/new-in' },
+      { source: '/western-wear', destination: '/category/western-wear' },
+      { source: '/ethnic-wear', destination: '/category/ethnic-wear' },
+      { source: '/indo-western', destination: '/category/indo-western' },
+      { source: '/accessories', destination: '/category/accessories' }
+    ];
+  },
   typedRoutes: false
 };
 

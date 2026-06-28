@@ -17,12 +17,18 @@ export default function ProductInfo({ product }: ProductInfoProps) {
       alert("Please select a size first.");
       return;
     }
+    // Mock check for out of stock since we mocked 'M' as out of stock
+    if (selectedSize === 'M') {
+      alert("This size is out of stock. Please sign up to be notified.");
+      return;
+    }
+
     addItem({
       productId: product._id || product.slug,
       variantId: product.slug,
       sku: `${product.sku}-${selectedSize}`,
       name: product.name,
-      image: product.image || product.images?.[0] || 'https://via.placeholder.com/500',
+      image: product.image || product.images?.[0] || '',
       color: product.color || 'Default Color',
       size: selectedSize,
       quantity: 1,
@@ -60,7 +66,14 @@ export default function ProductInfo({ product }: ProductInfoProps) {
       </p>
 
       <div style={{ marginBottom: '32px' }}>
-        <SizeSelector sizes={product.sizes || ['XS', 'S', 'M', 'L', 'XL']} selected={selectedSize} onChange={setSelectedSize} />
+        <SizeSelector 
+          sizes={(product.sizes || ['XS', 'S', 'M', 'L', 'XL']).map((size: string, index: number) => ({
+            size,
+            inStock: index !== 2 // Mocking 'M' as out of stock for demonstration
+          }))} 
+          selected={selectedSize} 
+          onChange={setSelectedSize} 
+        />
       </div>
 
       <div style={{ display: 'flex', gap: '16px', marginBottom: '40px' }}>

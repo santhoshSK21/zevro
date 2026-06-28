@@ -3,18 +3,20 @@ import FilterSidebar from '../../../components/product/FilterSidebar';
 import SortDropdown from '../../../components/product/SortDropdown';
 import ProductGrid from '../../../components/product/ProductGrid';
 
-export default function CategoryPage({ params }: { params: { category: string } }) {
-  const categoryName = params.category.replace('-', ' ').toUpperCase();
+export default async function CategoryPage({ params }: { params: Promise<{ category: string }> }) {
+  const { category } = await params;
+  const categoryName = category.replace(/-/g, ' ').toUpperCase();
 
   return (
-    <div style={{ backgroundColor: 'var(--ivory)', minHeight: '100vh', paddingTop: '100px' }}>
+    <div style={{ backgroundColor: 'var(--color-bg)', minHeight: '100vh', paddingTop: '100px' }}>
       
       {/* Page Header */}
       <div className="container" style={{ textAlign: 'center', marginBottom: '40px' }}>
-        <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '32px', color: 'var(--espresso)', letterSpacing: '0.1em', marginBottom: '16px' }}>
+        <p className="label-caps" style={{ marginBottom: 'var(--space-4)' }}>Shop</p>
+        <h1 className="display-serif" style={{ fontSize: 'var(--text-2xl)', color: 'var(--color-ink)' }}>
           {categoryName}
         </h1>
-        <div className="gold-rule" style={{ margin: '0 auto' }} />
+        <div className="divider" style={{ width: '48px', margin: 'var(--space-6) auto 0' }} />
       </div>
 
       <div className="container" style={{ display: 'flex', gap: '32px', alignItems: 'flex-start' }}>
@@ -22,11 +24,11 @@ export default function CategoryPage({ params }: { params: { category: string } 
         
         <div style={{ flex: 1 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
-            <p style={{ fontSize: '13px', color: 'var(--warm-grey)' }}>Showing results</p>
+            <p className="label-caps">Showing results</p>
             <SortDropdown />
           </div>
           
-          <ProductGrid initialCategory={params.category} />
+          <ProductGrid initialCategory={category} />
         </div>
       </div>
     </div>

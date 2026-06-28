@@ -1,51 +1,108 @@
+/* ============================================================
+   ZEVRO — Design Token System
+   Premium editorial aesthetic inspired by Net-a-Porter & Zara
+   ============================================================ */
+
 :root {
-  /* Core palette from luxury reference */
-  --black:          #000000;   /* Pitch black */
-  --off-black:      #0C0C0C;   /* Slightly softer black for cards */
-  --ivory:          #F8F5F0;   /* Clean ivory for light sections */
-  --beige:          #E2D5C4;   /* Warm champagne/taupe for newsletter/cards */
-  --cream:          #F3EDE4;   /* Muted cream */
-  --gold:           #C5A059;   /* Signature rich gold */
-  --bronze:         #9D7C41;   /* Darker gold for hover */
-  --espresso:       #1A110B;   /* Deepest brown for text on light backgrounds */
-  --warm-grey:      #7A7068;   /* Muted grey */
-  --linen:          #D0C4B4;   /* Borders */
+  /* COLOR */
+  --color-bg:          #F7F5F2;
+  --color-surface:     #EFEDE9;
+  --color-ink:         #0D0D0D;
+  --color-ink-muted:   #5C5955;
+  --color-stone:       #C9C4BA;
+  --color-accent:      #1A1A2E;
+  --color-white:       #FFFFFF;
+  --color-error:       #8B1A1A;
 
-  /* Semantic */
-  --bg-primary:     var(--black);
-  --bg-secondary:   var(--beige);
-  --bg-dark:        var(--black);
-  --text-primary:   var(--ivory);
-  --text-muted:     var(--warm-grey);
-  --text-dark:      var(--espresso);
-  --accent:         var(--gold);
-  --accent-hover:   var(--bronze);
-  --border:         var(--linen);
+  /* TYPOGRAPHY */
+  --font-display:      'Cormorant Garamond', 'Playfair Display', Georgia, serif;
+  --font-body:         'DM Sans', 'Inter', system-ui, sans-serif;
+  --font-ui:           'DM Sans', 'Inter', system-ui, sans-serif;
 
-  /* Status */
+  --text-xs:    0.6875rem;   /* 11px */
+  --text-sm:    0.8125rem;   /* 13px */
+  --text-base:  1rem;        /* 16px */
+  --text-md:    1.125rem;    /* 18px */
+  --text-lg:    1.375rem;    /* 22px */
+  --text-xl:    1.75rem;     /* 28px */
+  --text-2xl:   2.5rem;      /* 40px */
+  --text-3xl:   3.5rem;      /* 56px */
+  --text-4xl:   5rem;        /* 80px */
+  --text-hero:  clamp(4rem, 10vw, 9rem);
+
+  --leading-tight:   1.1;
+  --leading-normal:  1.5;
+  --leading-loose:   1.8;
+  --tracking-tight:  -0.03em;
+  --tracking-normal: 0em;
+  --tracking-wide:   0.08em;
+  --tracking-wider:  0.15em;
+
+  /* SPACING */
+  --space-1:   0.25rem;
+  --space-2:   0.5rem;
+  --space-3:   0.75rem;
+  --space-4:   1rem;
+  --space-6:   1.5rem;
+  --space-8:   2rem;
+  --space-12:  3rem;
+  --space-16:  4rem;
+  --space-24:  6rem;
+  --space-32:  8rem;
+  --space-40:  10rem;
+
+  /* LAYOUT */
+  --container-max:   1440px;
+  --container-gutter: clamp(1.5rem, 5vw, 5rem);
+  --grid-gap:        clamp(1rem, 2vw, 1.5rem);
+
+  /* MOTION */
+  --ease-out-expo:   cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out:     cubic-bezier(0.65, 0, 0.35, 1);
+  --duration-fast:   0.2s;
+  --duration-base:   0.4s;
+  --duration-slow:   0.7s;
+  --duration-slower: 1.1s;
+
+  /* BORDERS */
+  --border-hairline: 1px solid var(--color-stone);
+  --border-ink:      1px solid var(--color-ink);
+  --radius:          0px;
+
+  /* ─── LEGACY ALIASES (backward compat for un-migrated components) ─── */
+  --black:          var(--color-ink);
+  --off-black:      #0C0C0C;
+  --ivory:          var(--color-bg);
+  --beige:          var(--color-surface);
+  --cream:          var(--color-surface);
+  --gold:           var(--color-ink);
+  --bronze:         var(--color-ink-muted);
+  --espresso:       var(--color-ink);
+  --warm-grey:      var(--color-ink-muted);
+  --linen:          var(--color-stone);
+  --bg-primary:     var(--color-bg);
+  --bg-secondary:   var(--color-surface);
+  --bg-dark:        var(--color-ink);
+  --text-primary:   var(--color-ink);
+  --text-muted:     var(--color-ink-muted);
+  --text-dark:      var(--color-ink);
+  --accent:         var(--color-accent);
+  --accent-hover:   var(--color-ink-muted);
+  --border:         var(--color-stone);
   --success:        #4A7C59;
-  --error:          #C0392B;
+  --error:          var(--color-error);
   --warning:        #C8850A;
   --info:           #2C5F8A;
-
-  /* Typography */
-  --font-display:   'Cormorant Garamond', 'Playfair Display', Georgia, serif;
-  --font-body:      'Jost', 'DM Sans', system-ui, sans-serif;
-  --font-mono:      'DM Mono', 'Courier New', monospace;
-
-  /* Spacing */
-  --nav-height:     80px;
-  --nav-height-sm:  64px;
-  --max-width:      1440px;
-  --section-pad:    96px;
-  --section-pad-sm: 56px;
-
-  /* Effects */
-  --radius:         2px;
-  --radius-md:      6px;
-  --shadow-sm:      0 1px 4px rgba(5,5,5,0.06);
-  --shadow-md:      0 4px 24px rgba(5,5,5,0.10);
-  --shadow-lg:      0 12px 48px rgba(5,5,5,0.16);
-  --transition:     0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-slow: 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  --font-mono:      'DM Sans', system-ui, sans-serif;
+  --nav-height:     72px;
+  --nav-height-sm:  56px;
+  --max-width:      var(--container-max);
+  --section-pad:    var(--space-24);
+  --section-pad-sm: var(--space-16);
+  --radius-md:      0px;
+  --shadow-sm:      none;
+  --shadow-md:      none;
+  --shadow-lg:      none;
+  --transition:     var(--duration-base) var(--ease-in-out);
+  --transition-slow: var(--duration-slow) var(--ease-out-expo);
 }

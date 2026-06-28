@@ -2,9 +2,14 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useCartStore } from '../../store/cartStore';
+import { useConfigStore } from '../../store/configStore';
+import styles from './CheckoutForm.module.css';
 
 export default function CheckoutForm() {
   const router = useRouter();
+  const { items, total, couponCode, couponDiscount, clearCart } = useCartStore();
+  const { config } = useConfigStore();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
 
@@ -24,38 +29,167 @@ export default function CheckoutForm() {
     else if (step === 2) setStep(3);
   };
 
-  const handlePlaceOrder = (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setTimeout(() => {
-      // Mock API call
-      const dummyOrderId = 'ZEV-' + Math.floor(Math.random() * 1000000);
-      router.push(`/checkout/order-confirmed/${dummyOrderId}`);
-    }, 1500);
+  const loadRazorpayScript = () => {
+    return new Promise((resolve) => {
+      if (document.querySelector('script[src="https://checkout.razorpay.com/v1/checkout.js"]')) {
+        resolve(true);
+        return;
+      }
+      const script = document.createElement('script');
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
   };
 
+  const handlePlaceOrder = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (items.length === 0) {
+      alert("Your cart is empty");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      // 1. Calculate totals securely on client just to pass as references to server
+      const tax = total * 0.05;
+      const shippingThreshold = config?.freeShippingThreshold ?? 99900;
+      const shippingFee = config?.shippingCharge ?? 15000;
+      const shipping = total > shippingThreshold ? 0 : shippingFee;
+      const finalTotal = total + tax + shipping - couponDiscount;
+
+      // 2. Create Order in Database
+      const orderRes = await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          items,
+          paymentMethod: formData.paymentMethod,
+          demoMode: !!(config?.demoMode || !process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID),
+          shippingAddress: {
+            firstName: formData.firstName,
+            lastName: formData.lastName,
+            address: formData.address,
+            city: formData.city,
+            state: formData.state,
+            pincode: formData.pincode,
+            phone: formData.phone,
+            email: formData.email
+          },
+          pricing: {
+            subtotal: total,
+            tax,
+            shipping,
+            discount: couponDiscount,
+            total: finalTotal,
+            couponCode
+          }
+        })
+      });
+
+      const orderData = await orderRes.json();
+      if (!orderRes.ok) throw new Error(orderData.error || 'Failed to create order');
+
+      const dbOrderId = orderData._id;
+
+      // 3. Handle Demo Mode or COD
+      if (formData.paymentMethod === 'cod' || config?.demoMode || !process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID) {
+        clearCart();
+        router.push(`/checkout/order-confirmed/${dbOrderId}`);
+        return;
+      }
+
+      // 4. Load Razorpay Script
+      const res = await loadRazorpayScript();
+      if (!res) throw new Error("Razorpay SDK failed to load. Are you online?");
+
+      // 5. Create Razorpay Order
+      const rzpRes = await fetch('/api/payment/create-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount: finalTotal, receipt: dbOrderId })
+      });
+      const rzpData = await rzpRes.json();
+      if (!rzpRes.ok) throw new Error(rzpData.error || 'Failed to initialize payment');
+
+      // 6. Open Razorpay Widget
+      const options = {
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+        amount: rzpData.amount,
+        currency: rzpData.currency,
+        name: config?.storeName || "Zevro",
+        description: "Order Payment",
+        order_id: rzpData.id,
+        handler: async function (response: any) {
+          try {
+            const verifyRes = await fetch('/api/payment/verify', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+                db_order_id: dbOrderId
+              })
+            });
+            const verifyData = await verifyRes.json();
+            if (verifyData.success) {
+              clearCart();
+              router.push(`/checkout/order-confirmed/${dbOrderId}`);
+            } else {
+              alert("Payment verification failed");
+              setLoading(false);
+            }
+          } catch (err) {
+            alert("Error verifying payment");
+            setLoading(false);
+          }
+        },
+        prefill: {
+          name: `${formData.firstName} ${formData.lastName}`,
+          email: formData.email,
+          contact: formData.phone
+        },
+        theme: { color: "#0D0D0D" }
+      };
+
+      const paymentObject = new (window as any).Razorpay(options);
+      paymentObject.on('payment.failed', function (response: any) {
+        alert("Payment failed: " + response.error.description);
+        setLoading(false);
+      });
+      paymentObject.open();
+
+    } catch (error: any) {
+      alert(error.message || "An error occurred");
+      setLoading(false);
+    }
+  };
+
+  const progressWidth = step === 1 ? '0%' : step === 2 ? '50%' : '100%';
+
   return (
-    <div style={{ backgroundColor: '#fff', padding: '40px', boxShadow: 'var(--shadow-sm)' }}>
+    <div className={styles.checkoutWrap}>
       
       {/* Progress */}
-      <div style={{ display: 'flex', marginBottom: '48px', position: 'relative' }}>
-        <div style={{ position: 'absolute', top: '12px', left: 0, right: 0, height: '2px', backgroundColor: 'var(--linen)', zIndex: 1 }} />
-        <div style={{ position: 'absolute', top: '12px', left: 0, width: step === 1 ? '0%' : step === 2 ? '50%' : '100%', height: '2px', backgroundColor: 'var(--gold)', zIndex: 2, transition: 'width 0.3s' }} />
+      <div className={styles.progressBar}>
+        <div className={styles.progressTrack} />
+        <div className={styles.progressFill} style={{ width: progressWidth }} />
         
         {['Shipping', 'Payment', 'Review'].map((label, i) => (
-          <div key={label} style={{ flex: 1, textAlign: i === 0 ? 'left' : i === 1 ? 'center' : 'right', position: 'relative', zIndex: 3 }}>
-            <div style={{ 
-              width: '24px', height: '24px', borderRadius: '50%', 
-              backgroundColor: step >= i + 1 ? 'var(--gold)' : '#fff', 
-              border: `2px solid ${step >= i + 1 ? 'var(--gold)' : 'var(--linen)'}`,
-              color: step >= i + 1 ? '#fff' : 'var(--warm-grey)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px',
-              margin: i === 0 ? '0' : i === 1 ? '0 auto' : '0 0 0 auto',
-              transition: 'all 0.3s'
-            }}>
+          <div
+            key={label}
+            className={`${styles.progressStep} ${i === 1 ? styles.progressStepCenter : ''} ${i === 2 ? styles.progressStepRight : ''}`}
+          >
+            <div className={`${styles.progressDot} ${step >= i + 1 ? styles.progressDotActive : ''} ${i === 1 ? styles.progressDotCenter : ''} ${i === 2 ? styles.progressDotRight : ''}`}>
               {i + 1}
             </div>
-            <p style={{ fontSize: '12px', marginTop: '8px', color: step >= i + 1 ? 'var(--espresso)' : 'var(--warm-grey)', fontWeight: step >= i + 1 ? 600 : 400 }}>{label}</p>
+            <p className={`${styles.progressLabel} ${step >= i + 1 ? styles.progressLabelActive : ''}`}>
+              {label}
+            </p>
           </div>
         ))}
       </div>
@@ -64,63 +198,87 @@ export default function CheckoutForm() {
         
         {step === 1 && (
           <div className="fade-up">
-            <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '24px', marginBottom: '24px' }}>SHIPPING DETAILS</h3>
+            <h3 className={styles.sectionHeading}>Shipping Details</h3>
             
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
-              <input required type="text" name="firstName" value={formData.firstName} onChange={handleChange} placeholder="First Name" style={{ padding: '16px', border: '1px solid var(--linen)', width: '100%', outline: 'none' }} />
-              <input required type="text" name="lastName" value={formData.lastName} onChange={handleChange} placeholder="Last Name" style={{ padding: '16px', border: '1px solid var(--linen)', width: '100%', outline: 'none' }} />
+            <div className={styles.fieldGrid2}>
+              <div>
+                <label className={styles.fieldLabel}>First Name</label>
+                <input required type="text" name="firstName" value={formData.firstName} onChange={handleChange} placeholder="First Name" className={styles.field} />
+              </div>
+              <div>
+                <label className={styles.fieldLabel}>Last Name</label>
+                <input required type="text" name="lastName" value={formData.lastName} onChange={handleChange} placeholder="Last Name" className={styles.field} />
+              </div>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
-              <input required type="email" name="email" value={formData.email} onChange={handleChange} placeholder="Email Address" style={{ padding: '16px', border: '1px solid var(--linen)', width: '100%', outline: 'none' }} />
-              <input required type="tel" name="phone" value={formData.phone} onChange={handleChange} placeholder="Phone Number" style={{ padding: '16px', border: '1px solid var(--linen)', width: '100%', outline: 'none' }} />
+            <div className={styles.fieldGrid2}>
+              <div>
+                <label className={styles.fieldLabel}>Email Address</label>
+                <input required type="email" name="email" value={formData.email} onChange={handleChange} placeholder="Email Address" className={styles.field} />
+              </div>
+              <div>
+                <label className={styles.fieldLabel}>Phone Number</label>
+                <input required type="tel" name="phone" value={formData.phone} onChange={handleChange} placeholder="Phone Number" className={styles.field} />
+              </div>
             </div>
-            <input required type="text" name="address" value={formData.address} onChange={handleChange} placeholder="Street Address" style={{ padding: '16px', border: '1px solid var(--linen)', width: '100%', marginBottom: '20px', outline: 'none' }} />
+            <div className={styles.fieldFull}>
+              <label className={styles.fieldLabel}>Street Address</label>
+              <input required type="text" name="address" value={formData.address} onChange={handleChange} placeholder="Street Address" className={styles.field} />
+            </div>
             
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '20px', marginBottom: '40px' }}>
-              <input required type="text" name="city" value={formData.city} onChange={handleChange} placeholder="City" style={{ padding: '16px', border: '1px solid var(--linen)', width: '100%', outline: 'none' }} />
-              <input required type="text" name="state" value={formData.state} onChange={handleChange} placeholder="State" style={{ padding: '16px', border: '1px solid var(--linen)', width: '100%', outline: 'none' }} />
-              <input required type="text" name="pincode" value={formData.pincode} onChange={handleChange} placeholder="PIN Code" style={{ padding: '16px', border: '1px solid var(--linen)', width: '100%', outline: 'none' }} />
+            <div className={styles.fieldGrid3}>
+              <div>
+                <label className={styles.fieldLabel}>City</label>
+                <input required type="text" name="city" value={formData.city} onChange={handleChange} placeholder="City" className={styles.field} />
+              </div>
+              <div>
+                <label className={styles.fieldLabel}>State</label>
+                <input required type="text" name="state" value={formData.state} onChange={handleChange} placeholder="State" className={styles.field} />
+              </div>
+              <div>
+                <label className={styles.fieldLabel}>PIN Code</label>
+                <input required type="text" name="pincode" value={formData.pincode} onChange={handleChange} placeholder="PIN Code" className={styles.field} />
+              </div>
             </div>
 
-            <button type="submit" className="btn btn-primary" style={{ padding: '16px 40px' }}>CONTINUE TO PAYMENT</button>
+            <button type="submit" className="btn-primary">Continue to Payment</button>
           </div>
         )}
 
         {step === 2 && (
           <div className="fade-up">
-            <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '24px', marginBottom: '24px' }}>PAYMENT METHOD</h3>
+            <h3 className={styles.sectionHeading}>Payment Method</h3>
             
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '40px' }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '24px', border: '1px solid', borderColor: formData.paymentMethod === 'card' ? 'var(--gold)' : 'var(--linen)', cursor: 'pointer' }}>
-                <input type="radio" name="paymentMethod" value="card" checked={formData.paymentMethod === 'card'} onChange={handleChange} style={{ accentColor: 'var(--gold)', width: '18px', height: '18px' }} />
-                <span style={{ fontSize: '14px', fontWeight: 500 }}>Credit / Debit Card</span>
+            <div className={styles.paymentOptions}>
+              <label className={`${styles.paymentOption} ${formData.paymentMethod === 'card' ? styles.paymentOptionActive : ''}`}>
+                <input type="radio" name="paymentMethod" value="card" checked={formData.paymentMethod === 'card'} onChange={handleChange} className={styles.paymentRadio} />
+                <span className={styles.paymentLabel}>Credit / Debit Card</span>
               </label>
               
-              <label style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '24px', border: '1px solid', borderColor: formData.paymentMethod === 'upi' ? 'var(--gold)' : 'var(--linen)', cursor: 'pointer' }}>
-                <input type="radio" name="paymentMethod" value="upi" checked={formData.paymentMethod === 'upi'} onChange={handleChange} style={{ accentColor: 'var(--gold)', width: '18px', height: '18px' }} />
-                <span style={{ fontSize: '14px', fontWeight: 500 }}>UPI (Google Pay, PhonePe)</span>
+              <label className={`${styles.paymentOption} ${formData.paymentMethod === 'upi' ? styles.paymentOptionActive : ''}`}>
+                <input type="radio" name="paymentMethod" value="upi" checked={formData.paymentMethod === 'upi'} onChange={handleChange} className={styles.paymentRadio} />
+                <span className={styles.paymentLabel}>UPI (Google Pay, PhonePe)</span>
               </label>
               
-              <label style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '24px', border: '1px solid', borderColor: formData.paymentMethod === 'cod' ? 'var(--gold)' : 'var(--linen)', cursor: 'pointer' }}>
-                <input type="radio" name="paymentMethod" value="cod" checked={formData.paymentMethod === 'cod'} onChange={handleChange} style={{ accentColor: 'var(--gold)', width: '18px', height: '18px' }} />
-                <span style={{ fontSize: '14px', fontWeight: 500 }}>Cash on Delivery</span>
+              <label className={`${styles.paymentOption} ${formData.paymentMethod === 'cod' ? styles.paymentOptionActive : ''}`}>
+                <input type="radio" name="paymentMethod" value="cod" checked={formData.paymentMethod === 'cod'} onChange={handleChange} className={styles.paymentRadio} />
+                <span className={styles.paymentLabel}>Cash on Delivery</span>
               </label>
             </div>
 
-            <div style={{ display: 'flex', gap: '16px' }}>
-              <button type="button" onClick={() => setStep(1)} className="btn btn-outline-gold" style={{ padding: '16px 40px' }}>BACK</button>
-              <button type="submit" className="btn btn-primary" style={{ padding: '16px 40px' }}>REVIEW ORDER</button>
+            <div className={styles.buttonRow}>
+              <button type="button" onClick={() => setStep(1)} className="btn-ghost">Back</button>
+              <button type="submit" className="btn-primary">Review Order</button>
             </div>
           </div>
         )}
 
         {step === 3 && (
           <div className="fade-up">
-            <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '24px', marginBottom: '24px' }}>REVIEW ORDER</h3>
+            <h3 className={styles.sectionHeading}>Review Order</h3>
             
-            <div style={{ backgroundColor: 'var(--beige)', padding: '24px', marginBottom: '40px' }}>
-              <h4 style={{ fontSize: '12px', letterSpacing: '0.1em', fontWeight: 600, marginBottom: '16px' }}>SHIPPING ADDRESS</h4>
-              <p style={{ color: 'var(--warm-grey)', lineHeight: 1.6 }}>
+            <div className={styles.reviewBlock}>
+              <h4 className={styles.reviewTitle}>Shipping Address</h4>
+              <p className={styles.reviewText}>
                 {formData.firstName} {formData.lastName}<br/>
                 {formData.address}, {formData.city}<br/>
                 {formData.state} - {formData.pincode}<br/>
@@ -128,17 +286,17 @@ export default function CheckoutForm() {
               </p>
             </div>
 
-            <div style={{ backgroundColor: 'var(--beige)', padding: '24px', marginBottom: '40px' }}>
-              <h4 style={{ fontSize: '12px', letterSpacing: '0.1em', fontWeight: 600, marginBottom: '16px' }}>PAYMENT</h4>
-              <p style={{ color: 'var(--warm-grey)' }}>
+            <div className={styles.reviewBlock}>
+              <h4 className={styles.reviewTitle}>Payment</h4>
+              <p className={styles.reviewText}>
                 {formData.paymentMethod === 'card' ? 'Credit / Debit Card' : formData.paymentMethod === 'upi' ? 'UPI' : 'Cash on Delivery'}
               </p>
             </div>
 
-            <div style={{ display: 'flex', gap: '16px' }}>
-              <button type="button" onClick={() => setStep(2)} className="btn btn-outline-gold" style={{ padding: '16px 40px' }} disabled={loading}>BACK</button>
-              <button type="submit" className="btn btn-primary" style={{ padding: '16px 40px' }} disabled={loading}>
-                {loading ? 'PROCESSING...' : 'PLACE ORDER'}
+            <div className={styles.buttonRow}>
+              <button type="button" onClick={() => setStep(2)} className="btn-ghost" disabled={loading}>Back</button>
+              <button type="submit" className="btn-primary" disabled={loading}>
+                {loading ? 'Processing...' : 'Place Order'}
               </button>
             </div>
           </div>

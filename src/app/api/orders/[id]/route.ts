@@ -2,11 +2,13 @@ import { NextResponse } from 'next/server';
 import dbConnect from '../../../../lib/mongodb';
 import { Order } from '../../../../models/Order';
 import { auth } from '../../../../auth';
+import { assertAdminAccess } from '../../../../lib/adminAuth';
 import { shippingService } from '../../../../lib/shiprocket';
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const resolvedParams = await params;
+    const isAdmin = await assertAdminAccess();
     const session = await auth();
     await dbConnect();
     
@@ -14,7 +16,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     if (!order) return NextResponse.json({ error: 'Not found' }, { status: 404 });
     
     // Auth check (admin or owner)
-    if (order.userId?.toString() !== session?.user?.id && session?.user?.role !== 'admin') {
+    if (order.userId?.toString() !== session?.user?.id && !isAdmin) {
       // Basic guest check (ideally requires order token, but for now simple check)
       if (order.userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -28,8 +30,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const resolvedParams = await params;
-    const session = await auth();
-    if (session?.user?.role !== 'admin') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const isAdmin = await assertAdminAccess();
+    if (!isAdmin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     
     await dbConnect();
     const body = await request.json();

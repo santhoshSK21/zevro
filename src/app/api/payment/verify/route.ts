@@ -21,11 +21,37 @@ export async function POST(request: Request) {
     if (isValid) {
       // Update order status in DB
       await dbConnect();
-      await Order.findByIdAndUpdate(db_order_id, {
+      const order = await Order.findByIdAndUpdate(db_order_id, {
         paymentStatus: 'paid',
         paymentId: razorpay_payment_id,
         status: 'processing' // Automatically move to processing once paid
       });
+
+      if (order && order.items && order.items.length > 0) {
+        const { Product } = require('../../../../models/Product');
+        for (const item of order.items) {
+          // Decrement stock for the specific size
+          await Product.updateOne(
+            { _id: item.productId, "variants.sizes.size": item.size },
+            { $inc: { "variants.$[].sizes.$[sizeElem].stock": -item.quantity } },
+            { arrayFilters: [{ "sizeElem.size": item.size }] }
+          );
+        }
+      }
+      
+      // Increment coupon usage after successful payment
+      if (order && order.pricing && order.pricing.couponCode) {
+        const { Coupon } = require('../../../../models/Coupon');
+        await Coupon.findOneAndUpdate(
+          { code: order.pricing.couponCode },
+          { $inc: { usedCount: 1 } }
+        );
+      }
+      
+      if (order.userId) {
+        const { Cart } = require('../../../../models/Cart');
+        await Cart.findOneAndDelete({ userId: order.userId });
+      }
       
       return NextResponse.json({ success: true, message: 'Payment verified successfully' });
     } else {

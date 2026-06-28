@@ -9,6 +9,7 @@ import Navbar from "../components/layout/Navbar";
 import MobileMenu from "../components/layout/MobileMenu";
 import SearchOverlay from "../components/layout/SearchOverlay";
 import CartDrawer from "../components/layout/CartDrawer";
+import CartSync from "../components/layout/CartSync";
 import Footer from "../components/layout/Footer";
 
 const cormorant = Cormorant_Garamond({
@@ -44,6 +45,7 @@ export default function RootLayout({
     <html lang="en" className={`${cormorant.variable} ${jost.variable} ${dmMono.variable}`}>
       <body>
         <Providers>
+          <CartSync />
           <AnnouncementBar />
           <Navbar />
           <MobileMenu />

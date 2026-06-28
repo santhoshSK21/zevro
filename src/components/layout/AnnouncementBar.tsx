@@ -2,63 +2,69 @@
 
 import React, { useEffect, useState } from 'react';
 import { useUiStore } from '../../store/uiStore';
+import { useConfigStore } from '../../store/configStore';
 import { usePathname } from 'next/navigation';
 
 export default function AnnouncementBar() {
   const { announcementBarVisible, hideAnnouncementBar, initAnnouncementBar } = useUiStore();
+  const { config, fetchConfig } = useConfigStore();
   const [mounted, setMounted] = useState(false);
   const pathname = usePathname();
 
   useEffect(() => {
     initAnnouncementBar();
+    if (!config) fetchConfig();
     setMounted(true);
-  }, [initAnnouncementBar]);
+  }, [initAnnouncementBar, config, fetchConfig]);
 
   if (!mounted || !announcementBarVisible || pathname?.startsWith('/admin')) return null;
+  if (!config?.announcementText) return null;
 
-  const msg = "FREE SHIPPING ABOVE ₹999  ·  ZEVRO10 FOR 10% OFF  ·  NEW ARRIVALS EVERY FRIDAY  ·  EASY 7-DAY RETURNS  ·  ";
+  const msg = `${config.announcementText}  ·  `;
 
   return (
-    <div style={{
-      backgroundColor: '#050505',
-      color: '#F6EFE7',
-      height: '40px',
-      display: 'flex',
-      alignItems: 'center',
-      position: 'relative',
-      overflow: 'hidden',
-      fontFamily: 'var(--font-body)',
-      fontSize: '11px',
-      letterSpacing: '0.15em',
-      textTransform: 'uppercase',
-      fontWeight: 500
-    }}>
-      <div style={{
-        display: 'flex',
-        whiteSpace: 'nowrap',
-        animation: 'marquee 25s linear infinite',
-      }}>
+    <div className="announcement-bar">
+      <div className="announcement-marquee">
         <span>{msg}</span>
         <span>{msg}</span>
       </div>
-      <button 
+      <button
         onClick={hideAnnouncementBar}
-        style={{
-          position: 'absolute',
-          right: '16px',
-          color: '#F6EFE7',
-          opacity: 0.7,
-          fontSize: '16px',
-          padding: '4px'
-        }}
+        className="announcement-close"
         aria-label="Close"
       >
         ✕
       </button>
       <style dangerouslySetInnerHTML={{__html: `
-        @keyframes marquee { 
-          from { transform: translateX(0); } 
-          to { transform: translateX(-50%); } 
+        .announcement-bar {
+          background-color: var(--color-ink);
+          color: var(--color-white);
+          height: 40px;
+          display: flex;
+          align-items: center;
+          position: relative;
+          overflow: hidden;
+          font-family: var(--font-ui);
+          font-size: var(--text-xs);
+          letter-spacing: var(--tracking-wider);
+          text-transform: uppercase;
+          font-weight: 500;
+        }
+        .announcement-marquee {
+          display: flex;
+          white-space: nowrap;
+          animation: marquee 25s linear infinite;
+        }
+        .announcement-close {
+          position: absolute;
+          right: 16px;
+          color: var(--color-white);
+          opacity: 0.7;
+          font-size: 16px;
+          padding: 4px;
+        }
+        .announcement-close:hover {
+          opacity: 1;
         }
       `}} />
     </div>
