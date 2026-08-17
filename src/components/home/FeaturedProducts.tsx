@@ -35,7 +35,7 @@ export default function FeaturedProducts() {
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '24px' }}>
           {products.map((p) => (
-             <ProductCard key={p.sku} product={p} />
+             <ProductCard key={p.slug || p._id} product={p} />
           ))}
         </div>
       </div>

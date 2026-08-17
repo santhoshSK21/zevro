@@ -27,7 +27,7 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
     >
       {/* Image Container */}
       <div className="pcard-image-wrap">
-        <Link href={`/products/${product.slug}`}>
+        <Link href={`/products/${product.slug}`} style={{ display: 'block', position: 'absolute', inset: 0 }}>
           {primaryImage ? (
             <Image
               src={primaryImage}
