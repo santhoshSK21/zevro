@@ -5,17 +5,17 @@ import CheckoutSummary from '../../components/checkout/CheckoutSummary';
 
 export default function CheckoutPage() {
   return (
-    <div style={{ backgroundColor: 'var(--ivory)', minHeight: '100vh', paddingTop: '100px', paddingBottom: '100px' }}>
+    <div style={{ backgroundColor: 'var(--color-bg)', minHeight: '100vh', paddingTop: '100px', paddingBottom: '100px' }}>
       <div className="container">
         
-        <div style={{ textAlign: 'center', marginBottom: '40px' }}>
-          <Link href="/cart" style={{ fontSize: '13px', color: 'var(--warm-grey)', textDecoration: 'none' }}>
+        <div style={{ textAlign: 'center', marginBottom: '64px' }}>
+          <Link href="/cart" className="label-caps" style={{ color: 'var(--color-ink-muted)', textDecoration: 'none' }}>
             ← BACK TO CART
           </Link>
-          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '32px', color: 'var(--espresso)', letterSpacing: '0.1em', marginTop: '16px', marginBottom: '16px' }}>
-            CHECKOUT
+          <h1 className="display-serif" style={{ fontSize: 'var(--text-3xl)', color: 'var(--color-ink)', marginTop: '24px', marginBottom: '24px' }}>
+            Checkout
           </h1>
-          <div className="gold-rule" style={{ margin: '0 auto' }} />
+          <div style={{ width: '40px', height: '1px', backgroundColor: 'var(--color-ink)', margin: '0 auto' }} />
         </div>
 
         <div style={{ display: 'flex', gap: '64px', alignItems: 'flex-start', flexWrap: 'wrap' }}>

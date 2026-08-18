@@ -75,15 +75,8 @@ export default async function Home() {
   return (
     <>
       <HeroSection />
-      <TrustBar />
-      <CategoryGrid />
       <FeaturedProducts />
-      <EditorialBanner />
-      <BestsellerSlider />
-      <LookbookStrip />
-      <BrandStory />
-      <Testimonials />
-      <NewsletterSection />
+      <CategoryGrid />
     </>
   );
 }

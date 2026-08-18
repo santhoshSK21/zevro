@@ -89,8 +89,8 @@ async function runSeed() {
       const op = price + Math.floor(Math.random() * 500000) + 100000;
       
       const imgs = [
-        `https://picsum.photos/seed/${cat.slug}-${i}-A/800/1200`,
-        `https://picsum.photos/seed/${cat.slug}-${i}-B/800/1200`
+        i === 0 ? '/pdp_hero_1.png' : i === 1 ? '/pdp_hero_2.png' : `https://picsum.photos/seed/${cat.slug}-${i}-A/800/1200`,
+        i === 0 ? '/pdp_hero_2.png' : i === 1 ? '/pdp_hero_1.png' : `https://picsum.photos/seed/${cat.slug}-${i}-B/800/1200`
       ];
       
       productsToInsert.push({

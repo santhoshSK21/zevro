@@ -132,31 +132,28 @@ export default function ProductGrid({ initialCategory, eyebrow = 'Our Edit', tit
 
       <style dangerouslySetInnerHTML={{__html: `
         .pgrid-wrapper {
-          padding: var(--space-8) 0;
+          padding: 0;
         }
         .pgrid-header {
           text-align: center;
-          margin-bottom: var(--space-12);
+          margin-bottom: var(--space-8);
+          padding-top: var(--space-12);
         }
         .pgrid-title {
-          font-size: var(--text-3xl);
+          font-size: var(--text-xl);
           color: var(--color-ink);
-          margin-top: var(--space-3);
+          text-transform: uppercase;
+          letter-spacing: var(--tracking-wider);
         }
         .pgrid {
           display: grid;
           grid-template-columns: repeat(3, 1fr);
-          gap: var(--grid-gap);
-        }
-        .pgrid > *:nth-child(3n) {
-          margin-top: 40px;
+          gap: 2px;
+          background-color: var(--color-bg);
         }
         @media (max-width: 1024px) {
           .pgrid {
             grid-template-columns: repeat(2, 1fr);
-          }
-          .pgrid > *:nth-child(3n) {
-            margin-top: 0;
           }
         }
         @media (max-width: 480px) {

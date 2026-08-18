@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Cormorant_Garamond, Jost, DM_Mono } from 'next/font/google';
+import { Playfair_Display, Inter } from 'next/font/google';
 import "../styles/variables.css";
 import "../styles/animations.css";
 import "../styles/globals.css";
@@ -12,23 +12,19 @@ import CartDrawer from "../components/layout/CartDrawer";
 import CartSync from "../components/layout/CartSync";
 import Footer from "../components/layout/Footer";
 
-const cormorant = Cormorant_Garamond({
+const playfair = Playfair_Display({
   subsets: ['latin'],
-  weight: ['300','400','500','600'],
+  weight: ['400','500','600'],
   style: ['normal','italic'],
-  variable: '--font-display'
+  variable: '--font-display',
+  display: 'swap',
 });
 
-const jost = Jost({
-  subsets: ['latin'],
-  weight: ['300','400','500','600'],
-  variable: '--font-body'
-});
-
-const dmMono = DM_Mono({
+const inter = Inter({
   subsets: ['latin'],
   weight: ['300','400','500'],
-  variable: '--font-mono'
+  variable: '--font-body',
+  display: 'swap',
 });
 
 export const metadata: Metadata = {
@@ -42,7 +38,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${cormorant.variable} ${jost.variable} ${dmMono.variable}`}>
+    <html lang="en" className={`${playfair.variable} ${inter.variable}`}>
       <body>
         <Providers>
           <CartSync />
