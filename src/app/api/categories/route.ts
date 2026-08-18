@@ -1,4 +1,6 @@
 import { NextResponse } from 'next/server';
+import dbConnect from '../../../lib/mongodb';
+import { Category } from '../../../models/Category';
 import { categories } from '../../../lib/mockData';
 import { assertAdminAccess } from '../../../lib/adminAuth';
 

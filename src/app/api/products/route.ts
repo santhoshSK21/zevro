@@ -1,4 +1,7 @@
 import { NextResponse } from 'next/server';
+import dbConnect from '../../../lib/mongodb';
+import { Product } from '../../../models/Product';
+import { assertAdminAccess } from '../../../lib/adminAuth';
 import { productsToInsert } from '../../../lib/mockData';
 
 export async function GET(request: Request) {
