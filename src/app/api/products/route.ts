@@ -1,30 +1,26 @@
 import { NextResponse } from 'next/server';
-import dbConnect from '../../../lib/mongodb';
-import { Product } from '../../../models/Product';
-import { assertAdminAccess } from '../../../lib/adminAuth';
+import { productsToInsert } from '../../../lib/mockData';
 
 export async function GET(request: Request) {
   try {
-    await dbConnect();
     const { searchParams } = new URL(request.url);
     const category = searchParams.get('category');
     const sort = searchParams.get('sort');
     const q = searchParams.get('q');
     
-    let query: any = {};
-    if (category) query.category = category;
+    let products = [...productsToInsert];
+
+    if (category) {
+      products = products.filter(p => p.category === category);
+    }
     if (q) {
-      query.$or = [
-        { name: { $regex: q, $options: 'i' } },
-        { description: { $regex: q, $options: 'i' } }
-      ];
+      const query = q.toLowerCase();
+      products = products.filter(p => p.name.toLowerCase().includes(query) || p.description.toLowerCase().includes(query));
     }
     
-    let sortOption: any = { createdAt: -1 };
-    if (sort === 'price_asc') sortOption = { price: 1 };
-    if (sort === 'price_desc') sortOption = { price: -1 };
+    if (sort === 'price_asc') products.sort((a, b) => a.price - b.price);
+    if (sort === 'price_desc') products.sort((a, b) => b.price - a.price);
     
-    const products = await Product.find(query).sort(sortOption).lean();
     return NextResponse.json(products);
   } catch (error) {
     return NextResponse.json({ error: 'Failed to fetch products' }, { status: 500 });

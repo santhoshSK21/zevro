@@ -1,13 +1,9 @@
 import { NextResponse } from 'next/server';
-import dbConnect from '../../../lib/mongodb';
-import { Category } from '../../../models/Category';
+import { categories } from '../../../lib/mockData';
 import { assertAdminAccess } from '../../../lib/adminAuth';
 
 export async function GET() {
   try {
-    await dbConnect();
-    // Return all categories populated with subcategories (children) if they exist
-    const categories = await Category.find().sort({ sortOrder: 1, name: 1 }).lean();
     return NextResponse.json(categories);
   } catch (error) {
     return NextResponse.json({ error: 'Failed to fetch categories' }, { status: 500 });

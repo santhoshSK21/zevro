@@ -3,17 +3,14 @@ import ProductGallery from '../../../components/product/ProductGallery';
 import ProductInfo from '../../../components/product/ProductInfo';
 import ProductAccordion from '../../../components/product/ProductAccordion';
 import RelatedProducts from '../../../components/product/RelatedProducts';
-import dbConnect from '../../../lib/mongodb';
-import { Product } from '../../../models/Product';
 import { notFound } from 'next/navigation';
+import { productsToInsert } from '../../../lib/mockData';
 
 export default async function ProductDetailPage({ params }: { params: Promise<{ slug: string }> }) {
-  await dbConnect();
-  
   // Use param explicitly via await to comply with Next.js 15+ async params
   const { slug } = await params;
   
-  const productDoc = await Product.findOne({ slug }).lean();
+  const productDoc = productsToInsert.find(p => p.slug === slug);
   
   if (!productDoc) {
     notFound();
