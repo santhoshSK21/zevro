@@ -84,8 +84,12 @@ export default function Navbar() {
         </nav>
 
         <div className="nav-logo-wrap">
-          <Link href="/" className="nav-logo" style={{ color: '#1A1A1A', textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
-            ZEVRO
+          <Link href="/" className="nav-logo" aria-label="Zevro home">
+            <img
+              src="/logot.png"
+              alt="Zevro logo"
+              className="nav-logo-img"
+            />
           </Link>
         </div>
 
@@ -131,11 +135,14 @@ export default function Navbar() {
           text-align: center;
         }
         .nav-logo {
-          font-family: var(--font-display);
-          font-size: var(--text-xl);
-          letter-spacing: var(--tracking-wide);
-          font-weight: 400;
-          text-transform: uppercase;
+          display: inline-flex;
+          align-items: center;
+          text-decoration: none;
+        }
+        .nav-logo-img {
+          height: 48px;
+          width: auto;
+          display: block;
         }
         .nav-links {
           display: flex;

@@ -16,7 +16,7 @@ export default function HeroSection() {
           alt="Zevro editorial hero"
           fill
           priority
-          style={{ objectFit: 'cover' }}
+          style={{ objectFit: 'cover', objectPosition: 'top' }}
         />
       </div>
 
