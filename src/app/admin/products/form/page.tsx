@@ -6,7 +6,7 @@ import MediaManager from '../../../../components/admin/MediaManager';
 
 const SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
 
-export default function AdminProductFormPage() {
+function AdminProductFormContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const id = searchParams.get('id');
@@ -423,5 +423,13 @@ export default function AdminProductFormPage() {
         )}
       </form>
     </div>
+  );
+}
+
+export default function AdminProductFormPage() {
+  return (
+    <React.Suspense fallback={<div style={{ padding: '48px', textAlign: 'center' }}>Loading...</div>}>
+      <AdminProductFormContent />
+    </React.Suspense>
   );
 }
