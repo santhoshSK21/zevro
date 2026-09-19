@@ -50,14 +50,12 @@ const DynamicBlock = ({ block }: { block: any }) => {
 };
 
 export default async function Home() {
-  await dbConnect();
-  
-  // Try to fetch dynamic 'home' page layout built in the Admin Panel
   let homePage: IPage | null = null;
   try {
+    await dbConnect();
     homePage = await Page.findOne({ slug: 'home' }).lean();
   } catch (error) {
-    console.error("Failed to fetch dynamic home page layout", error);
+    // Database decoupled fallback
   }
 
   // If a published dynamic page exists and has blocks, render it

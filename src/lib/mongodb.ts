@@ -27,16 +27,26 @@ async function dbConnect() {
 
     let uriToConnect = MONGODB_URI;
     
-    // Fallback to in-memory DB if the provided URI is a placeholder
+    // Only attempt in-memory DB in local development if binary is available
     if (!uriToConnect || uriToConnect.includes('USERNAME:PASSWORD')) {
-      console.log('Using fallback in-memory MongoDB because MONGODB_URI is a placeholder or not set.');
-      if (!mongoServer) {
-        mongoServer = await MongoMemoryServer.create();
+      if (process.env.NODE_ENV !== 'production') {
+        try {
+          if (!mongoServer) {
+            mongoServer = await MongoMemoryServer.create();
+          }
+          uriToConnect = mongoServer.getUri();
+        } catch (memErr) {
+          console.warn('Memory MongoDB server unavailable:', memErr);
+        }
       }
-      uriToConnect = mongoServer.getUri();
     }
 
-    cached.promise = mongoose.connect(uriToConnect!, opts).then((mongoose) => {
+    if (!uriToConnect) {
+      console.warn('MONGODB_URI is not defined. Proceeding in decoupled mode.');
+      return null;
+    }
+
+    cached.promise = mongoose.connect(uriToConnect, opts).then((mongoose) => {
       return mongoose;
     });
   }
@@ -45,7 +55,8 @@ async function dbConnect() {
     cached.conn = await cached.promise;
   } catch (e) {
     cached.promise = null;
-    throw e;
+    console.warn('MongoDB connection error:', e);
+    return null;
   }
 
   return cached.conn;
