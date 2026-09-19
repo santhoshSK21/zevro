@@ -11,12 +11,14 @@ export default async function CategoryPage({ params }: { params: Promise<{ categ
     <div style={{ backgroundColor: 'var(--color-bg)', minHeight: '100vh', paddingTop: '100px' }}>
       
       {/* Page Header */}
-      <div className="container" style={{ textAlign: 'center', marginBottom: '40px' }}>
-        <p className="label-caps" style={{ marginBottom: 'var(--space-4)' }}>Shop</p>
-        <h1 className="display-serif" style={{ fontSize: 'var(--text-2xl)', color: 'var(--color-ink)' }}>
+      <div className="container" style={{ textAlign: 'center', marginBottom: '64px' }}>
+        <p className="label-caps" style={{ marginBottom: 'var(--space-2)' }}>Shop</p>
+        <h1 className="display-serif" style={{ fontSize: 'var(--text-3xl)', color: 'var(--color-ink)', marginBottom: '16px' }}>
           {categoryName}
         </h1>
-        <div className="divider" style={{ width: '48px', margin: 'var(--space-6) auto 0' }} />
+        <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--text-base)', color: 'var(--color-ink-muted)' }}>
+          Tradition in a modern light. Explore our curated selection.
+        </p>
       </div>
 
       <div className="container" style={{ display: 'flex', gap: '32px', alignItems: 'flex-start' }}>

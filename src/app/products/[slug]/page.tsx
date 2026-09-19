@@ -7,7 +7,7 @@ import ProductAccordion from '../../../components/product/ProductAccordion';
 import RelatedProducts from '../../../components/product/RelatedProducts';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { productsToInsert } from '../../../lib/mockData';
+
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -18,28 +18,44 @@ export default function ProductDetailPage() {
 
   useEffect(() => {
     if (!slug) return;
-    const productDoc = productsToInsert.find(p => p.slug === slug);
-    if (!productDoc) {
-      setNotFound(true);
-      return;
+    
+    let isMounted = true;
+    
+    async function fetchProduct() {
+      try {
+        const res = await fetch(`/api/products/by-slug/${slug}`);
+        if (!res.ok) {
+          if (isMounted) setNotFound(true);
+          return;
+        }
+        const productDoc = await res.json();
+        if (!isMounted) return;
+        
+        const firstVariantImages = productDoc.variants?.[0]?.images || productDoc.images || [];
+        setProduct({
+          _id: productDoc._id?.toString() || productDoc.slug,
+          slug: productDoc.slug,
+          name: productDoc.name,
+          price: productDoc.price,
+          originalPrice: productDoc.originalPrice,
+          category: productDoc.category,
+          description: productDoc.description,
+          material: productDoc.material,
+          careInstructions: productDoc.careInstructions,
+          avgRating: productDoc.avgRating,
+          reviewCount: productDoc.reviewCount,
+          reviews: productDoc.reviews,
+          variants: productDoc.variants,
+        });
+        setGalleryImages(firstVariantImages);
+      } catch (error) {
+        console.error('Failed to fetch product:', error);
+        if (isMounted) setNotFound(true);
+      }
     }
-    const firstVariantImages = productDoc.variants?.[0]?.images || [];
-    setProduct({
-      _id: productDoc._id?.toString() || productDoc.slug,
-      slug: productDoc.slug,
-      name: productDoc.name,
-      price: productDoc.price,
-      originalPrice: productDoc.originalPrice,
-      category: productDoc.category,
-      description: productDoc.description,
-      material: productDoc.material,
-      careInstructions: productDoc.careInstructions,
-      avgRating: productDoc.avgRating,
-      reviewCount: productDoc.reviewCount,
-      reviews: productDoc.reviews,
-      variants: productDoc.variants,
-    });
-    setGalleryImages(firstVariantImages);
+    
+    fetchProduct();
+    return () => { isMounted = false; };
   }, [slug]);
 
   if (notFound) {

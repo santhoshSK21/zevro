@@ -2,8 +2,6 @@
 
 import React, { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import Navbar from '../../components/layout/Navbar';
-import Footer from '../../components/layout/Footer';
 import ProductCard from '../../components/product/ProductCard';
 
 function SearchResults() {
@@ -58,11 +56,9 @@ function SearchResults() {
 export default function SearchPage() {
   return (
     <div style={{ backgroundColor: 'var(--ivory)', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <Navbar />
       <Suspense fallback={<div style={{ padding: '80px', textAlign: 'center' }}>Loading...</div>}>
         <SearchResults />
       </Suspense>
-      <Footer />
     </div>
   );
 }

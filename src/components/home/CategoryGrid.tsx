@@ -45,7 +45,7 @@ export default function CategoryGrid() {
           viewport={{ once: true }}
           transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
         >
-          <h2 className="display-serif catgrid-title">Shop by Category</h2>
+          <h2 className="display-serif catgrid-title">CURATED FOR EVERY YOU</h2>
         </motion.div>
       </div>
       <div className="catgrid-grid">

@@ -18,6 +18,13 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       return NextResponse.json({ error: 'Invalid product data' }, { status: 400 });
     }
 
+    // Sync status and isActive
+    if (body.status) {
+      body.isActive = (body.status === 'ACTIVE');
+    } else if (body.isActive !== undefined) {
+      body.status = body.isActive ? 'ACTIVE' : 'DRAFT';
+    }
+
     const product = await Product.findByIdAndUpdate(resolvedParams.id, body, { new: true, runValidators: true });
     if (!product) return NextResponse.json({ error: 'Product not found' }, { status: 404 });
     

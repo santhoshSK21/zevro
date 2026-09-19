@@ -38,7 +38,7 @@ export default function CartDrawer() {
           {items.length === 0 ? (
             <div style={{ textAlign: 'center', margin: 'auto' }}>
               <p style={{ color: 'var(--color-ink-muted)', marginBottom: '24px' }}>Your cart is empty.</p>
-              <button onClick={closeDrawer} className="btn btn-outline-dark">SHOP NOW</button>
+              <button onClick={closeDrawer} className="btn btn-ghost">SHOP NOW</button>
             </div>
           ) : (
             items.map((item) => (
@@ -83,8 +83,8 @@ export default function CartDrawer() {
               Shipping & taxes calculated at checkout
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <Link href="/cart" onClick={closeDrawer} className="btn btn-outline-dark" style={{ width: '100%' }}>VIEW CART</Link>
-              <Link href="/checkout" onClick={closeDrawer} className="btn btn-primary" style={{ width: '100%' }}>CHECKOUT</Link>
+              <Link href="/cart" onClick={closeDrawer} style={{ width: '100%', background: 'transparent', color: 'var(--color-ink)', border: '1px solid var(--color-ink)', padding: '14px', fontFamily: 'var(--font-ui)', fontSize: '11px', letterSpacing: '0.15em', textTransform: 'uppercase', textAlign: 'center', textDecoration: 'none' }}>VIEW CART</Link>
+              <Link href="/checkout" onClick={closeDrawer} style={{ width: '100%', background: 'var(--color-ink)', color: 'var(--color-white)', border: '1px solid var(--color-ink)', padding: '14px', fontFamily: 'var(--font-ui)', fontSize: '11px', letterSpacing: '0.15em', textTransform: 'uppercase', textAlign: 'center', textDecoration: 'none' }}>CHECKOUT</Link>
             </div>
           </div>
         )}

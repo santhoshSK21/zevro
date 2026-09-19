@@ -10,7 +10,7 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const productId = searchParams.get('productId');
     
-    const query = productId ? { productId, isApproved: true } : {};
+    const query: any = productId ? { productId, status: 'APPROVED' } : {};
     const reviews = await Review.find(query).sort({ createdAt: -1 }).lean();
     
     return NextResponse.json(reviews);
@@ -31,7 +31,7 @@ export async function POST(request: Request) {
       ...body,
       userId: session.user.id,
       userName: session.user.name || 'Anonymous',
-      isApproved: false // Requires admin approval
+      status: 'PENDING' // Requires admin approval
     });
     
     // Note: Average rating update usually happens when approved (via admin route or mongoose hook)

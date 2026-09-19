@@ -53,6 +53,19 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
             />
           )}
         </Link>
+        
+        <button 
+          className="pcard-wishlist-btn"
+          aria-label="Add to wishlist"
+          onClick={(e) => {
+            e.preventDefault();
+            // TODO: integrate with wishlist store
+          }}
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+          </svg>
+        </button>
       </div>
 
       <div className="pcard-info">
@@ -98,6 +111,30 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
           display: flex;
           align-items: center;
           justify-content: center;
+        }
+        .pcard-wishlist-btn {
+          position: absolute;
+          top: 12px;
+          right: 12px;
+          z-index: 10;
+          background: rgba(255,255,255,0.8);
+          border: none;
+          width: 32px;
+          height: 32px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          color: var(--color-ink);
+          opacity: 0;
+          transform: translateY(4px);
+          transition: all 0.3s ease;
+          backdrop-filter: blur(4px);
+        }
+        .pcard:hover .pcard-wishlist-btn {
+          opacity: 1;
+          transform: translateY(0);
         }
         .pcard-info {
           padding-top: var(--space-3);

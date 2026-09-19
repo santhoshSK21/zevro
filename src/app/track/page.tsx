@@ -1,59 +1,79 @@
 'use client';
 
 import React, { useState, Suspense } from 'react';
-import Navbar from '../../components/layout/Navbar';
-import Footer from '../../components/layout/Footer';
-import { useSearchParams } from 'next/navigation';
 
 function TrackContent() {
-  const searchParams = useSearchParams();
-  const initialOrderId = searchParams.get('orderId') || '';
-  const [orderId, setOrderId] = useState(initialOrderId);
+  const [orderId, setOrderId] = useState('');
+  const [email, setEmail] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [result, setResult] = useState<any>(null);
+  const [error, setError] = useState('');
 
-  const handleTrack = (e: React.FormEvent) => {
+  const handleTrack = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!orderId) return;
-    setIsSearching(true);
+    if (!orderId || !email) return;
     
-    // Simulate API call for demo mode
-    setTimeout(() => {
-      setResult({
-        id: orderId,
-        status: 'shipped',
-        estimatedDelivery: 'Thu, 24 Oct 2026',
-        timeline: [
-          { status: 'Order Placed', message: 'We have received your order.', time: '18 Oct 2026, 10:30 AM', completed: true },
-          { status: 'Processing', message: 'Your order is being prepared for dispatch.', time: '19 Oct 2026, 02:15 PM', completed: true },
-          { status: 'Shipped', message: 'Your package has been handed over to Delhivery.', time: '20 Oct 2026, 09:00 AM', completed: true, active: true },
-          { status: 'Out for Delivery', message: 'Your package is out for delivery.', time: '', completed: false },
-          { status: 'Delivered', message: 'Your package has been delivered.', time: '', completed: false },
-        ],
-        items: [
-          { name: 'Banarasi Silk Saree in Deep Maroon', qty: 1, image: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=400' }
-        ]
+    setIsSearching(true);
+    setError('');
+    setResult(null);
+    
+    try {
+      const res = await fetch('/api/track', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId, email })
       });
+      
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to track order');
+      }
+      
+      setResult(data);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
       setIsSearching(false);
-    }, 1000);
+    }
   };
 
   return (
     <main className="container" style={{ padding: '80px 24px', maxWidth: '800px', margin: '0 auto', flex: 1, width: '100%' }}>
       <h1 className="section-title" style={{ textAlign: 'center', marginBottom: '40px' }}>TRACK YOUR ORDER</h1>
       
-      <form onSubmit={handleTrack} style={{ display: 'flex', gap: '16px', marginBottom: '64px' }}>
-        <input 
-          type="text" 
-          placeholder="Enter Order ID or AWB Number" 
-          value={orderId}
-          onChange={(e) => setOrderId(e.target.value)}
-          className="input-field"
-          style={{ flex: 1 }}
-        />
-        <button type="submit" className="btn btn-primary" disabled={isSearching || !orderId}>
-          {isSearching ? 'TRACKING...' : 'TRACK'}
+      <p style={{ textAlign: 'center', color: 'var(--warm-grey)', marginBottom: '32px' }}>
+        Please enter your Order ID and the Email Address used during checkout to track your order.
+      </p>
+
+      <form onSubmit={handleTrack} style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '64px', maxWidth: '500px', margin: '0 auto 64px auto' }}>
+        <div>
+          <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, marginBottom: '8px', letterSpacing: '0.05em' }}>ORDER ID</label>
+          <input 
+            type="text" 
+            placeholder="e.g. ZEVRO-2026-12345" 
+            value={orderId}
+            onChange={(e) => setOrderId(e.target.value)}
+            className="input-field"
+            style={{ width: '100%' }}
+            required
+          />
+        </div>
+        <div>
+          <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, marginBottom: '8px', letterSpacing: '0.05em' }}>EMAIL ADDRESS</label>
+          <input 
+            type="email" 
+            placeholder="e.g. you@example.com" 
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="input-field"
+            style={{ width: '100%' }}
+            required
+          />
+        </div>
+        <button type="submit" className="btn btn-primary" disabled={isSearching || !orderId || !email} style={{ marginTop: '16px' }}>
+          {isSearching ? 'TRACKING...' : 'TRACK ORDER'}
         </button>
+        {error && <p style={{ color: 'var(--error)', textAlign: 'center', marginTop: '16px', fontSize: '14px' }}>{error}</p>}
       </form>
 
       {result && (
@@ -64,24 +84,27 @@ function TrackContent() {
               <p className="order-id" style={{ fontSize: '18px', fontWeight: 600 }}>{result.id}</p>
             </div>
             <div style={{ textAlign: 'right' }}>
-              <p style={{ fontSize: '12px', textTransform: 'uppercase', color: 'var(--warm-grey)' }}>Estimated Delivery</p>
-              <p style={{ fontSize: '18px', fontWeight: 500, color: 'var(--success)' }}>{result.estimatedDelivery}</p>
+              <p style={{ fontSize: '12px', textTransform: 'uppercase', color: 'var(--warm-grey)' }}>Current Status</p>
+              <p style={{ fontSize: '18px', fontWeight: 500, color: 'var(--espresso)', textTransform: 'capitalize' }}>{result.status}</p>
             </div>
           </div>
 
           <div className="tracking-timeline">
             {result.timeline.map((step: any, idx: number) => (
               <div key={idx} className={`timeline-step ${step.completed ? 'completed' : ''}`}>
-                <div className={`timeline-dot ${step.completed ? 'completed' : ''} ${step.active ? 'active' : ''}`}>
+                <div className={`timeline-dot ${step.completed ? 'completed' : ''} ${idx === result.timeline.length -1 ? 'active' : ''}`}>
                   {step.completed && <span style={{ color: 'var(--white)', fontSize: '10px' }}>✓</span>}
                 </div>
                 {idx !== result.timeline.length - 1 && <div className="timeline-line"></div>}
                 
-                <h4 style={{ fontFamily: 'var(--font-display)', fontSize: '18px', color: step.completed ? 'var(--espresso)' : 'var(--warm-grey)', margin: '0 0 4px' }}>{step.status}</h4>
+                <h4 style={{ fontFamily: 'var(--font-display)', fontSize: '18px', color: step.completed ? 'var(--espresso)' : 'var(--warm-grey)', margin: '0 0 4px', textTransform: 'capitalize' }}>{step.status}</h4>
                 <p style={{ fontSize: '13px', color: 'var(--warm-grey)', margin: '0 0 4px' }}>{step.message}</p>
                 {step.time && <p style={{ fontSize: '11px', color: 'var(--warm-grey)', fontFamily: 'var(--font-mono)' }}>{step.time}</p>}
               </div>
             ))}
+            {result.timeline.length === 0 && (
+              <p style={{ color: 'var(--warm-grey)' }}>No tracking updates available yet.</p>
+            )}
           </div>
         </div>
       )}
@@ -92,11 +115,9 @@ function TrackContent() {
 export default function TrackPage() {
   return (
     <div style={{ backgroundColor: 'var(--ivory)', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <Navbar />
       <Suspense fallback={<div style={{ padding: '80px', textAlign: 'center' }}>Loading...</div>}>
         <TrackContent />
       </Suspense>
-      <Footer />
     </div>
   );
 }

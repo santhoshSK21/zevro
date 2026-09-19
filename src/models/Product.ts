@@ -46,6 +46,8 @@ const ProductSchema = new Schema({
   isNewArrival:  { type: Boolean, default: false },
   isBestseller:  { type: Boolean, default: false },
   isActive:      { type: Boolean, default: true },
+  collections: [{ type: Schema.Types.ObjectId, ref: 'Collection' }],
+  status: { type: String, enum: ['DRAFT', 'ACTIVE', 'ARCHIVED'], default: 'DRAFT' },
   
   weight: Number,   // grams
   hsn: String,

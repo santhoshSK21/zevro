@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import SizeSelector from './SizeSelector';
 import { useCartStore } from '../../store/cartStore';
 import { useRouter } from 'next/navigation';
+import { useUiStore } from '../../store/uiStore';
 
 interface Variant {
   colorName: string;
@@ -73,13 +74,20 @@ export default function ProductInfo({ product, onColorChange }: ProductInfoProps
   });
 
   const handleAddToCart = () => {
-    if (!selectedSize) { alert('Please select a size.'); return; }
+    if (!selectedSize) { 
+      useUiStore.getState().addToast('Please select a size', 'error'); 
+      return; 
+    }
     addItem(buildCartItem());
+    useUiStore.getState().addToast('Added to bag');
     openDrawer();
   };
 
   const handleBuyNow = () => {
-    if (!selectedSize) { alert('Please select a size.'); return; }
+    if (!selectedSize) { 
+      useUiStore.getState().addToast('Please select a size', 'error'); 
+      return; 
+    }
     addItem(buildCartItem());
     router.push('/checkout');
   };

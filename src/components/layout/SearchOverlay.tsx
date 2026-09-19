@@ -38,14 +38,14 @@ export default function SearchOverlay() {
   return (
     <div style={{
       position: 'fixed', inset: 0, zIndex: 2000,
-      backgroundColor: 'rgba(250, 247, 242, 0.98)',
+      backgroundColor: 'var(--color-bg)',
       animation: 'fadeIn 0.3s ease forwards',
       display: 'flex', flexDirection: 'column'
     }}>
       <div className="container" style={{ paddingTop: '64px', position: 'relative' }}>
         <button 
           onClick={() => setSearchOpen(false)}
-          style={{ position: 'absolute', top: '32px', right: '32px', fontSize: '24px' }}
+          style={{ position: 'absolute', top: '32px', right: '32px', fontSize: '24px', color: 'var(--color-ink)' }}
         >
           ✕
         </button>
@@ -61,36 +61,46 @@ export default function SearchOverlay() {
               width: '100%',
               background: 'transparent',
               border: 'none',
-              borderBottom: '2px solid var(--espresso)',
-              fontSize: 'clamp(24px, 4vw, 40px)',
+              borderBottom: '1px solid var(--color-ink)',
+              fontSize: 'clamp(32px, 5vw, 48px)',
               fontFamily: 'var(--font-display)',
-              padding: '16px 0',
+              padding: '24px 0',
               outline: 'none',
-              color: 'var(--espresso)'
+              color: 'var(--color-ink)'
             }}
           />
         </form>
 
         <div style={{ width: '100%', maxWidth: '800px', margin: '48px auto 0' }}>
-          <h4 style={{ fontSize: '10px', letterSpacing: '0.2em', color: 'var(--warm-grey)', marginBottom: '16px' }}>TRENDING SEARCHES</h4>
-          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-            {['Silk Sarees', 'Party Wear Dresses', 'Kundan Jewellery', 'Festive Kurtis'].map(term => (
+          <p className="label-caps" style={{ color: 'var(--color-ink-muted)', marginBottom: '24px' }}>Popular Searches</p>
+          <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+            {['Sarees', 'Dresses', 'Accessories', 'New Arrivals'].map(term => (
               <button 
                 key={term}
-                onClick={() => { setQuery(term); router.push(`/search?q=${encodeURIComponent(term)}`); setSearchOpen(false); }}
-                style={{
-                  padding: '8px 16px',
-                  borderRadius: '20px',
-                  border: '1px solid var(--linen)',
-                  fontSize: '12px',
-                  backgroundColor: '#fff'
+                onClick={() => {
+                  setQuery(term);
+                  router.push(`/search?q=${encodeURIComponent(term)}`);
+                  setSearchOpen(false);
                 }}
+                style={{ 
+                  background: 'transparent', 
+                  border: '1px solid var(--color-stone)', 
+                  padding: '12px 24px', 
+                  fontFamily: 'var(--font-body)', 
+                  fontSize: '13px', 
+                  color: 'var(--color-ink)', 
+                  cursor: 'pointer',
+                  transition: 'background 0.2s'
+                }}
+                onMouseEnter={e => e.currentTarget.style.background = 'var(--color-surface)'}
+                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
               >
                 {term}
               </button>
             ))}
           </div>
         </div>
+
       </div>
 
       <style dangerouslySetInnerHTML={{__html: `

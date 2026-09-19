@@ -1,11 +1,8 @@
 import React from 'react';
-import Navbar from '../../components/layout/Navbar';
-import Footer from '../../components/layout/Footer';
 
 export default function AboutPage() {
   return (
     <div style={{ backgroundColor: 'var(--ivory)', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <Navbar />
       
       <main style={{ flex: 1 }}>
         <div style={{ position: 'relative', height: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -32,7 +29,6 @@ export default function AboutPage() {
         </div>
       </main>
 
-      <Footer />
     </div>
   );
 }

@@ -6,6 +6,14 @@ export default function Footer() {
   return (
     <footer className="zevro-footer">
       <div className="container footer-columns">
+        <div className="footer-col brand-col">
+          <h3 className="footer-brand">ZEVRO</h3>
+          <p className="footer-brand-statement">
+            Modern silhouettes. Timeless traditions.<br />
+            Crafted for the woman who does it all.
+          </p>
+        </div>
+
         <div className="footer-col">
           <h4 className="label-caps footer-col-heading">Help</h4>
           <ul className="footer-link-list">
@@ -53,9 +61,22 @@ export default function Footer() {
         }
         .footer-columns {
           display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: var(--space-12);
+          grid-template-columns: 2fr 1fr 1fr 1fr;
+          gap: var(--space-8);
           margin-bottom: var(--space-16);
+        }
+        .footer-brand {
+          font-family: var(--font-display);
+          font-size: 20px;
+          margin-bottom: var(--space-4);
+          color: var(--color-ink);
+        }
+        .footer-brand-statement {
+          font-family: var(--font-body);
+          font-size: 11px;
+          line-height: 1.6;
+          color: var(--color-ink-muted);
+          max-width: 250px;
         }
         .footer-col-heading {
           margin-bottom: var(--space-4);

@@ -11,6 +11,7 @@ import SearchOverlay from "../components/layout/SearchOverlay";
 import CartDrawer from "../components/layout/CartDrawer";
 import CartSync from "../components/layout/CartSync";
 import Footer from "../components/layout/Footer";
+import ToastProvider from "../components/ui/ToastProvider";
 
 const playfair = Playfair_Display({
   subsets: ['latin'],
@@ -30,7 +31,13 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "ZEVRO | WEAR TO INSPIRE",
   description: "Premium Indian fashion — Western Wear, Ethnic Wear, Indo-Western, Accessories",
+  icons: {
+    icon: '/favicon.png',
+    shortcut: '/favicon.png',
+    apple: '/favicon.png',
+  },
 };
+
 
 export default function RootLayout({
   children,
@@ -51,6 +58,7 @@ export default function RootLayout({
             {children}
           </main>
           <Footer />
+          <ToastProvider />
         </Providers>
       </body>
     </html>

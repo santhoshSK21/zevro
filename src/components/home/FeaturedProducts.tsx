@@ -28,17 +28,39 @@ export default function FeaturedProducts() {
             <h2 className="section-title">NEW ARRIVALS</h2>
             <div className="gold-rule" />
           </div>
-          <Link href="/new-in" style={{ fontSize: '11px', letterSpacing: '0.1em', fontWeight: 500, color: 'var(--espresso)', paddingBottom: '8px', borderBottom: '1px solid var(--espresso)' }}>
+          <Link href="/products?category=new-in" style={{ fontSize: '11px', letterSpacing: '0.1em', fontWeight: 500, color: 'var(--color-ink)', paddingBottom: '8px', borderBottom: '1px solid var(--color-ink)' }}>
             VIEW ALL
           </Link>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '24px' }}>
+        <div className="product-grid-4">
           {products.map((p) => (
-             <ProductCard key={p.slug || p._id} product={p} />
+             <div key={p.slug || p._id} style={{ background: 'var(--color-bg)' }}>
+               <ProductCard product={p} />
+             </div>
           ))}
         </div>
       </div>
+      <style dangerouslySetInnerHTML={{__html: `
+        .product-grid-4 {
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          gap: var(--grid-gap, 1px);
+          background: var(--color-stone);
+          border-top: 1px solid var(--color-stone);
+          border-bottom: 1px solid var(--color-stone);
+        }
+        @media (max-width: 1024px) {
+          .product-grid-4 {
+            grid-template-columns: repeat(2, 1fr);
+          }
+        }
+        @media (max-width: 640px) {
+          .product-grid-4 {
+            grid-template-columns: 1fr;
+          }
+        }
+      `}} />
     </section>
   );
 }

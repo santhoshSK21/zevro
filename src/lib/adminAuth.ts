@@ -6,7 +6,7 @@ export async function assertAdminAccess(): Promise<boolean> {
   try {
     // 1. Check NextAuth session
     const session = await auth();
-    if (session?.user?.role === 'admin') {
+    if (session?.user?.role === 'admin' || session?.user?.role === 'super-admin') {
       return true;
     }
 
@@ -31,3 +31,31 @@ export async function assertAdminAccess(): Promise<boolean> {
     return false;
   }
 }
+
+export async function assertSuperAdminAccess(): Promise<boolean> {
+  try {
+    const session = await auth();
+    if (session?.user?.role === 'super-admin') {
+      return true;
+    }
+    return false;
+  } catch (error) {
+    return false;
+  }
+}
+
+export async function assertOwnership(resourceUserId: string): Promise<boolean> {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) return false;
+    
+    // Admins can access anything
+    if (await assertAdminAccess()) return true;
+    
+    // Users can access their own
+    return session.user.id === resourceUserId;
+  } catch (error) {
+    return false;
+  }
+}
+

@@ -17,27 +17,27 @@ export default function OrderSummary() {
     <div style={{ backgroundColor: '#fff', padding: '32px', boxShadow: 'var(--shadow-sm)', position: 'sticky', top: '100px' }}>
       <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '20px', letterSpacing: '0.1em', marginBottom: '24px' }}>ORDER SUMMARY</h3>
       
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '24px', borderBottom: '1px solid var(--linen)', paddingBottom: '24px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '24px', borderBottom: '1px solid var(--color-stone)', paddingBottom: '24px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
-          <span style={{ color: 'var(--warm-grey)' }}>Subtotal ({itemCount} items)</span>
-          <span style={{ fontFamily: 'var(--font-mono)' }}>₹{(total / 100).toLocaleString('en-IN')}</span>
+          <span style={{ color: 'var(--color-ink-muted)' }}>Subtotal ({itemCount} items)</span>
+          <span style={{ fontFamily: 'var(--font-ui)' }}>₹{(total / 100).toLocaleString('en-IN')}</span>
         </div>
         
         {savings > 0 && (
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', color: 'var(--success)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', color: '#2A7A2A' }}>
             <span>Discount</span>
-            <span style={{ fontFamily: 'var(--font-mono)' }}>−₹{(savings / 100).toLocaleString('en-IN')}</span>
+            <span style={{ fontFamily: 'var(--font-ui)' }}>−₹{(savings / 100).toLocaleString('en-IN')}</span>
           </div>
         )}
         
         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
-          <span style={{ color: 'var(--warm-grey)' }}>Estimated GST (5%)</span>
-          <span style={{ fontFamily: 'var(--font-mono)' }}>₹{(tax / 100).toLocaleString('en-IN')}</span>
+          <span style={{ color: 'var(--color-ink-muted)' }}>Estimated GST (5%)</span>
+          <span style={{ fontFamily: 'var(--font-ui)' }}>₹{(tax / 100).toLocaleString('en-IN')}</span>
         </div>
         
         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
-          <span style={{ color: 'var(--warm-grey)' }}>Shipping</span>
-          <span style={{ fontFamily: 'var(--font-mono)' }}>
+          <span style={{ color: 'var(--color-ink-muted)' }}>Shipping</span>
+          <span style={{ fontFamily: 'var(--font-ui)' }}>
             {shipping === 0 ? 'FREE' : `₹${(shipping / 100).toLocaleString('en-IN')}`}
           </span>
         </div>
@@ -45,7 +45,7 @@ export default function OrderSummary() {
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
         <span style={{ fontSize: '16px', fontWeight: 600 }}>Total</span>
-        <span style={{ fontFamily: 'var(--font-mono)', fontSize: '24px', fontWeight: 600 }}>
+        <span style={{ fontFamily: 'var(--font-ui)', fontSize: '24px', fontWeight: 600 }}>
           ₹{(finalTotal / 100).toLocaleString('en-IN')}
         </span>
       </div>
@@ -56,9 +56,9 @@ export default function OrderSummary() {
 
       <div style={{ marginTop: '24px', display: 'flex', gap: '16px', justifyContent: 'center' }}>
         {/* Payment Icons Placeholder */}
-        <span style={{ fontSize: '24px', color: 'var(--warm-grey)' }}>💳</span>
-        <span style={{ fontSize: '24px', color: 'var(--warm-grey)' }}>🏦</span>
-        <span style={{ fontSize: '24px', color: 'var(--warm-grey)' }}>📱</span>
+        <span style={{ fontSize: '24px', color: 'var(--color-ink-muted)' }}>💳</span>
+        <span style={{ fontSize: '24px', color: 'var(--color-ink-muted)' }}>🏦</span>
+        <span style={{ fontSize: '24px', color: 'var(--color-ink-muted)' }}>📱</span>
       </div>
     </div>
   );

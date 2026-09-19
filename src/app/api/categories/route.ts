@@ -1,12 +1,13 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '../../../lib/mongodb';
 import { Category } from '../../../models/Category';
-import { categories } from '../../../lib/mockData';
 import { assertAdminAccess } from '../../../lib/adminAuth';
 
 export async function GET() {
   try {
-    return NextResponse.json(categories);
+    await dbConnect();
+    const categoriesList = await Category.find().sort({ sortOrder: 1, createdAt: -1 }).lean();
+    return NextResponse.json(categoriesList);
   } catch (error) {
     return NextResponse.json({ error: 'Failed to fetch categories' }, { status: 500 });
   }

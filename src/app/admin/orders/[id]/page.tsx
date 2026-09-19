@@ -43,6 +43,14 @@ export default function OrderDetailPage() {
   };
 
   const handleUpdateFulfillment = async () => {
+    if (status === 'cancelled') {
+      const confirmCancel = window.confirm("Are you sure you want to cancel this order? This will release reserved inventory back to stock.");
+      if (!confirmCancel) {
+        setStatus(order.status); // revert
+        return;
+      }
+    }
+
     setSaving(true);
     try {
       const res = await fetch(`/api/orders/${id}`, {
@@ -54,16 +62,18 @@ export default function OrderDetailPage() {
             ...order.shipping,
             courierName: courier,
             trackingUrl: trackingUrl
-          },
-          triggerShipping: status === 'processing'
+          }
         })
       });
-      if (!res.ok) throw new Error('Failed to update');
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || 'Failed to update');
+      }
       const updated = await res.json();
       setOrder(updated);
       showToast('Order updated successfully', 'success');
-    } catch (e) {
-      showToast('Failed to update order', 'error');
+    } catch (e: any) {
+      showToast(e.message || 'Failed to update order', 'error');
     } finally {
       setSaving(false);
     }

@@ -1,5 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
+import ProductCard from '../../../components/product/ProductCard';
 
 export default function AccountWishlistPage() {
   const wishlistItems = [
@@ -8,7 +9,7 @@ export default function AccountWishlistPage() {
       name: 'Heavy Embroidered Anarkali in Ivory',
       price: 549900,
       image: 'https://picsum.photos/seed/wishlist-1/400/533',
-      slug: 'heavy-embroidered-anarkali-ivory'
+      slug: 'ethnic-wear-sarees-1'
     }
   ];
 
@@ -19,27 +20,22 @@ export default function AccountWishlistPage() {
       {wishlistItems.length === 0 ? (
         <div style={{ padding: '64px 24px', textAlign: 'center', backgroundColor: 'var(--color-bg)', border: '1px solid var(--color-stone)' }}>
           <p style={{ color: 'var(--color-ink-muted)', marginBottom: '24px' }}>Your wishlist is currently empty.</p>
-          <Link href="/products" className="btn btn-outline-dark">EXPLORE COLLECTIONS</Link>
+          <Link href="/products" className="btn btn-ghost">EXPLORE COLLECTIONS</Link>
         </div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '32px' }}>
           {wishlistItems.map(item => (
-            <div key={item.id} className="product-card" style={{ position: 'relative' }}>
-              <button style={{ position: 'absolute', top: '12px', right: '12px', zIndex: 10, background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--color-ink)' }}>
+            <div key={item.id} style={{ position: 'relative' }}>
+              <button style={{ position: 'absolute', top: '12px', right: '12px', zIndex: 20, width: '32px', height: '32px', background: 'rgba(255,255,255,0.8)', backdropFilter: 'blur(4px)', borderRadius: '50%', border: 'none', cursor: 'pointer', color: 'var(--color-ink)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 ✕
               </button>
-              <div className="image-wrapper" style={{ position: 'relative', aspectRatio: '3/4', overflow: 'hidden', backgroundColor: 'var(--color-surface)' }}>
-                <Link href={`/products/${item.slug}`}>
-                  <img src={item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                </Link>
-              </div>
-              <div className="card-info" style={{ paddingTop: '16px' }}>
-                <Link href={`/products/${item.slug}`}>
-                  <h3 className="product-name" style={{ fontFamily: 'var(--font-body)', fontSize: '13px', textTransform: 'uppercase', letterSpacing: 'var(--tracking-wider)', color: 'var(--color-ink)', marginBottom: '4px' }}>{item.name}</h3>
-                  <div className="price" style={{ fontFamily: 'var(--font-ui)', fontSize: '14px', color: 'var(--color-ink-muted)' }}>₹{(item.price / 100).toLocaleString('en-IN')}</div>
-                </Link>
-                <button className="btn btn-outline-dark" style={{ width: '100%', marginTop: '16px', padding: '12px' }}>ADD TO BAG</button>
-              </div>
+              <ProductCard product={item} />
+              <button style={{ width: '100%', marginTop: '16px', background: 'transparent', border: '1px solid var(--color-ink)', color: 'var(--color-ink)', padding: '12px', fontFamily: 'var(--font-ui)', fontSize: '10px', letterSpacing: '0.15em', cursor: 'pointer', textTransform: 'uppercase', transition: 'all 0.2s' }}
+                      onMouseEnter={e => { e.currentTarget.style.background = 'var(--color-ink)'; e.currentTarget.style.color = 'var(--color-white)'; }}
+                      onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--color-ink)'; }}
+              >
+                ADD TO BAG
+              </button>
             </div>
           ))}
         </div>

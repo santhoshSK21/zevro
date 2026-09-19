@@ -18,25 +18,24 @@ export default function CartPage() {
   if (!mounted) return null;
 
   return (
-    <div style={{ backgroundColor: 'var(--ivory)', minHeight: '100vh', paddingTop: '100px', paddingBottom: '100px' }}>
+    <div style={{ backgroundColor: 'var(--color-bg)', minHeight: '100vh', paddingTop: '100px', paddingBottom: '100px' }}>
       <div className="container">
         
         <div style={{ textAlign: 'center', marginBottom: '40px' }}>
-          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '32px', color: 'var(--espresso)', letterSpacing: '0.1em', marginBottom: '16px' }}>
-            SHOPPING CART
+          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '32px', color: 'var(--color-ink)', letterSpacing: '0.1em', marginBottom: '16px' }}>
+            SHOPPING BAG
           </h1>
-          <div className="gold-rule" style={{ margin: '0 auto' }} />
+          <div className="divider" style={{ margin: '0 auto', maxWidth: '100px' }} />
         </div>
 
         {items.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '80px 0' }}>
-            <div style={{ fontSize: '64px', marginBottom: '24px' }}>🛒</div>
-            <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '24px', marginBottom: '16px' }}>YOUR CART IS EMPTY</h2>
-            <p style={{ color: 'var(--warm-grey)', marginBottom: '32px' }}>
-              Looks like you haven't added anything to your cart yet.
+            <h2 className="display-serif" style={{ fontSize: 'var(--text-xl)', marginBottom: '16px', color: 'var(--color-ink)' }}>YOUR BAG IS EMPTY</h2>
+            <p style={{ color: 'var(--color-ink-muted)', marginBottom: '32px', fontFamily: 'var(--font-body)' }}>
+              Discover pieces curated for your wardrobe.
             </p>
             <Link href="/products" className="btn btn-primary" style={{ padding: '16px 48px' }}>
-              CONTINUE SHOPPING
+              SHOP NEW ARRIVALS
             </Link>
           </div>
         ) : (
@@ -44,9 +43,9 @@ export default function CartPage() {
             
             {/* Left: Cart Items */}
             <div style={{ flex: '1 1 600px', minWidth: '320px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '16px', borderBottom: '1px solid var(--espresso)' }}>
-                <span style={{ fontSize: '12px', fontWeight: 600, letterSpacing: '0.1em' }}>PRODUCT</span>
-                <span style={{ fontSize: '12px', fontWeight: 600, letterSpacing: '0.1em' }}>TOTAL</span>
+              <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '16px', borderBottom: '1px solid var(--color-stone)' }}>
+                <span className="label-caps">PRODUCT</span>
+                <span className="label-caps">TOTAL</span>
               </div>
               
               <div>

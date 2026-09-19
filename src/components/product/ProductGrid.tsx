@@ -147,19 +147,18 @@ export default function ProductGrid({ initialCategory, eyebrow = 'Our Edit', tit
         }
         .pgrid {
           display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 2px;
+          grid-template-columns: repeat(4, 1fr);
+          gap: var(--grid-gap, 1px);
+          background-color: var(--color-stone);
+        }
+        .pgrid > * {
           background-color: var(--color-bg);
         }
-        @media (max-width: 1024px) {
-          .pgrid {
-            grid-template-columns: repeat(2, 1fr);
-          }
+        @media (max-width: 1200px) {
+          .pgrid { grid-template-columns: repeat(3, 1fr); }
         }
-        @media (max-width: 480px) {
-          .pgrid {
-            grid-template-columns: 1fr;
-          }
+        @media (max-width: 768px) {
+          .pgrid { grid-template-columns: repeat(2, 1fr); }
         }
       `}} />
     </div>

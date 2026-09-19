@@ -7,24 +7,29 @@ export default function EditorialBanner() {
       <div 
         style={{ 
           position: 'absolute', inset: 0, 
-          backgroundImage: 'url(https://images.unsplash.com/photo-1606503153255-59d5e417b0d8?w=1600&q=80)',
+          backgroundImage: 'url(/pdp_hero_1.png)',
           backgroundSize: 'cover',
-          backgroundPosition: 'center 30%',
-          backgroundAttachment: 'fixed', // Simple parallax without JS
+          backgroundPosition: 'center 20%',
+          backgroundAttachment: 'fixed',
         }} 
       />
-      <div style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(5, 5, 5, 0.4)' }} />
+      <div style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(26, 26, 26, 0.2)' }} />
       
-      <div className="container" style={{ position: 'relative', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-        <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(40px, 6vw, 60px)', fontStyle: 'italic', color: '#FDFAF7', marginBottom: '16px' }}>
-          THE ETHNIC EDIT
+      <div className="container" style={{ position: 'relative', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', textAlign: 'center' }}>
+        <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(40px, 6vw, 60px)', color: 'var(--color-white)', marginBottom: '16px', letterSpacing: '0.02em' }}>
+          THE FESTIVE EDIT
         </h2>
-        <p style={{ color: '#E7D8C9', fontSize: '16px', letterSpacing: '0.05em', marginBottom: '32px', maxWidth: '400px' }}>
-          Tradition woven into every thread. Explore our handcrafted festive collection.
+        <p style={{ fontFamily: 'var(--font-body)', color: 'rgba(255, 255, 255, 0.9)', fontSize: '16px', letterSpacing: '0.05em', marginBottom: '32px', maxWidth: '400px' }}>
+          Tradition woven into every thread. Explore our handcrafted collection.
         </p>
         <div>
-          <Link href="/ethnic-wear" className="btn btn-outline-gold" style={{ border: '1px solid var(--gold)', color: 'var(--gold)' }}>
-            EXPLORE →
+          <Link href="/category/ethnic-wear" style={{ 
+            display: 'inline-flex', alignItems: 'center', gap: '12px',
+            background: 'var(--color-bg)', color: 'var(--color-ink)', 
+            padding: '14px 28px', fontFamily: 'var(--font-ui)', fontSize: '11px', 
+            letterSpacing: '0.15em', textTransform: 'uppercase', textDecoration: 'none' 
+          }}>
+            EXPLORE <span style={{ transition: 'transform 0.3s ease' }}>→</span>
           </Link>
         </div>
       </div>
