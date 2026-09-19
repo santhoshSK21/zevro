@@ -78,6 +78,7 @@ export default async function Home() {
       <CategoryGrid />
       <FeaturedProducts />
       <EditorialBanner />
+      <BrandStory />
       <TrustBar />
     </>
   );

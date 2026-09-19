@@ -15,15 +15,15 @@ import ToastProvider from "../components/ui/ToastProvider";
 
 const playfair = Playfair_Display({
   subsets: ['latin'],
-  weight: ['400','500','600'],
-  style: ['normal','italic'],
+  weight: ['400', '500', '600', '700', '800', '900'],
+  style: ['normal', 'italic'],
   variable: '--font-display',
   display: 'swap',
 });
 
 const inter = Inter({
   subsets: ['latin'],
-  weight: ['300','400','500'],
+  weight: ['300', '400', '500', '600', '700'],
   variable: '--font-body',
   display: 'swap',
 });

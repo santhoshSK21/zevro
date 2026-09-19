@@ -31,7 +31,19 @@ export default function ProductDetailPage() {
         const productDoc = await res.json();
         if (!isMounted) return;
         
-        const firstVariantImages = productDoc.variants?.[0]?.images || productDoc.images || [];
+        // Collect all available product images from variants and root fields
+        const variantImages = productDoc.variants?.[0]?.images || [];
+        const topLevelImages = Array.isArray(productDoc.images) ? productDoc.images : (productDoc.image ? [productDoc.image] : []);
+        const allVariantImages = productDoc.variants?.flatMap((v: any) => v.images || []) || [];
+        
+        const allImages = Array.from(new Set([
+          ...variantImages,
+          ...topLevelImages,
+          ...allVariantImages
+        ])).filter(Boolean);
+
+        const finalGalleryImages = allImages.length > 0 ? allImages : ['/pdp_hero_1.png', '/pdp_hero_2.png'];
+
         setProduct({
           _id: productDoc._id?.toString() || productDoc.slug,
           slug: productDoc.slug,
@@ -46,8 +58,9 @@ export default function ProductDetailPage() {
           reviewCount: productDoc.reviewCount,
           reviews: productDoc.reviews,
           variants: productDoc.variants,
+          images: finalGalleryImages,
         });
-        setGalleryImages(firstVariantImages);
+        setGalleryImages(finalGalleryImages);
       } catch (error) {
         console.error('Failed to fetch product:', error);
         if (isMounted) setNotFound(true);

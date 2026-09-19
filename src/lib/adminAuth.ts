@@ -1,6 +1,9 @@
 import { auth } from '../auth';
 import { cookies } from 'next/headers';
+import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
+
+const ADMIN_SECRET = process.env.ADMIN_SESSION_SECRET || process.env.NEXTAUTH_SECRET || 'zevro-admin-session-secret-key-change-in-prod';
 
 export async function assertAdminAccess(): Promise<boolean> {
   try {
@@ -15,14 +18,21 @@ export async function assertAdminAccess(): Promise<boolean> {
     const token = cookieStore.get('adminControlSession')?.value;
     
     if (token) {
-      const expectedUser = process.env.ADMIN_USERNAME || 'admin';
-      const secret = process.env.ADMIN_SESSION_SECRET || 'secret';
-      const expectedToken = crypto.createHmac('sha256', secret).update(expectedUser).digest('hex');
-      
-      // Use timingSafeEqual to prevent timing attacks
-      if (token.length === expectedToken.length) {
-        const isValid = crypto.timingSafeEqual(Buffer.from(token), Buffer.from(expectedToken));
-        if (isValid) return true;
+      // 2a. Try verifying as JWT
+      try {
+        const decoded = jwt.verify(token, ADMIN_SECRET) as any;
+        if (decoded && (decoded.role === 'admin' || decoded.role === 'super-admin')) {
+          return true;
+        }
+      } catch (jwtErr) {
+        // Fallback to legacy HMAC verification
+      }
+
+      // 2b. Fallback HMAC check for backwards compatibility
+      const expectedUser = (process.env.ADMIN_USERNAME || 'admin').toLowerCase();
+      const expectedToken = crypto.createHmac('sha256', ADMIN_SECRET).update(expectedUser).digest('hex');
+      if (token.length === expectedToken.length && crypto.timingSafeEqual(Buffer.from(token), Buffer.from(expectedToken))) {
+        return true;
       }
     }
 
@@ -58,4 +68,3 @@ export async function assertOwnership(resourceUserId: string): Promise<boolean> 
     return false;
   }
 }
-

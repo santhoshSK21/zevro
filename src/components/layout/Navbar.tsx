@@ -156,11 +156,11 @@ export default function Navbar() {
           filter: brightness(0) invert(1);
         }
         .zevro-nav.is-glass {
-          background: rgba(248, 246, 241, 0.82);
-          backdrop-filter: blur(14px);
-          -webkit-backdrop-filter: blur(14px);
-          border-bottom: 1px solid rgba(0,0,0,0.05);
-          box-shadow: 0 4px 20px rgba(0,0,0,0.02);
+          background: rgba(245, 241, 232, 0.92);
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
+          border-bottom: 1px solid rgba(28, 28, 26, 0.08);
+          box-shadow: 0 4px 24px rgba(28, 28, 26, 0.04);
           color: var(--color-ink);
         }
         .nav-logo-wrap {
@@ -250,12 +250,13 @@ export default function Navbar() {
         }
         .mega-menu-panel {
           position: absolute;
-          top: 100%;
-          left: 0;
-          right: 0;
-          background: var(--color-bg);
-          border-bottom: var(--border-hairline);
-          color: var(--color-ink);
+          top: calc(100% + 6px);
+          left: 50%;
+          transform: translateX(-50%);
+          z-index: 1100;
+          background: transparent;
+          border: none;
+          color: inherit;
         }
         @media (max-width: 1024px) {
           .zevro-nav {

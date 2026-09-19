@@ -1,9 +1,10 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion, useReducedMotion } from 'framer-motion';
+import { useWishlistStore } from '../../store/wishlistStore';
 
 interface ProductCardProps {
   product: any;
@@ -12,29 +13,41 @@ interface ProductCardProps {
 
 export default function ProductCard({ product, index = 0 }: ProductCardProps) {
   const prefersReducedMotion = useReducedMotion();
+  const { isWishlisted, toggleWishlist } = useWishlistStore();
 
-  const primaryImage = product.image || product.variants?.[0]?.images?.[0] || '';
-  const secondaryImage = product.variants?.[0]?.images?.[1] || '';
-  const hasSecondary = secondaryImage && secondaryImage !== primaryImage;
+  // Gather all unique images from product top-level and variants
+  const allImages = [
+    ...(Array.isArray(product.images) ? product.images : []),
+    ...(product.image ? [product.image] : []),
+    ...(product.variants?.[0]?.images || []),
+    ...(product.variants?.flatMap((v: any) => v.images || []) || [])
+  ].filter(Boolean);
+
+  const uniqueImages = Array.from(new Set(allImages));
+  const primaryImage = uniqueImages[0] || '/pdp_hero_1.png';
+  const secondaryImage = uniqueImages[1] || '';
+  const hasSecondary = Boolean(secondaryImage && secondaryImage !== primaryImage);
+
+  const productId = product._id?.toString() || product.slug;
+  const inWishlist = isWishlisted(productId);
 
   return (
     <motion.div
       className="pcard"
       initial={prefersReducedMotion ? false : { opacity: 0, y: 16 }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "0px 0px -50px 0px" }}
-      transition={{ duration: 0.6, delay: index * 0.05, ease: 'easeOut' }}
+      viewport={{ once: true, margin: "0px 0px -40px 0px" }}
+      transition={{ duration: 0.6, delay: index * 0.04, ease: [0.16, 1, 0.3, 1] }}
     >
       <div className="pcard-image-wrap">
-        <Link href={`/products/${product.slug}`} style={{ display: 'block', position: 'absolute', inset: 0 }}>
+        <Link href={`/products/${product.slug}`} className="pcard-link">
           {primaryImage ? (
             <Image
               src={primaryImage}
               alt={product.name}
               fill
-              style={{ objectFit: 'cover' }}
-              className="pcard-img-primary"
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              className={`pcard-img-primary ${hasSecondary ? 'pcard-has-hover' : ''}`}
+              sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
             />
           ) : (
             <div className="pcard-placeholder">
@@ -45,31 +58,36 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
           {hasSecondary && (
             <Image
               src={secondaryImage}
-              alt={product.name}
+              alt={`${product.name} alternate view`}
               fill
-              style={{ objectFit: 'cover' }}
               className="pcard-img-secondary"
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
             />
           )}
         </Link>
         
+        {/* Minimal Wishlist Button */}
         <button 
-          className="pcard-wishlist-btn"
-          aria-label="Add to wishlist"
+          className={`pcard-wishlist-btn ${inWishlist ? 'is-active' : ''}`}
+          aria-label={inWishlist ? "Remove from wishlist" : "Add to wishlist"}
           onClick={(e) => {
             e.preventDefault();
-            // TODO: integrate with wishlist store
+            e.stopPropagation();
+            toggleWishlist(productId);
           }}
         >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill={inWishlist ? "var(--color-ink)" : "none"} stroke="var(--color-ink)" strokeWidth="1.5">
             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
           </svg>
         </button>
       </div>
 
+      {/* Understated Editorial Product Info */}
       <div className="pcard-info">
         <Link href={`/products/${product.slug}`}>
+          <span className="pcard-category">
+            {product.category?.replace(/-/g, ' ') || 'Collection'}
+          </span>
           <h3 className="pcard-name">{product.name}</h3>
           <div className="pcard-price-row">
             <span className="pcard-price">₹{(product.price / 100).toLocaleString('en-IN')}</span>
@@ -85,23 +103,31 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
       <style dangerouslySetInnerHTML={{__html: `
         .pcard {
           position: relative;
-          cursor: pointer;
+          display: flex;
+          flex-direction: column;
         }
         .pcard-image-wrap {
           position: relative;
           aspect-ratio: 3/4;
           width: 100%;
           overflow: hidden;
-          background: var(--color-surface);
+          background-color: var(--color-surface);
+        }
+        .pcard-link {
+          display: block;
+          position: absolute;
+          inset: 0;
         }
         .pcard-img-primary {
+          object-fit: cover;
           z-index: 2;
-          transition: opacity 0.4s ease-out;
+          transition: opacity 0.5s ease;
         }
-        .pcard:hover .pcard-img-primary {
-          opacity: ${hasSecondary ? '0' : '0.9'};
+        .pcard:hover .pcard-has-hover {
+          opacity: 0;
         }
         .pcard-img-secondary {
+          object-fit: cover;
           z-index: 1;
         }
         .pcard-placeholder {
@@ -114,13 +140,13 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
         }
         .pcard-wishlist-btn {
           position: absolute;
-          top: 12px;
-          right: 12px;
+          top: 10px;
+          right: 10px;
           z-index: 10;
-          background: rgba(255,255,255,0.8);
+          background: rgba(245, 241, 232, 0.85);
           border: none;
-          width: 32px;
-          height: 32px;
+          width: 30px;
+          height: 30px;
           border-radius: 50%;
           display: flex;
           align-items: center;
@@ -128,41 +154,55 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
           cursor: pointer;
           color: var(--color-ink);
           opacity: 0;
-          transform: translateY(4px);
+          transform: translateY(2px);
           transition: all 0.3s ease;
-          backdrop-filter: blur(4px);
+          backdrop-filter: blur(8px);
+          -webkit-backdrop-filter: blur(8px);
         }
-        .pcard:hover .pcard-wishlist-btn {
+        .pcard:hover .pcard-wishlist-btn,
+        .pcard-wishlist-btn.is-active {
           opacity: 1;
           transform: translateY(0);
         }
         .pcard-info {
-          padding-top: var(--space-3);
+          padding-top: 12px;
           display: flex;
-          justify-content: space-between;
-          align-items: baseline;
+          flex-direction: column;
+        }
+        .pcard-category {
+          font-family: var(--font-ui);
+          font-size: 10px;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          color: var(--color-ink-muted);
+          margin-bottom: 3px;
         }
         .pcard-name {
           font-family: var(--font-body);
-          font-size: 11px;
+          font-size: 12px;
           color: var(--color-ink);
           text-transform: uppercase;
-          letter-spacing: var(--tracking-wider);
-          font-weight: 400;
+          letter-spacing: 0.08em;
+          font-weight: 500;
+          margin: 0 0 6px 0;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
         }
         .pcard-price-row {
           display: flex;
           align-items: center;
-          gap: var(--space-2);
+          gap: 8px;
         }
         .pcard-price {
           font-family: var(--font-body);
-          font-size: 11px;
+          font-size: 13px;
+          font-weight: 600;
           color: var(--color-ink);
         }
         .pcard-mrp {
           font-family: var(--font-body);
-          font-size: 10px;
+          font-size: 11px;
           color: var(--color-ink-muted);
           text-decoration: line-through;
         }

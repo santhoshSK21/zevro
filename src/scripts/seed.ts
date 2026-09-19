@@ -118,6 +118,8 @@ async function seed() {
         subcategory: 'general',
         price: price,
         originalPrice: op,
+        isActive: true,
+        status: 'ACTIVE',
         isFeatured: i < 3, // first 3 of each category featured
         isNewArrival: i < 5, // first 5 of each category new
         variants: [
@@ -126,10 +128,10 @@ async function seed() {
             colorHex: '#000000',
             images: imgs,
             sizes: [
-              { size: 'XS', stock: Math.floor(Math.random() * 10) },
-              { size: 'S', stock: Math.floor(Math.random() * 15) },
-              { size: 'M', stock: Math.floor(Math.random() * 10) },
-              { size: 'L', stock: Math.floor(Math.random() * 5) }
+              { size: 'XS', stock: Math.floor(Math.random() * 10) + 5 },
+              { size: 'S', stock: Math.floor(Math.random() * 15) + 5 },
+              { size: 'M', stock: Math.floor(Math.random() * 10) + 5 },
+              { size: 'L', stock: Math.floor(Math.random() * 5) + 5 }
             ]
           }
         ]
@@ -139,6 +141,40 @@ async function seed() {
 
   await Product.insertMany(productsToInsert);
   console.log(`Seeded ${productsToInsert.length} products successfully!`);
+
+  // Seed Admin user
+  const { User } = require('../models/User');
+  const bcrypt = require('bcryptjs');
+  const adminEmail = 'admin@zevro.in';
+  const existingAdmin = await User.findOne({ email: adminEmail });
+  if (!existingAdmin) {
+    const hashedPassword = await bcrypt.hash('adminpassword', 10);
+    await User.create({
+      name: 'Zevro Admin',
+      email: adminEmail,
+      passwordHash: hashedPassword,
+      role: 'admin',
+      isActive: true,
+      emailVerified: true
+    });
+    console.log('Default admin account created (admin@zevro.in / adminpassword)');
+  }
+
+  // Seed Store Config
+  const { StoreConfig } = require('../models/StoreConfig');
+  const existingConfig = await StoreConfig.findOne();
+  if (!existingConfig) {
+    await StoreConfig.create({
+      storeName: 'Zevro POC',
+      storeEmail: 'support@zevro.in',
+      currency: 'INR',
+      currencySymbol: '₹',
+      demoMode: true,
+      freeShippingThreshold: 500000,
+      shippingFee: 9900
+    });
+    console.log('Default store configuration initialized');
+  }
 
   await mongoose.disconnect();
   console.log('Disconnected from MongoDB');

@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState, Suspense } from 'react';
+import React, { useState } from 'react';
+import Link from 'next/link';
 
-function TrackContent() {
+export default function TrackPage() {
   const [orderId, setOrderId] = useState('');
   const [email, setEmail] = useState('');
   const [isSearching, setIsSearching] = useState(false);
@@ -37,87 +38,210 @@ function TrackContent() {
     }
   };
 
+  const handleDemoFill = () => {
+    setOrderId('ZEVRO-2026-88912');
+    setEmail('priya.sharma@example.com');
+  };
+
   return (
-    <main className="container" style={{ padding: '80px 24px', maxWidth: '800px', margin: '0 auto', flex: 1, width: '100%' }}>
-      <h1 className="section-title" style={{ textAlign: 'center', marginBottom: '40px' }}>TRACK YOUR ORDER</h1>
+    <main className="container" style={{ padding: '64px 20px', maxWidth: '860px', margin: '0 auto', flex: 1, width: '100%', fontFamily: 'var(--font-body)' }}>
       
-      <p style={{ textAlign: 'center', color: 'var(--warm-grey)', marginBottom: '32px' }}>
-        Please enter your Order ID and the Email Address used during checkout to track your order.
-      </p>
+      {/* Header */}
+      <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+        <span style={{ fontFamily: 'var(--font-ui)', fontSize: '11px', letterSpacing: '0.18em', color: '#B49A68', textTransform: 'uppercase', fontWeight: 600, display: 'block', marginBottom: '8px' }}>
+          CONCIERGE LOGISTICS
+        </span>
+        <h1 style={{ fontFamily: 'var(--font-display, serif)', fontSize: '32px', color: 'var(--color-ink, #1C1C1A)', letterSpacing: '0.08em', margin: '0 0 12px 0' }}>
+          TRACK YOUR CONSIGNMENT
+        </h1>
+        <p style={{ color: 'var(--color-ink-muted, #68645C)', fontSize: '14px', maxWidth: '520px', margin: '0 auto' }}>
+          Enter your Order ID and Checkout Email to view real-time atelier progress and delivery dispatch.
+        </p>
+      </div>
 
-      <form onSubmit={handleTrack} style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '64px', maxWidth: '500px', margin: '0 auto 64px auto' }}>
-        <div>
-          <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, marginBottom: '8px', letterSpacing: '0.05em' }}>ORDER ID</label>
-          <input 
-            type="text" 
-            placeholder="e.g. ZEVRO-2026-12345" 
-            value={orderId}
-            onChange={(e) => setOrderId(e.target.value)}
-            className="input-field"
-            style={{ width: '100%' }}
-            required
-          />
-        </div>
-        <div>
-          <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, marginBottom: '8px', letterSpacing: '0.05em' }}>EMAIL ADDRESS</label>
-          <input 
-            type="email" 
-            placeholder="e.g. you@example.com" 
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="input-field"
-            style={{ width: '100%' }}
-            required
-          />
-        </div>
-        <button type="submit" className="btn btn-primary" disabled={isSearching || !orderId || !email} style={{ marginTop: '16px' }}>
-          {isSearching ? 'TRACKING...' : 'TRACK ORDER'}
-        </button>
-        {error && <p style={{ color: 'var(--error)', textAlign: 'center', marginTop: '16px', fontSize: '14px' }}>{error}</p>}
-      </form>
+      {/* Form */}
+      <div style={{ backgroundColor: 'var(--color-white, #FAF8F5)', border: '1px solid var(--color-stone, #DDD6C8)', padding: '32px', marginBottom: '48px', boxShadow: '0 8px 24px rgba(0,0,0,0.03)' }}>
+        <form onSubmit={handleTrack} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', alignItems: 'flex-end' }}>
+          <div>
+            <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, letterSpacing: '0.12em', color: 'var(--color-ink, #1C1C1A)', textTransform: 'uppercase', marginBottom: '8px' }}>
+              ORDER ID
+            </label>
+            <input 
+              type="text" 
+              placeholder="e.g. ZEVRO-2026-88912" 
+              value={orderId}
+              onChange={(e) => setOrderId(e.target.value)}
+              style={{ width: '100%', padding: '12px 14px', background: '#FFF', border: '1px solid #CCC', fontSize: '13px', outline: 'none' }}
+              required
+            />
+          </div>
 
+          <div>
+            <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, letterSpacing: '0.12em', color: 'var(--color-ink, #1C1C1A)', textTransform: 'uppercase', marginBottom: '8px' }}>
+              EMAIL ADDRESS
+            </label>
+            <input 
+              type="email" 
+              placeholder="e.g. yourname@domain.com" 
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              style={{ width: '100%', padding: '12px 14px', background: '#FFF', border: '1px solid #CCC', fontSize: '13px', outline: 'none' }}
+              required
+            />
+          </div>
+
+          <div style={{ gridColumn: 'span 2', display: 'flex', gap: '16px', alignItems: 'center', marginTop: '8px' }}>
+            <button 
+              type="submit" 
+              disabled={isSearching || !orderId || !email} 
+              style={{ flex: 1, padding: '14px 24px', background: 'var(--color-ink, #1C1C1A)', color: '#FAF8F5', border: 'none', fontFamily: 'var(--font-ui)', fontSize: '11px', letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 600, cursor: isSearching ? 'not-allowed' : 'pointer', transition: 'all 0.2s' }}
+            >
+              {isSearching ? 'SEARCHING ARCHIVE...' : 'TRACK CONSIGNMENT'}
+            </button>
+            <button
+              type="button"
+              onClick={handleDemoFill}
+              style={{ background: 'transparent', border: '1px solid var(--color-accent, #B49A68)', color: 'var(--color-accent, #B49A68)', padding: '13px 18px', fontSize: '11px', letterSpacing: '0.12em', textTransform: 'uppercase', cursor: 'pointer' }}
+            >
+              TRY DEMO ORDER
+            </button>
+          </div>
+        </form>
+
+        {error && (
+          <div style={{ marginTop: '20px', padding: '12px 16px', background: 'rgba(158, 42, 43, 0.08)', border: '1px solid rgba(158, 42, 43, 0.3)', color: '#9E2A2B', fontSize: '13px', textAlign: 'center' }}>
+            {error}
+          </div>
+        )}
+      </div>
+
+      {/* Results View */}
       {result && (
-        <div style={{ backgroundColor: 'var(--white)', padding: '40px', border: '1px solid var(--linen)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--linen)', paddingBottom: '24px', marginBottom: '40px' }}>
+        <div style={{ backgroundColor: '#FFF', border: '1px solid var(--color-stone, #DDD6C8)', padding: '36px', boxShadow: '0 12px 36px rgba(0,0,0,0.04)' }}>
+          
+          {/* Header Strip */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '1px solid #EBE7DF', paddingBottom: '24px', marginBottom: '32px', flexWrap: 'wrap', gap: '16px' }}>
             <div>
-              <p style={{ fontSize: '12px', textTransform: 'uppercase', color: 'var(--warm-grey)' }}>Order ID</p>
-              <p className="order-id" style={{ fontSize: '18px', fontWeight: 600 }}>{result.id}</p>
+              <span style={{ fontSize: '11px', textTransform: 'uppercase', color: '#888', letterSpacing: '0.1em' }}>Consignment Reference</span>
+              <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '22px', margin: '4px 0 0 0', color: 'var(--color-ink, #1C1C1A)' }}>{result.id}</h2>
             </div>
+            
             <div style={{ textAlign: 'right' }}>
-              <p style={{ fontSize: '12px', textTransform: 'uppercase', color: 'var(--warm-grey)' }}>Current Status</p>
-              <p style={{ fontSize: '18px', fontWeight: 500, color: 'var(--espresso)', textTransform: 'capitalize' }}>{result.status}</p>
+              <span style={{ fontSize: '11px', textTransform: 'uppercase', color: '#888', letterSpacing: '0.1em' }}>Status</span>
+              <div style={{ marginTop: '4px' }}>
+                <span style={{ display: 'inline-block', padding: '4px 12px', background: 'var(--color-ink, #1C1C1A)', color: '#FAF8F5', fontSize: '11px', fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', borderRadius: '2px' }}>
+                  {result.status}
+                </span>
+              </div>
             </div>
           </div>
 
-          <div className="tracking-timeline">
-            {result.timeline.map((step: any, idx: number) => (
-              <div key={idx} className={`timeline-step ${step.completed ? 'completed' : ''}`}>
-                <div className={`timeline-dot ${step.completed ? 'completed' : ''} ${idx === result.timeline.length -1 ? 'active' : ''}`}>
-                  {step.completed && <span style={{ color: 'var(--white)', fontSize: '10px' }}>✓</span>}
-                </div>
-                {idx !== result.timeline.length - 1 && <div className="timeline-line"></div>}
-                
-                <h4 style={{ fontFamily: 'var(--font-display)', fontSize: '18px', color: step.completed ? 'var(--espresso)' : 'var(--warm-grey)', margin: '0 0 4px', textTransform: 'capitalize' }}>{step.status}</h4>
-                <p style={{ fontSize: '13px', color: 'var(--warm-grey)', margin: '0 0 4px' }}>{step.message}</p>
-                {step.time && <p style={{ fontSize: '11px', color: 'var(--warm-grey)', fontFamily: 'var(--font-mono)' }}>{step.time}</p>}
+          {/* Courier & Delivery Info */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '20px', background: 'var(--color-bg, #F5F1E8)', padding: '20px', borderRadius: '4px', marginBottom: '36px' }}>
+            <div>
+              <p style={{ fontSize: '10px', textTransform: 'uppercase', color: '#777', letterSpacing: '0.12em', margin: '0 0 4px 0' }}>COURIER PARTNER</p>
+              <p style={{ fontSize: '13px', fontWeight: 600, color: '#1C1C1A', margin: 0 }}>{result.courier}</p>
+              {result.awb && <p style={{ fontSize: '11px', color: '#666', margin: '2px 0 0 0' }}>AWB: {result.awb}</p>}
+            </div>
+            <div>
+              <p style={{ fontSize: '10px', textTransform: 'uppercase', color: '#777', letterSpacing: '0.12em', margin: '0 0 4px 0' }}>ESTIMATED DELIVERY</p>
+              <p style={{ fontSize: '13px', fontWeight: 600, color: '#B49A68', margin: 0 }}>{result.estimatedDelivery}</p>
+            </div>
+            {result.recipient && (
+              <div>
+                <p style={{ fontSize: '10px', textTransform: 'uppercase', color: '#777', letterSpacing: '0.12em', margin: '0 0 4px 0' }}>DESTINATION</p>
+                <p style={{ fontSize: '13px', fontWeight: 500, color: '#1C1C1A', margin: 0 }}>{result.recipient.name}</p>
+                <p style={{ fontSize: '11px', color: '#666', margin: '2px 0 0 0' }}>{result.recipient.city} {result.recipient.pincode}</p>
               </div>
-            ))}
-            {result.timeline.length === 0 && (
-              <p style={{ color: 'var(--warm-grey)' }}>No tracking updates available yet.</p>
             )}
           </div>
+
+          {/* Stepper Timeline */}
+          <h3 style={{ fontFamily: 'var(--font-ui)', fontSize: '12px', letterSpacing: '0.14em', textTransform: 'uppercase', color: '#1C1C1A', marginBottom: '24px' }}>
+            SHIPMENT PROGRESS
+          </h3>
+
+          <div style={{ position: 'relative', paddingLeft: '28px', marginBottom: '40px' }}>
+            <div style={{ position: 'absolute', top: '10px', bottom: '10px', left: '8px', width: '2px', background: '#E0DDD5' }} />
+            
+            {result.timeline?.map((step: any, idx: number) => {
+              const isDone = step.completed;
+              return (
+                <div key={idx} style={{ position: 'relative', marginBottom: idx === result.timeline.length - 1 ? 0 : '24px' }}>
+                  {/* Dot */}
+                  <div style={{
+                    position: 'absolute',
+                    left: '-28px',
+                    top: '2px',
+                    width: '18px',
+                    height: '18px',
+                    borderRadius: '50%',
+                    background: isDone ? '#B49A68' : '#FFF',
+                    border: isDone ? '2px solid #B49A68' : '2px solid #CCC',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#FFF',
+                    fontSize: '10px',
+                    fontWeight: 'bold',
+                    zIndex: 2
+                  }}>
+                    {isDone ? '✓' : ''}
+                  </div>
+
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', gap: '8px' }}>
+                      <h4 style={{ fontSize: '14px', fontWeight: 600, color: isDone ? '#1C1C1A' : '#888', margin: 0 }}>
+                        {step.status}
+                      </h4>
+                      <span style={{ fontSize: '11px', color: '#888' }}>{step.time}</span>
+                    </div>
+                    {step.message && (
+                      <p style={{ fontSize: '12px', color: '#666', margin: '4px 0 0 0', lineHeight: 1.4 }}>
+                        {step.message}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Order Items */}
+          {result.items && result.items.length > 0 && (
+            <div style={{ borderTop: '1px solid #EBE7DF', paddingTop: '24px' }}>
+              <h4 style={{ fontFamily: 'var(--font-ui)', fontSize: '11px', letterSpacing: '0.14em', textTransform: 'uppercase', color: '#1C1C1A', marginBottom: '16px' }}>
+                ITEMS IN THIS CONSIGNMENT
+              </h4>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {result.items.map((item: any, i: number) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '16px', background: '#FAF9F7', padding: '12px', border: '1px solid #EAE6DF' }}>
+                    <div style={{ width: '48px', height: '60px', backgroundColor: '#EEE', position: 'relative', overflow: 'hidden' }}>
+                      <img src={item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <p style={{ fontSize: '13px', fontWeight: 600, color: '#1C1C1A', margin: '0 0 4px 0' }}>{item.name}</p>
+                      <p style={{ fontSize: '11px', color: '#777', margin: 0 }}>
+                        Qty: {item.qty} {item.size ? `• Size: ${item.size}` : ''} {item.color ? `• Color: ${item.color}` : ''}
+                      </p>
+                    </div>
+                    {item.price && (
+                      <span style={{ fontSize: '13px', fontWeight: 600, color: '#1C1C1A' }}>{item.price}</span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
         </div>
       )}
-    </main>
-  );
-}
 
-export default function TrackPage() {
-  return (
-    <div style={{ backgroundColor: 'var(--ivory)', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <Suspense fallback={<div style={{ padding: '80px', textAlign: 'center' }}>Loading...</div>}>
-        <TrackContent />
-      </Suspense>
-    </div>
+      {/* Support Strip */}
+      <div style={{ marginTop: '48px', textAlign: 'center', fontSize: '12px', color: '#888' }}>
+        Need urgent assistance with your shipment? <Link href="/contact" style={{ color: '#B49A68', textDecoration: 'underline' }}>Speak with Client Concierge</Link>
+      </div>
+
+    </main>
   );
 }

@@ -21,43 +21,61 @@ export default function FeaturedProducts() {
   if (products.length === 0) return null;
 
   return (
-    <section className="section bg-primary">
+    <section className="section bg-primary" style={{ borderTop: '1px solid var(--color-stone-light)' }}>
       <div className="container">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '40px' }}>
+        
+        {/* Editorial Section Header */}
+        <div className="arrivals-header">
           <div>
+            <span className="label-caps" style={{ color: 'var(--color-accent)', marginBottom: '6px', display: 'block' }}>
+              CURATED SELECTION
+            </span>
             <h2 className="section-title">NEW ARRIVALS</h2>
-            <div className="gold-rule" />
+            <p className="section-subtitle">The latest pieces, carefully selected for the season.</p>
           </div>
-          <Link href="/products?category=new-in" style={{ fontSize: '11px', letterSpacing: '0.1em', fontWeight: 500, color: 'var(--color-ink)', paddingBottom: '8px', borderBottom: '1px solid var(--color-ink)' }}>
-            VIEW ALL
+          
+          <Link href="/products?category=new-in" className="link-underline">
+            VIEW ALL PIECES →
           </Link>
         </div>
 
-        <div className="product-grid-4">
-          {products.map((p) => (
-             <div key={p.slug || p._id} style={{ background: 'var(--color-bg)' }}>
-               <ProductCard product={p} />
-             </div>
+        {/* Spacious 4-Column Product Grid */}
+        <div className="arrivals-grid">
+          {products.map((p, index) => (
+            <ProductCard key={p.slug || p._id} product={p} index={index} />
           ))}
         </div>
+
       </div>
+
       <style dangerouslySetInnerHTML={{__html: `
-        .product-grid-4 {
+        .arrivals-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-end;
+          margin-bottom: var(--space-12);
+          gap: 24px;
+        }
+        .arrivals-grid {
           display: grid;
           grid-template-columns: repeat(4, 1fr);
-          gap: var(--grid-gap, 1px);
-          background: var(--color-stone);
-          border-top: 1px solid var(--color-stone);
-          border-bottom: 1px solid var(--color-stone);
+          gap: 28px;
         }
         @media (max-width: 1024px) {
-          .product-grid-4 {
+          .arrivals-grid {
             grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
           }
         }
         @media (max-width: 640px) {
-          .product-grid-4 {
-            grid-template-columns: 1fr;
+          .arrivals-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 16px;
+          }
+          .arrivals-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 14px;
           }
         }
       `}} />

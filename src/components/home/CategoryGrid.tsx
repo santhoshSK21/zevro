@@ -10,28 +10,32 @@ export default function CategoryGrid() {
 
   const categories = [
     {
-      eyebrow: 'Explore',
+      eyebrow: 'Contemporary Silhouettes',
       title: 'Western Wear',
+      subtitle: 'Explore Collection',
       image: '/cat_western_wear.png',
-      link: '/products?category=western-wear',
+      link: '/category/western-wear',
     },
     {
-      eyebrow: 'Discover',
+      eyebrow: 'Heritage & Craft',
       title: 'Ethnic Wear',
+      subtitle: 'Explore Collection',
       image: '/cat_ethnic_wear.png',
-      link: '/products?category=ethnic-wear',
+      link: '/category/ethnic-wear',
     },
     {
-      eyebrow: 'Curated',
+      eyebrow: 'The Fusion Edit',
       title: 'Indo-Western',
+      subtitle: 'Explore Collection',
       image: '/cat_indo_western.png',
-      link: '/products?category=indo-western',
+      link: '/category/indo-western',
     },
     {
-      eyebrow: 'The Edit',
+      eyebrow: 'Artisanal Accents',
       title: 'Accessories',
+      subtitle: 'Explore Collection',
       image: '/cat_accessories.png',
-      link: '/products?category=accessories',
+      link: '/category/accessories',
     },
   ];
 
@@ -40,109 +44,170 @@ export default function CategoryGrid() {
       <div className="container">
         <motion.div
           className="catgrid-header"
-          initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
+          initial={prefersReducedMotion ? false : { opacity: 0, y: 15 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
         >
-          <h2 className="display-serif catgrid-title">CURATED FOR EVERY YOU</h2>
+          <span className="catgrid-tag">CURATED DEPARTMENTS</span>
+          <h2 className="catgrid-title">DISCOVER THE COLLECTIONS</h2>
         </motion.div>
       </div>
-      <div className="catgrid-grid">
-        {categories.map((cat, i) => (
-          <motion.div
-            key={i}
-            className={`catgrid-item ${i % 2 === 0 ? 'catgrid-tall' : 'catgrid-short'}`}
-            initial={prefersReducedMotion ? false : { opacity: 0, y: 40 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.7, delay: i * 0.1, ease: [0.16, 1, 0.3, 1] }}
-          >
-            <Link href={cat.link} className="catgrid-link">
-              <div className="catgrid-img-wrap">
-                <Image
-                  src={cat.image}
-                  alt={cat.title}
-                  fill
-                  style={{ objectFit: 'cover' }}
-                  className="catgrid-img"
-                  sizes="(max-width: 768px) 100vw, 50vw"
-                />
-              </div>
-              <div className="catgrid-text">
-                <h3 className="catgrid-name">{cat.title}</h3>
-              </div>
-            </Link>
-          </motion.div>
-        ))}
+
+      <div className="catgrid-grid-wrap">
+        <div className="catgrid-grid">
+          {categories.map((cat, i) => (
+            <motion.div
+              key={i}
+              className="catgrid-item"
+              initial={prefersReducedMotion ? false : { opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.7, delay: i * 0.08, ease: [0.16, 1, 0.3, 1] }}
+            >
+              <Link href={cat.link} className="catgrid-link">
+                <div className="catgrid-img-wrap">
+                  <Image
+                    src={cat.image}
+                    alt={cat.title}
+                    fill
+                    className="catgrid-img"
+                    sizes="(max-width: 768px) 100vw, 50vw"
+                  />
+                  <div className="catgrid-overlay" />
+                </div>
+                
+                <div className="catgrid-info">
+                  <span className="catgrid-eyebrow">{cat.eyebrow}</span>
+                  <h3 className="catgrid-name">{cat.title}</h3>
+                  <span className="catgrid-cta">{cat.subtitle} →</span>
+                </div>
+              </Link>
+            </motion.div>
+          ))}
+        </div>
       </div>
 
       <style dangerouslySetInnerHTML={{__html: `
         .catgrid-section {
-          padding: var(--space-16) 0;
+          padding: var(--space-20) 0;
+          background-color: var(--color-bg);
         }
         .catgrid-header {
           text-align: center;
-          margin-bottom: var(--space-8);
+          margin-bottom: var(--space-12);
+        }
+        .catgrid-tag {
+          font-family: var(--font-ui);
+          font-size: 11px;
+          letter-spacing: 0.2em;
+          text-transform: uppercase;
+          color: var(--color-accent);
+          font-weight: 600;
+          display: block;
+          margin-bottom: 8px;
         }
         .catgrid-title {
-          font-size: var(--text-2xl);
+          font-family: var(--font-display);
+          font-size: clamp(1.8rem, 3.2vw, 2.6rem);
           color: var(--color-ink);
-          text-transform: uppercase;
-          letter-spacing: var(--tracking-wider);
+          font-weight: 400;
+          letter-spacing: -0.01em;
+          margin: 0;
+        }
+        .catgrid-grid-wrap {
+          max-width: var(--container-max);
+          margin: 0 auto;
+          padding: 0 var(--container-gutter);
         }
         .catgrid-grid {
           display: grid;
           grid-template-columns: 1fr 1fr;
-          gap: 1px;
-          background-color: var(--color-stone);
-          border-top: 1px solid var(--color-stone);
-          border-bottom: 1px solid var(--color-stone);
+          gap: 20px;
         }
         .catgrid-item {
-          background-color: var(--color-bg);
           position: relative;
+          background-color: var(--color-surface);
+          overflow: hidden;
+        }
+        .catgrid-link {
+          display: block;
+          position: relative;
+          text-decoration: none;
         }
         .catgrid-img-wrap {
           position: relative;
           width: 100%;
-          height: 100%;
-        }
-        .catgrid-tall .catgrid-img-wrap {
-          aspect-ratio: 3/4;
-        }
-        .catgrid-short .catgrid-img-wrap {
           aspect-ratio: 4/5;
-        }
-        .catgrid-link {
-          display: flex;
-          flex-direction: column;
-          text-decoration: none;
+          overflow: hidden;
         }
         .catgrid-img {
-          transition: opacity 0.4s ease-out;
+          object-fit: cover;
+          transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .catgrid-overlay {
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(to top, rgba(28, 28, 26, 0.55) 0%, rgba(28, 28, 26, 0.1) 40%, transparent 100%);
+          opacity: 0.75;
+          transition: opacity 0.5s ease;
         }
         .catgrid-item:hover .catgrid-img {
+          transform: scale(1.04);
+        }
+        .catgrid-item:hover .catgrid-overlay {
           opacity: 0.9;
         }
-        .catgrid-text {
-          padding: var(--space-4) var(--space-4) var(--space-8) var(--space-4);
-          text-align: center;
+        .catgrid-info {
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          padding: 32px 28px;
+          color: #FAF8F5;
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start;
+          transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .catgrid-item:hover .catgrid-info {
+          transform: translateY(-4px);
+        }
+        .catgrid-eyebrow {
+          font-family: var(--font-ui);
+          font-size: 10px;
+          letter-spacing: 0.16em;
+          text-transform: uppercase;
+          color: #DDD6C8;
+          margin-bottom: 4px;
         }
         .catgrid-name {
-          font-family: var(--font-body);
-          font-size: var(--text-xs);
-          color: var(--color-ink);
+          font-family: var(--font-display);
+          font-size: clamp(22px, 2vw, 30px);
+          font-weight: 400;
+          letter-spacing: 0.02em;
+          color: #FAF8F5;
+          margin: 0 0 10px 0;
+        }
+        .catgrid-cta {
+          font-family: var(--font-ui);
+          font-size: 11px;
+          letter-spacing: 0.14em;
           text-transform: uppercase;
-          letter-spacing: var(--tracking-wider);
+          color: var(--color-accent);
+          font-weight: 600;
+          transition: transform 0.3s ease;
         }
         @media (max-width: 768px) {
           .catgrid-grid {
             grid-template-columns: 1fr;
+            gap: 16px;
           }
-          .catgrid-tall .catgrid-img-wrap,
-          .catgrid-short .catgrid-img-wrap {
-            aspect-ratio: 3/4;
+          .catgrid-img-wrap {
+            aspect-ratio: 4/5;
+          }
+          .catgrid-info {
+            padding: 24px 20px;
           }
         }
       `}} />

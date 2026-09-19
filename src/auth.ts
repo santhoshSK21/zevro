@@ -20,15 +20,20 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         
         if (!user) return null
         
-        const isPasswordMatch = await bcrypt.compare(credentials.password as string, user.password)
-        if (!isPasswordMatch) return null
+        const storedPassword = user.password || user.passwordHash;
+        if (!storedPassword) return null;
+
+        const isPasswordMatch = await bcrypt.compare(credentials.password as string, storedPassword);
+        if (!isPasswordMatch) return null;
+
+        const displayName = user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email;
 
         return {
           id: user._id.toString(),
           email: user.email,
-          name: `${user.firstName} ${user.lastName}`,
-          role: user.role
-        }
+          name: displayName,
+          role: user.role || 'customer'
+        };
       }
     })
   ],
