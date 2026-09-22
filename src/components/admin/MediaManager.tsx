@@ -50,11 +50,13 @@ export default function MediaManager({ images, onChange }: MediaManagerProps) {
     onChange(newImages);
   };
 
+  const validImages = (images || []).filter(img => typeof img === 'string' && img.trim() !== '');
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-      {images.length > 0 && (
+      {validImages.length > 0 && (
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
-          {images.map((img, idx) => (
+          {validImages.map((img, idx) => (
             <div
               key={img + idx}
               draggable
@@ -106,10 +108,45 @@ export default function MediaManager({ images, onChange }: MediaManagerProps) {
         </div>
       )}
       
-      <ImageUpload 
-        onUploadSuccess={(url) => onChange([...images, url])} 
-        maxFiles={10 - images.length} 
-      />
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <input 
+            type="url" 
+            id="media-url-input" 
+            placeholder="Or paste image URL directly (e.g. https://images.unsplash.com/...)" 
+            style={{ flex: 1, padding: '10px 14px', border: '1px solid #CBD5E1', borderRadius: '4px', fontSize: '13px', outline: 'none' }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                const val = (e.currentTarget.value || '').trim();
+                if (val) {
+                  onChange([...images, val]);
+                  e.currentTarget.value = '';
+                }
+              }
+            }}
+          />
+          <button 
+            type="button" 
+            onClick={() => {
+              const input = document.getElementById('media-url-input') as HTMLInputElement;
+              if (input && input.value.trim()) {
+                onChange([...images, input.value.trim()]);
+                input.value = '';
+              }
+            }}
+            style={{ padding: '10px 18px', backgroundColor: '#0F172A', color: '#FAF8F5', border: 'none', borderRadius: '4px', fontSize: '12px', fontWeight: 600, letterSpacing: '0.08em', cursor: 'pointer', whiteSpace: 'nowrap' }}
+          >
+            ADD URL
+          </button>
+        </div>
+
+        <ImageUpload 
+          onUploadSuccess={(url) => onChange([...images, url])} 
+          maxFiles={10 - images.length} 
+        />
+      </div>
     </div>
   );
 }
+

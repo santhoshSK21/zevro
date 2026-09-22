@@ -17,7 +17,7 @@ export default function SuperAdminSystemPage() {
   const handleTriggerAction = (name: string) => {
     setActionFeedback(`Executing "${name}"...`);
     setTimeout(() => {
-      setActionFeedback(`✅ "${name}" completed successfully.`);
+      setActionFeedback(`[SUCCESS] "${name}" completed successfully.`);
       setTimeout(() => setActionFeedback(''), 4000);
     }, 1200);
   };

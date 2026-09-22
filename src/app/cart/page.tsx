@@ -18,34 +18,34 @@ export default function CartPage() {
   if (!mounted) return null;
 
   return (
-    <div style={{ backgroundColor: 'var(--color-bg)', minHeight: '100vh', paddingTop: '100px', paddingBottom: '100px' }}>
-      <div className="container">
+    <div style={{ backgroundColor: 'var(--color-bg)', minHeight: '100vh', paddingTop: '80px', paddingBottom: '80px' }}>
+      <div className="container" style={{ padding: '0 20px' }}>
         
-        <div style={{ textAlign: 'center', marginBottom: '40px' }}>
-          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '32px', color: 'var(--color-ink)', letterSpacing: '0.1em', marginBottom: '16px' }}>
+        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(24px, 4vw, 32px)', color: 'var(--color-ink)', letterSpacing: '0.1em', marginBottom: '12px' }}>
             SHOPPING BAG
           </h1>
-          <div className="divider" style={{ margin: '0 auto', maxWidth: '100px' }} />
+          <div className="divider" style={{ margin: '0 auto', maxWidth: '80px' }} />
         </div>
 
         {items.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '80px 0' }}>
-            <h2 className="display-serif" style={{ fontSize: 'var(--text-xl)', marginBottom: '16px', color: 'var(--color-ink)' }}>YOUR BAG IS EMPTY</h2>
-            <p style={{ color: 'var(--color-ink-muted)', marginBottom: '32px', fontFamily: 'var(--font-body)' }}>
-              Discover pieces curated for your wardrobe.
+          <div style={{ textAlign: 'center', padding: '60px 20px' }}>
+            <h2 className="display-serif" style={{ fontSize: 'clamp(18px, 3vw, 24px)', marginBottom: '16px', color: 'var(--color-ink)' }}>YOUR BAG IS EMPTY</h2>
+            <p style={{ color: 'var(--color-ink-muted)', marginBottom: '28px', fontFamily: 'var(--font-body)', fontSize: '14px' }}>
+              Discover handcrafted couture and modern silhouettes curated for you.
             </p>
-            <Link href="/products" className="btn btn-primary" style={{ padding: '16px 48px' }}>
-              SHOP NEW ARRIVALS
+            <Link href="/products" className="btn btn-primary" style={{ padding: '14px 36px', display: 'inline-block' }}>
+              EXPLORE COLLECTION
             </Link>
           </div>
         ) : (
-          <div style={{ display: 'flex', gap: '64px', alignItems: 'flex-start', flexWrap: 'wrap' }}>
+          <div className="cart-content-grid">
             
             {/* Left: Cart Items */}
-            <div style={{ flex: '1 1 600px', minWidth: '320px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '16px', borderBottom: '1px solid var(--color-stone)' }}>
-                <span className="label-caps">PRODUCT</span>
-                <span className="label-caps">TOTAL</span>
+            <div className="cart-items-column">
+              <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '14px', borderBottom: '1px solid var(--color-stone)' }}>
+                <span className="label-caps" style={{ fontSize: '11px' }}>PRODUCT</span>
+                <span className="label-caps" style={{ fontSize: '11px' }}>TOTAL</span>
               </div>
               
               <div>
@@ -59,11 +59,13 @@ export default function CartPage() {
                 ))}
               </div>
 
-              <UpsellCarousel />
+              <div style={{ marginTop: '32px' }}>
+                <UpsellCarousel />
+              </div>
             </div>
 
             {/* Right: Order Summary */}
-            <div style={{ flex: '0 0 380px', minWidth: '320px' }}>
+            <div className="cart-summary-column">
               <OrderSummary />
             </div>
 
@@ -71,6 +73,35 @@ export default function CartPage() {
         )}
 
       </div>
+
+      <style dangerouslySetInnerHTML={{__html: `
+        .cart-content-grid {
+          display: flex;
+          gap: 48px;
+          align-items: flex-start;
+          flex-wrap: wrap;
+        }
+        .cart-items-column {
+          flex: 1 1 560px;
+          min-width: 280px;
+          width: 100%;
+        }
+        .cart-summary-column {
+          flex: 1 1 340px;
+          min-width: 280px;
+          max-width: 440px;
+          width: 100%;
+        }
+        @media (max-width: 900px) {
+          .cart-content-grid {
+            flex-direction: column;
+            gap: 32px;
+          }
+          .cart-summary-column {
+            max-width: 100%;
+          }
+        }
+      `}} />
     </div>
   );
 }

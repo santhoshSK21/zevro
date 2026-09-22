@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { applyThemeToDocument } from '../../../components/layout/ThemeSync';
+import { Sparkles, Check, Palette } from 'lucide-react';
 
 interface ThemePreset {
   id: string;
@@ -106,31 +108,86 @@ export default function ThemeCreatorPage() {
   const [selectedPreset, setSelectedPreset] = useState<string>('royal-ivory');
   const [currentTheme, setCurrentTheme] = useState<ThemePreset>(PRESET_THEMES[0]);
   const [savedToast, setSavedToast] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  // Load saved theme on mount
+  useEffect(() => {
+    async function loadTheme() {
+      try {
+        const res = await fetch('/api/theme');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.theme && data.theme.colors) {
+            setCurrentTheme(data.theme);
+            if (data.theme.id) {
+              setSelectedPreset(data.theme.id);
+            }
+            applyThemeToDocument(data.theme);
+          }
+        }
+      } catch (err) {
+        // Fallback to localStorage
+        try {
+          const cached = localStorage.getItem('zevro_custom_theme');
+          if (cached) {
+            const parsed = JSON.parse(cached);
+            setCurrentTheme(parsed);
+            if (parsed.id) setSelectedPreset(parsed.id);
+            applyThemeToDocument(parsed);
+          }
+        } catch (e) {}
+      }
+    }
+    loadTheme();
+  }, []);
 
   // Apply preset
   const handleSelectPreset = (preset: ThemePreset) => {
     setSelectedPreset(preset.id);
     setCurrentTheme({ ...preset });
+    applyThemeToDocument(preset);
   };
 
   // Color change handler
   const handleColorChange = (key: keyof ThemePreset['colors'], value: string) => {
-    setCurrentTheme(prev => ({
-      ...prev,
+    const updated = {
+      ...currentTheme,
       colors: {
-        ...prev.colors,
+        ...currentTheme.colors,
         [key]: value
       }
-    }));
+    };
+    setCurrentTheme(updated);
+    applyThemeToDocument(updated);
   };
 
-  const handleSaveTheme = () => {
-    // In production this could write to backend or localStorage
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('zevro_custom_theme', JSON.stringify(currentTheme));
+  const handleSaveTheme = async () => {
+    setSaving(true);
+    try {
+      // 1. Save to MongoDB
+      await fetch('/api/theme', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(currentTheme)
+      });
+
+      // 2. Save to localStorage
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('zevro_custom_theme', JSON.stringify(currentTheme));
+        // 3. Dispatch global live sync event
+        window.dispatchEvent(new CustomEvent('zevro-theme-changed', { detail: currentTheme }));
+      }
+
+      // 4. Apply to document
+      applyThemeToDocument(currentTheme);
+
+      setSavedToast(true);
+      setTimeout(() => setSavedToast(false), 4000);
+    } catch (e) {
+      console.error('Error saving theme:', e);
+    } finally {
+      setSaving(false);
     }
-    setSavedToast(true);
-    setTimeout(() => setSavedToast(false), 3000);
   };
 
   return (
@@ -138,27 +195,30 @@ export default function ThemeCreatorPage() {
       
       {/* Toast */}
       {savedToast && (
-        <div style={{ position: 'fixed', top: '24px', right: '24px', zIndex: 9999, background: '#1A1816', color: '#FAF8F5', border: '1px solid #D4AF37', padding: '14px 24px', borderRadius: '6px', fontSize: '13px', fontWeight: 600, boxShadow: '0 8px 24px rgba(0,0,0,0.2)' }}>
-          ✨ Store Theme & Palette Saved Successfully!
+        <div style={{ position: 'fixed', top: '24px', right: '24px', zIndex: 9999, background: '#0F172A', color: '#FAF8F5', border: '1px solid #C5A880', padding: '14px 24px', borderRadius: '6px', fontSize: '13px', fontWeight: 600, boxShadow: '0 8px 24px rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <Sparkles size={16} color="#C5A880" />
+          <span>Storefront Theme Published & Applied Live to All Pages!</span>
         </div>
       )}
 
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px', flexWrap: 'wrap', gap: '16px' }}>
         <div>
-          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '26px', color: '#1A1816', margin: '0 0 6px 0' }}>
-            Store Creator & Theme Customizer
+          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '26px', color: '#1E293B', margin: '0 0 6px 0' }}>
+            Storefront Theme & Color Customizer
           </h1>
-          <p style={{ fontSize: '13px', color: '#6C757D', margin: 0 }}>
-            Choose curated luxury palettes or customize brand colors, typography, and storefront aesthetics in real-time.
+          <p style={{ fontSize: '13px', color: '#64748B', margin: 0 }}>
+            Select luxury presets or fine-tune custom palettes. Changes are saved to MongoDB and applied live to the entire storefront.
           </p>
         </div>
 
         <button 
           onClick={handleSaveTheme}
-          style={{ padding: '12px 28px', backgroundColor: '#1A1816', color: '#FAF8F5', border: '1px solid #D4AF37', borderRadius: '6px', fontSize: '12px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', cursor: 'pointer', transition: 'all 0.2s' }}
+          disabled={saving}
+          style={{ padding: '12px 28px', backgroundColor: saving ? '#64748B' : '#0F172A', color: '#FAF8F5', border: '1px solid #C5A880', borderRadius: '4px', fontSize: '12px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', cursor: saving ? 'not-allowed' : 'pointer', transition: 'all 0.2s', display: 'flex', alignItems: 'center', gap: '8px' }}
         >
-          Publish Theme
+          <Sparkles size={14} color="#C5A880" />
+          {saving ? 'Publishing...' : 'Publish Theme Live'}
         </button>
       </div>
 

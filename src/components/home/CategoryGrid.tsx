@@ -71,6 +71,7 @@ export default function CategoryGrid() {
                     src={cat.image}
                     alt={cat.title}
                     fill
+                    loading={i < 2 ? 'eager' : 'lazy'}
                     className="catgrid-img"
                     sizes="(max-width: 768px) 100vw, 50vw"
                   />

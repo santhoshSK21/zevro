@@ -111,8 +111,11 @@ function AdminProductFormContent() {
     const method = id ? 'PUT' : 'POST';
     const url = id ? `/api/products/${id}` : '/api/products';
     
+    const variantImages = formData.variants?.[0]?.images || [];
     const payload = {
       ...formData,
+      images: variantImages,
+      image: variantImages[0] || '',
       price: Math.round(formData.price * 100),
       originalPrice: Math.round(formData.originalPrice * 100),
       slug: formData.slug || formData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')
@@ -164,8 +167,94 @@ function AdminProductFormContent() {
     setFormData({ ...formData, variants });
   };
 
-  const parentCats = categories.filter(c => !c.parent);
-  const subCats = categories.filter(c => c.parent && categories.find(p => p.slug === formData.category && p._id === c.parent));
+  const CATEGORY_PRESETS: Record<string, { name: string; slug: string; subcategories: { name: string; slug: string }[] }> = {
+    'western-wear': {
+      name: 'Western Wear',
+      slug: 'western-wear',
+      subcategories: [
+        { name: 'Dresses & Gowns', slug: 'dresses-gowns' },
+        { name: 'Co-ord Sets', slug: 'coord-sets' },
+        { name: 'Tops & Shirts', slug: 'tops-shirts' },
+        { name: 'Trousers & Skirts', slug: 'trousers-skirts' },
+        { name: 'Blazers & Jackets', slug: 'blazers-jackets' },
+        { name: 'Jumpsuits', slug: 'jumpsuits' }
+      ]
+    },
+    'ethnic-wear': {
+      name: 'Ethnic Wear',
+      slug: 'ethnic-wear',
+      subcategories: [
+        { name: 'Sarees & Drapes', slug: 'sarees-drapes' },
+        { name: 'Anarkali Suits', slug: 'anarkali-suits' },
+        { name: 'Lehengas & Sets', slug: 'lehengas-sets' },
+        { name: 'Kurta Sets', slug: 'kurta-sets' },
+        { name: 'Festive Dupattas', slug: 'festive-dupattas' }
+      ]
+    },
+    'indo-western': {
+      name: 'Indo-Western',
+      slug: 'indo-western',
+      subcategories: [
+        { name: 'Cape Gowns', slug: 'cape-gowns' },
+        { name: 'Draped Dhoti Sets', slug: 'dhoti-sets' },
+        { name: 'Fusion Co-ords', slug: 'fusion-coords' },
+        { name: 'Crop Top & Skirt', slug: 'crop-top-skirt' }
+      ]
+    },
+    'accessories': {
+      name: 'Accessories',
+      slug: 'accessories',
+      subcategories: [
+        { name: 'Jewelry & Kundan Sets', slug: 'jewelry' },
+        { name: 'Handcrafted Clutches & Potlis', slug: 'clutches' },
+        { name: 'Belts & Embellishments', slug: 'belts' },
+        { name: 'Footwear & Juttis', slug: 'footwear' }
+      ]
+    },
+    'new-in': {
+      name: 'New Arrivals',
+      slug: 'new-in',
+      subcategories: [
+        { name: 'Runway Highlights', slug: 'runway-highlights' },
+        { name: 'Seasonal Drop', slug: 'seasonal-drop' },
+        { name: 'Limited Edition', slug: 'limited-edition' }
+      ]
+    }
+  };
+
+  const normalizeCatSlug = (cat: string) => {
+    if (!cat) return '';
+    const lower = cat.toLowerCase().trim();
+    if (lower.includes('indo')) return 'indo-western';
+    if (lower.includes('west')) return 'western-wear';
+    if (lower.includes('ethn') || lower.includes('saree') || lower.includes('lehenga')) return 'ethnic-wear';
+    if (lower.includes('access') || lower.includes('jewel') || lower.includes('clutch')) return 'accessories';
+    if (lower.includes('new') || lower.includes('drop') || lower.includes('arrival')) return 'new-in';
+    return lower.replace(/[^a-z0-9]+/g, '-');
+  };
+
+  const parentCatsFromDb = Array.isArray(categories) ? categories.filter(c => !c.parent) : [];
+  const allParentCategories = [
+    ...parentCatsFromDb.map(c => ({ name: c.name, slug: c.slug, _id: c._id })),
+    ...Object.values(CATEGORY_PRESETS).map(c => ({ name: c.name, slug: c.slug, _id: c.slug }))
+  ].filter((item, index, self) => index === self.findIndex(t => t.slug === item.slug));
+
+  const selectedCatObj = Array.isArray(categories) ? categories.find(c => c.slug === formData.category || String(c._id) === String(formData.category)) : null;
+  const dbSubCats = Array.isArray(categories) ? categories.filter(c => {
+    if (!c.parent) return false;
+    const parentIdStr = typeof c.parent === 'object' ? String(c.parent._id || c.parent) : String(c.parent);
+    const targetIdStr = selectedCatObj ? String(selectedCatObj._id) : '';
+    return parentIdStr === targetIdStr || c.parentSlug === formData.category;
+  }) : [];
+
+  const normalizedCategory = normalizeCatSlug(formData.category);
+  const presetSubCats = CATEGORY_PRESETS[normalizedCategory]?.subcategories || 
+                        CATEGORY_PRESETS[formData.category]?.subcategories || [];
+  
+  const subCats = [
+    ...dbSubCats.map((c: any) => ({ name: c.name, slug: c.slug })),
+    ...presetSubCats
+  ].filter((item, index, self) => index === self.findIndex(t => t.slug === item.slug));
 
   const TABS = ['Basic Info', 'Organization', 'Pricing & SEO', 'Variants & Stock', 'Media'];
 
@@ -174,24 +263,24 @@ function AdminProductFormContent() {
   return (
     <div style={{ maxWidth: '1000px', margin: '0 auto', paddingBottom: '64px' }}>
       {toast && (
-        <div style={{ position: 'fixed', top: '20px', right: '20px', zIndex: 9999, padding: '16px 24px', borderRadius: '4px', color: '#fff', backgroundColor: toast.type === 'success' ? 'var(--success)' : 'var(--error)', boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}>
+        <div style={{ position: 'fixed', top: '20px', right: '20px', zIndex: 9999, padding: '16px 24px', borderRadius: '4px', color: '#fff', backgroundColor: toast.type === 'success' ? '#16A34A' : '#EF4444', boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}>
           {toast.message}
         </div>
       )}
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-        <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '28px', color: 'var(--espresso)' }}>
+        <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '28px', color: '#0F172A' }}>
           {id ? 'EDIT PRODUCT' : 'ADD NEW PRODUCT'}
         </h1>
         <div style={{ display: 'flex', gap: '12px' }}>
-          <button onClick={() => router.push('/admin/products')} type="button" style={{ padding: '10px 20px', border: '1px solid var(--linen)', background: 'transparent', cursor: 'pointer', borderRadius: '4px' }}>Cancel</button>
-          <button onClick={handleSave} type="button" disabled={saving} style={{ padding: '10px 20px', backgroundColor: saving ? '#ccc' : 'var(--espresso)', color: '#fff', border: 'none', cursor: saving ? 'not-allowed' : 'pointer', borderRadius: '4px' }}>
+          <button onClick={() => router.push('/admin/products')} type="button" style={{ padding: '10px 20px', border: '1px solid #CBD5E1', background: 'transparent', cursor: 'pointer', borderRadius: '4px', color: '#475569' }}>Cancel</button>
+          <button onClick={handleSave} type="button" disabled={saving} style={{ padding: '10px 20px', backgroundColor: saving ? '#94A3B8' : '#0F172A', color: '#FAF8F5', border: '1px solid #C5A880', cursor: saving ? 'not-allowed' : 'pointer', borderRadius: '4px', fontWeight: 600 }}>
             {saving ? 'Saving...' : (id ? 'Save Changes' : 'Create Product')}
           </button>
         </div>
       </div>
 
-      <div style={{ display: 'flex', gap: '24px', borderBottom: '1px solid var(--linen)', marginBottom: '32px' }}>
+      <div style={{ display: 'flex', gap: '24px', borderBottom: '1px solid #E2E8F0', marginBottom: '32px' }}>
         {TABS.map((tab, idx) => (
           <button 
             key={tab} 
@@ -200,9 +289,9 @@ function AdminProductFormContent() {
               padding: '12px 0', 
               background: 'none', 
               border: 'none', 
-              borderBottom: activeTab === idx ? '2px solid var(--espresso)' : '2px solid transparent',
-              color: activeTab === idx ? 'var(--espresso)' : 'var(--warm-grey)',
-              fontWeight: activeTab === idx ? 600 : 400,
+              borderBottom: activeTab === idx ? '2px solid #C5A880' : '2px solid transparent',
+              color: activeTab === idx ? '#0F172A' : '#64748B',
+              fontWeight: activeTab === idx ? 700 : 400,
               cursor: 'pointer',
               fontSize: '14px'
             }}
@@ -212,30 +301,30 @@ function AdminProductFormContent() {
         ))}
       </div>
 
-      <form onSubmit={handleSave} style={{ backgroundColor: '#fff', padding: '32px', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid #E9ECEF' }}>
+      <form onSubmit={handleSave} style={{ backgroundColor: '#fff', padding: '32px', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid #E2E8F0' }}>
         
         {/* BASIC INFO */}
         {activeTab === 0 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             <div>
-              <label style={{ display: 'block', fontSize: '12px', marginBottom: '8px', fontWeight: 600 }}>PRODUCT NAME *</label>
-              <input required type="text" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} style={{ width: '100%', padding: '12px', border: '1px solid var(--linen)', borderRadius: '4px' }} />
+              <label style={{ display: 'block', fontSize: '12px', marginBottom: '8px', fontWeight: 600, color: '#0F172A' }}>PRODUCT NAME *</label>
+              <input required type="text" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} style={{ width: '100%', padding: '12px', border: '1px solid #CBD5E1', borderRadius: '4px' }} />
             </div>
             <div>
-              <label style={{ display: 'block', fontSize: '12px', marginBottom: '8px', fontWeight: 600 }}>SLUG</label>
-              <input type="text" value={formData.slug} onChange={(e) => setFormData({...formData, slug: e.target.value})} placeholder="Auto-generated if empty" style={{ width: '100%', padding: '12px', border: '1px solid var(--linen)', borderRadius: '4px' }} />
+              <label style={{ display: 'block', fontSize: '12px', marginBottom: '8px', fontWeight: 600, color: '#0F172A' }}>SLUG</label>
+              <input type="text" value={formData.slug} onChange={(e) => setFormData({...formData, slug: e.target.value})} placeholder="Auto-generated if empty" style={{ width: '100%', padding: '12px', border: '1px solid #CBD5E1', borderRadius: '4px' }} />
             </div>
             <div>
-              <label style={{ display: 'block', fontSize: '12px', marginBottom: '8px', fontWeight: 600 }}>SHORT DESCRIPTION</label>
-              <textarea value={formData.shortDescription} onChange={(e) => setFormData({...formData, shortDescription: e.target.value})} rows={2} style={{ width: '100%', padding: '12px', border: '1px solid var(--linen)', borderRadius: '4px' }} />
+              <label style={{ display: 'block', fontSize: '12px', marginBottom: '8px', fontWeight: 600, color: '#0F172A' }}>SHORT DESCRIPTION</label>
+              <textarea value={formData.shortDescription} onChange={(e) => setFormData({...formData, shortDescription: e.target.value})} rows={2} style={{ width: '100%', padding: '12px', border: '1px solid #CBD5E1', borderRadius: '4px' }} />
             </div>
             <div>
-              <label style={{ display: 'block', fontSize: '12px', marginBottom: '8px', fontWeight: 600 }}>FULL DESCRIPTION</label>
-              <textarea value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} rows={5} style={{ width: '100%', padding: '12px', border: '1px solid var(--linen)', borderRadius: '4px' }} />
+              <label style={{ display: 'block', fontSize: '12px', marginBottom: '8px', fontWeight: 600, color: '#0F172A' }}>FULL DESCRIPTION</label>
+              <textarea value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} rows={5} style={{ width: '100%', padding: '12px', border: '1px solid #CBD5E1', borderRadius: '4px' }} />
             </div>
             <div>
-              <label style={{ display: 'block', fontSize: '12px', marginBottom: '8px', fontWeight: 600 }}>FABRIC / MATERIAL</label>
-              <input type="text" value={formData.fabric} onChange={(e) => setFormData({...formData, fabric: e.target.value})} style={{ width: '100%', padding: '12px', border: '1px solid var(--linen)', borderRadius: '4px' }} />
+              <label style={{ display: 'block', fontSize: '12px', marginBottom: '8px', fontWeight: 600, color: '#0F172A' }}>FABRIC / MATERIAL</label>
+              <input type="text" value={formData.fabric} onChange={(e) => setFormData({...formData, fabric: e.target.value})} placeholder="e.g. 100% Pure Mulberry Silk" style={{ width: '100%', padding: '12px', border: '1px solid #CBD5E1', borderRadius: '4px' }} />
             </div>
           </div>
         )}
@@ -243,24 +332,78 @@ function AdminProductFormContent() {
         {/* ORGANIZATION */}
         {activeTab === 1 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <div style={{ display: 'flex', gap: '16px' }}>
-              <div style={{ flex: 1 }}>
-                <label style={{ display: 'block', fontSize: '12px', marginBottom: '8px', fontWeight: 600 }}>CATEGORY *</label>
-                <select required value={formData.category} onChange={(e) => setFormData({...formData, category: e.target.value, subcategory: ''})} style={{ width: '100%', padding: '12px', border: '1px solid var(--linen)', borderRadius: '4px' }}>
+            <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+              <div style={{ flex: '1 1 300px' }}>
+                <label style={{ display: 'block', fontSize: '12px', marginBottom: '8px', fontWeight: 600, color: '#0F172A' }}>CATEGORY *</label>
+                <select 
+                  required 
+                  value={formData.category} 
+                  onChange={(e) => {
+                    const newCat = e.target.value;
+                    const normalized = normalizeCatSlug(newCat);
+                    const defaultSub = CATEGORY_PRESETS[normalized]?.subcategories?.[0]?.slug || '';
+                    setFormData({ ...formData, category: newCat, subcategory: defaultSub });
+                  }} 
+                  style={{ width: '100%', padding: '12px', border: '1px solid #CBD5E1', borderRadius: '4px', backgroundColor: '#FFF', fontSize: '13px' }}
+                >
                   <option value="">-- Select Category --</option>
-                  {parentCats.map(c => <option key={c._id} value={c.slug}>{c.name}</option>)}
+                  {allParentCategories.map(c => <option key={c.slug} value={c.slug}>{c.name}</option>)}
                 </select>
               </div>
-              <div style={{ flex: 1 }}>
-                <label style={{ display: 'block', fontSize: '12px', marginBottom: '8px', fontWeight: 600 }}>SUBCATEGORY</label>
-                <select value={formData.subcategory} onChange={(e) => setFormData({...formData, subcategory: e.target.value})} style={{ width: '100%', padding: '12px', border: '1px solid var(--linen)', borderRadius: '4px' }}>
-                  <option value="">-- Select --</option>
-                  {subCats.map(c => <option key={c._id} value={c.slug}>{c.name}</option>)}
+
+              <div style={{ flex: '1 1 300px' }}>
+                <label style={{ display: 'block', fontSize: '12px', marginBottom: '8px', fontWeight: 600, color: '#0F172A' }}>
+                  SUBCATEGORY {subCats.length > 0 && `(${subCats.length} options)`}
+                </label>
+                <select 
+                  value={formData.subcategory} 
+                  onChange={(e) => setFormData({...formData, subcategory: e.target.value})} 
+                  style={{ width: '100%', padding: '12px', border: '1px solid #CBD5E1', borderRadius: '4px', backgroundColor: '#FFF', fontSize: '13px' }}
+                >
+                  <option value="">-- Select Subcategory --</option>
+                  {subCats.map(c => <option key={c.slug} value={c.slug}>{c.name}</option>)}
                 </select>
+                
+                {/* Quick Select Buttons */}
+                {subCats.length > 0 && (
+                  <div style={{ marginTop: '10px' }}>
+                    <div style={{ fontSize: '11px', color: '#64748B', marginBottom: '6px', fontWeight: 600, letterSpacing: '0.04em' }}>QUICK SELECT:</div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                      {subCats.map(c => {
+                        const isSelected = formData.subcategory === c.slug || formData.subcategory === c.name;
+                        return (
+                          <button
+                            key={c.slug}
+                            type="button"
+                            onClick={() => setFormData({ ...formData, subcategory: c.slug })}
+                            style={{
+                              padding: '5px 12px',
+                              borderRadius: '16px',
+                              fontSize: '11px',
+                              border: isSelected ? '1px solid #0F172A' : '1px solid #CBD5E1',
+                              backgroundColor: isSelected ? '#0F172A' : '#F8FAFC',
+                              color: isSelected ? '#FAF8F5' : '#334155',
+                              cursor: 'pointer',
+                              fontWeight: isSelected ? 700 : 500,
+                              transition: 'all 0.15s'
+                            }}
+                          >
+                            {c.name}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {formData.category && subCats.length === 0 && (
+                  <p style={{ fontSize: '11px', color: '#64748B', marginTop: '6px' }}>No subcategories registered for this category.</p>
+                )}
               </div>
             </div>
+
             <div>
-              <label style={{ display: 'block', fontSize: '12px', marginBottom: '8px', fontWeight: 600 }}>COLLECTIONS (Optional)</label>
+              <label style={{ display: 'block', fontSize: '12px', marginBottom: '8px', fontWeight: 600, color: '#0F172A' }}>COLLECTIONS (Optional)</label>
               <select 
                 multiple 
                 value={formData.collections} 
@@ -268,11 +411,11 @@ function AdminProductFormContent() {
                   const vals = Array.from(e.target.selectedOptions, option => option.value);
                   setFormData({...formData, collections: vals});
                 }}
-                style={{ width: '100%', padding: '12px', border: '1px solid var(--linen)', borderRadius: '4px', height: '120px' }}
+                style={{ width: '100%', padding: '12px', border: '1px solid #CBD5E1', borderRadius: '4px', height: '120px', backgroundColor: '#FFF' }}
               >
                 {collections.map(c => <option key={c._id} value={c._id}>{c.name}</option>)}
               </select>
-              <p style={{ fontSize: '12px', color: 'var(--warm-grey)', marginTop: '4px' }}>Hold Ctrl/Cmd to select multiple.</p>
+              <p style={{ fontSize: '12px', color: '#64748B', marginTop: '4px' }}>Hold Ctrl/Cmd to select multiple collections.</p>
             </div>
           </div>
         )}

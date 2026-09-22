@@ -44,20 +44,31 @@ export default function TrackPage() {
   };
 
   return (
-    <main className="container" style={{ padding: '64px 20px', maxWidth: '860px', margin: '0 auto', flex: 1, width: '100%', fontFamily: 'var(--font-body)' }}>
+    <div style={{ backgroundColor: 'var(--ivory, #FAF8F5)', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       
-      {/* Header */}
-      <div style={{ textAlign: 'center', marginBottom: '40px' }}>
-        <span style={{ fontFamily: 'var(--font-ui)', fontSize: '11px', letterSpacing: '0.18em', color: '#B49A68', textTransform: 'uppercase', fontWeight: 600, display: 'block', marginBottom: '8px' }}>
-          CONCIERGE LOGISTICS
-        </span>
-        <h1 style={{ fontFamily: 'var(--font-display, serif)', fontSize: '32px', color: 'var(--color-ink, #1C1C1A)', letterSpacing: '0.08em', margin: '0 0 12px 0' }}>
-          TRACK YOUR CONSIGNMENT
-        </h1>
-        <p style={{ color: 'var(--color-ink-muted, #68645C)', fontSize: '14px', maxWidth: '520px', margin: '0 auto' }}>
-          Enter your Order ID and Checkout Email to view real-time atelier progress and delivery dispatch.
-        </p>
+      {/* Hero Header */}
+      <div style={{ position: 'relative', height: '36vh', minHeight: '280px', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+        <img 
+          src="https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=1600&auto=format&fit=crop&q=80" 
+          alt="ZEVRO White Glove Dispatch" 
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', filter: 'brightness(0.6)' }} 
+        />
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(15,23,42,0.4), rgba(15,23,42,0.8))' }} />
+        <div style={{ position: 'relative', zIndex: 1, textAlign: 'center', color: '#FFF', padding: '0 20px' }}>
+          <span style={{ fontFamily: 'var(--font-ui, sans-serif)', fontSize: '11px', letterSpacing: '0.24em', textTransform: 'uppercase', color: '#C5A880', fontWeight: 600, display: 'block', marginBottom: '8px' }}>
+            CONCIERGE LOGISTICS
+          </span>
+          <h1 style={{ fontFamily: 'var(--font-display, serif)', fontSize: 'clamp(30px, 4.5vw, 46px)', letterSpacing: '0.06em', margin: 0 }}>
+            TRACK YOUR CONSIGNMENT
+          </h1>
+          <p style={{ fontFamily: 'var(--font-display, serif)', fontStyle: 'italic', fontSize: '15px', color: '#E2E8F0', marginTop: '8px' }}>
+            Live status from our atelier dispatch to your doorstep.
+          </p>
+        </div>
       </div>
+
+      <main className="container" style={{ padding: '56px 20px 80px', maxWidth: '860px', margin: '0 auto', flex: 1, width: '100%', fontFamily: 'var(--font-body)' }}>
+
 
       {/* Form */}
       <div style={{ backgroundColor: 'var(--color-white, #FAF8F5)', border: '1px solid var(--color-stone, #DDD6C8)', padding: '32px', marginBottom: '48px', boxShadow: '0 8px 24px rgba(0,0,0,0.03)' }}>
@@ -243,5 +254,7 @@ export default function TrackPage() {
       </div>
 
     </main>
+    </div>
   );
 }
+

@@ -17,6 +17,7 @@ interface StoreConfig {
   shippingCharge: number;
   codEnabled: boolean;
   demoMode: boolean;
+  catalogBatchSize?: number;
   announcementText: string;
   footerCopyright: string;
   supportHours: string;

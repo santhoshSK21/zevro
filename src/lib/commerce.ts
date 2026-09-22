@@ -96,7 +96,22 @@ export async function calculateOrderTotals(
   let appliedCouponCode: string | null = null;
   
   if (couponCode) {
-    const coupon = await Coupon.findOne({ code: couponCode.toUpperCase(), isActive: true });
+    const cleanCode = couponCode.trim().toUpperCase();
+    let coupon = await Coupon.findOne({ code: cleanCode, isActive: true });
+    
+    // Default fallback rules
+    if (!coupon) {
+      if (cleanCode === 'WELCOME10') {
+        coupon = { code: 'WELCOME10', type: 'percent', value: 10, minOrderValue: 99900, maxDiscount: 100000, isActive: true };
+      } else if (cleanCode === 'ZEVRO500') {
+        coupon = { code: 'ZEVRO500', type: 'fixed', value: 50000, minOrderValue: 299900, maxDiscount: 50000, isActive: true };
+      } else if (cleanCode === 'LUXE15') {
+        coupon = { code: 'LUXE15', type: 'percent', value: 15, minOrderValue: 499900, maxDiscount: 250000, isActive: true };
+      } else if (cleanCode === 'FESTIVE20') {
+        coupon = { code: 'FESTIVE20', type: 'percent', value: 20, minOrderValue: 199900, maxDiscount: 300000, isActive: true };
+      }
+    }
+
     if (coupon) {
       const now = new Date();
       if (!coupon.expiresAt || now <= new Date(coupon.expiresAt)) {

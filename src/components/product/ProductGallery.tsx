@@ -65,6 +65,7 @@ export default function ProductGallery({ images }: ProductGalleryProps) {
             style={{ objectFit: 'cover', transition: 'transform 0.4s ease' }}
             sizes="(max-width: 768px) 100vw, 50vw"
             priority
+            loading="eager"
           />
           <div className="pgallery-zoom-hint">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">

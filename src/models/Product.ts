@@ -57,7 +57,6 @@ const ProductSchema = new Schema({
   seoDescription: String,
 }, { timestamps: true })
 
-ProductSchema.index({ slug: 1 })
 ProductSchema.index({ category: 1, isActive: 1 })
 ProductSchema.index({ name: 'text', description: 'text', tags: 'text' })
 

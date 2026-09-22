@@ -10,6 +10,7 @@ import MobileMenu from "../components/layout/MobileMenu";
 import SearchOverlay from "../components/layout/SearchOverlay";
 import CartDrawer from "../components/layout/CartDrawer";
 import CartSync from "../components/layout/CartSync";
+import ThemeSync from "../components/layout/ThemeSync";
 import Footer from "../components/layout/Footer";
 import ToastProvider from "../components/ui/ToastProvider";
 
@@ -45,9 +46,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${playfair.variable} ${inter.variable}`}>
+    <html lang="en" className={`${playfair.variable} ${inter.variable}`} data-scroll-behavior="smooth">
       <body>
         <Providers>
+          <ThemeSync />
           <CartSync />
           <AnnouncementBar />
           <Navbar />

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { Download, TrendingUp, DollarSign, Package, ShoppingBag } from 'lucide-react';
 
 export default function ReportsPage() {
   const [dateRange, setDateRange] = useState('30d');
@@ -81,9 +82,9 @@ export default function ReportsPage() {
 
           <button 
             onClick={handleExportCSV}
-            style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 18px', backgroundColor: '#1A1816', color: '#FAF8F5', border: 'none', borderRadius: '6px', fontSize: '12px', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', cursor: 'pointer' }}
+            style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 18px', backgroundColor: '#0F172A', color: '#FAF8F5', border: 'none', borderRadius: '4px', fontSize: '11px', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', cursor: 'pointer' }}
           >
-            <span>📥</span> Export CSV
+            <Download size={14} color="#C5A880" /> Export CSV
           </button>
         </div>
       </div>

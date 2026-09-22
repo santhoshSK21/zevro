@@ -129,7 +129,11 @@ export default function AdminInventoryPage() {
               <tr key={i} style={{ borderBottom: '1px solid #E9ECEF' }}>
                 <td style={{ padding: '16px 24px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <img src={r.image || ''} alt={r.name} style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '4px', background: 'var(--color-surface)' }} />
+                    {r.image ? (
+                      <img src={r.image} alt={r.name} style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '4px', background: 'var(--color-surface)' }} />
+                    ) : (
+                      <div style={{ width: '40px', height: '40px', borderRadius: '4px', background: '#F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '9px', color: '#94A3B8', fontWeight: 600 }}>NO IMG</div>
+                    )}
                     <span style={{ fontWeight: 500, color: 'var(--espresso)' }}>{r.name}</span>
                   </div>
                 </td>

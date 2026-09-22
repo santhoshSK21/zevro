@@ -124,7 +124,11 @@ export default function OrderDetailPage() {
                   <tr key={i} style={{ borderBottom: '1px solid #E9ECEF' }}>
                     <td style={{ padding: '16px 0' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <img src={item.image || ''} alt={item.name} style={{ width: '48px', height: '48px', objectFit: 'cover', borderRadius: '4px', background: 'var(--color-surface)' }} />
+                        {item.image ? (
+                          <img src={item.image} alt={item.name} style={{ width: '48px', height: '48px', objectFit: 'cover', borderRadius: '4px', background: 'var(--color-surface)' }} />
+                        ) : (
+                          <div style={{ width: '48px', height: '48px', borderRadius: '4px', background: '#F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', color: '#94A3B8' }}>NO IMG</div>
+                        )}
                         <div>
                           <p style={{ fontWeight: 500, color: 'var(--espresso)' }}>{item.name}</p>
                           <p style={{ fontSize: '12px', color: '#6C757D' }}>Size: {item.size} | Color: {item.color}</p>

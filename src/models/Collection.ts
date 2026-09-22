@@ -23,7 +23,6 @@ const CollectionSchema = new Schema<ICollection>(
   { timestamps: true }
 );
 
-CollectionSchema.index({ slug: 1 });
 CollectionSchema.index({ isActive: 1 });
 
 export const Collection: Model<ICollection> =

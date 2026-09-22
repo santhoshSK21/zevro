@@ -17,7 +17,7 @@ export default function Navbar() {
   const [lastScrollY, setLastScrollY] = useState(0);
   const pathname = usePathname();
   const { data: session } = useSession();
-  const { setSearchOpen, setMobileMenuOpen } = useUiStore();
+  const { setSearchOpen, setMobileMenuOpen, announcementBarVisible } = useUiStore();
   const { itemCount, openDrawer } = useCartStore();
   const { productIds } = useWishlistStore();
   const { config } = useConfigStore();
@@ -29,7 +29,7 @@ export default function Navbar() {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
       
-      if (currentScrollY > 40) {
+      if (currentScrollY > 30) {
         setScrolled(true);
       } else {
         setScrolled(false);
@@ -47,17 +47,18 @@ export default function Navbar() {
   }, [lastScrollY]);
 
   const links = [
-    { label: 'NEW IN', href: '/products?category=new-in' },
+    { label: 'NEW IN', href: '/category/new-in' },
     { label: 'WESTERN WEAR', href: '/category/western-wear' },
     { label: 'ETHNIC WEAR', href: '/category/ethnic-wear' },
     { label: 'INDO-WESTERN', href: '/category/indo-western' },
     { label: 'ACCESSORIES', href: '/category/accessories' },
   ];
 
-  if (pathname?.startsWith('/admin')) return null;
+  if (pathname?.startsWith('/admin') || pathname?.startsWith('/superadmin')) return null;
 
   const isHome = pathname === '/';
-  const navClass = `zevro-nav ${isHome ? 'is-home' : ''} ${isHome && !scrolled ? 'is-transparent' : ''} ${isHome && scrolled ? 'is-glass' : ''}`;
+  const hasAnnouncement = announcementBarVisible && Boolean(config?.announcementText);
+  const navClass = `zevro-nav ${isHome ? 'is-home' : ''} ${isHome && !scrolled ? 'is-transparent' : ''} ${scrolled ? 'is-glass' : ''} ${hasAnnouncement && !scrolled ? 'has-announcement' : ''}`;
 
   return (
     <>
@@ -143,10 +144,14 @@ export default function Navbar() {
           align-items: center;
           padding: 0 var(--container-gutter);
           border-bottom: none;
-          transition: background-color 0.4s ease, color 0.4s ease, backdrop-filter 0.4s ease, box-shadow 0.4s ease;
+          transition: background-color 0.3s ease, color 0.3s ease, backdrop-filter 0.3s ease, box-shadow 0.3s ease, top 0.3s ease;
         }
         .zevro-nav.is-home {
           position: fixed;
+          top: 0;
+        }
+        .zevro-nav.is-home.has-announcement {
+          top: 38px;
         }
         .zevro-nav.is-transparent {
           background: transparent;
@@ -156,12 +161,16 @@ export default function Navbar() {
           filter: brightness(0) invert(1);
         }
         .zevro-nav.is-glass {
-          background: rgba(245, 241, 232, 0.92);
+          top: 0 !important;
+          background: rgba(245, 241, 232, 0.95);
           backdrop-filter: blur(16px);
           -webkit-backdrop-filter: blur(16px);
           border-bottom: 1px solid rgba(28, 28, 26, 0.08);
           box-shadow: 0 4px 24px rgba(28, 28, 26, 0.04);
           color: var(--color-ink);
+        }
+        .zevro-nav.is-glass .nav-logo-img {
+          filter: none;
         }
         .nav-logo-wrap {
           text-align: left;

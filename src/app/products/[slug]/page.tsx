@@ -92,41 +92,67 @@ export default function ProductDetailPage() {
   }
 
   return (
-    <div style={{ backgroundColor: 'var(--color-bg)', minHeight: '100vh', paddingTop: '80px' }}>
+    <div style={{ backgroundColor: 'var(--color-bg)', minHeight: '100vh', paddingTop: '80px', paddingBottom: '80px' }}>
 
       {/* Breadcrumb */}
-      <div className="container" style={{ marginBottom: '24px', fontSize: '11px', letterSpacing: '0.1em', textTransform: 'uppercase', fontFamily: 'var(--font-ui)' }}>
+      <div className="container" style={{ padding: '0 20px', marginBottom: '24px', fontSize: '11px', letterSpacing: '0.1em', textTransform: 'uppercase', fontFamily: 'var(--font-ui)', overflowX: 'auto', whiteSpace: 'nowrap' }}>
         <Link href="/" style={{ color: 'var(--color-ink-muted)', textDecoration: 'none' }}>Home</Link>
         <span style={{ margin: '0 8px', color: 'var(--color-ink-muted)' }}>/</span>
-        <Link href={`/category/${product.category}`} style={{ color: 'var(--color-ink-muted)', textDecoration: 'none' }}>{product.category.replace(/-/g, ' ')}</Link>
+        <Link href={`/category/${product.category}`} style={{ color: 'var(--color-ink-muted)', textDecoration: 'none' }}>{product.category?.replace(/-/g, ' ')}</Link>
         <span style={{ margin: '0 8px', color: 'var(--color-ink-muted)' }}>/</span>
-        <span style={{ color: 'var(--color-ink)' }}>{product.name}</span>
+        <span style={{ color: 'var(--color-ink)', fontWeight: 600 }}>{product.name}</span>
       </div>
 
       {/* Product Main Area */}
-      <div className="container" style={{ display: 'flex', gap: '48px', alignItems: 'flex-start', flexWrap: 'wrap', marginBottom: '80px' }}>
+      <div className="container pdp-main-container" style={{ padding: '0 20px' }}>
+        <div className="pdp-grid-layout">
+          {/* Left: Gallery */}
+          <div className="pdp-gallery-col">
+            <ProductGallery images={galleryImages} />
+          </div>
 
-        {/* Left: Gallery */}
-        <div style={{ flex: '1 1 480px', minWidth: '300px' }}>
-          <ProductGallery images={galleryImages} />
-        </div>
-
-        {/* Right: Info */}
-        <div style={{ flex: '1 1 380px', minWidth: '300px' }}>
-          <ProductInfo
-            product={product}
-            onColorChange={(images) => setGalleryImages(images)}
-          />
-          <div style={{ marginTop: '32px' }}>
-            <ProductAccordion product={product} />
+          {/* Right: Info */}
+          <div className="pdp-info-col">
+            <ProductInfo
+              product={product}
+              onColorChange={(images) => setGalleryImages(images)}
+            />
+            <div style={{ marginTop: '32px' }}>
+              <ProductAccordion product={product} />
+            </div>
           </div>
         </div>
-
       </div>
 
       {/* Related Products */}
-      <RelatedProducts category={product.category} />
+      <div style={{ marginTop: '64px' }}>
+        <RelatedProducts category={product.category} />
+      </div>
 
+      <style dangerouslySetInnerHTML={{__html: `
+        .pdp-grid-layout {
+          display: flex;
+          gap: 48px;
+          align-items: flex-start;
+          flex-wrap: wrap;
+        }
+        .pdp-gallery-col {
+          flex: 1 1 500px;
+          min-width: 280px;
+          width: 100%;
+        }
+        .pdp-info-col {
+          flex: 1 1 380px;
+          min-width: 280px;
+          width: 100%;
+        }
+        @media (max-width: 900px) {
+          .pdp-grid-layout {
+            flex-direction: column;
+            gap: 32px;
+          }
+        }
+      `}} />
     </div>
   );
 }

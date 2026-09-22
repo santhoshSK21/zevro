@@ -144,14 +144,29 @@ export async function PATCH(request: Request) {
 export async function DELETE(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const id = searchParams.get('id');
-    if (!id) {
-      return NextResponse.json({ error: 'Admin ID required' }, { status: 400 });
+    const idParam = searchParams.get('id') || searchParams.get('ids');
+    let ids: string[] = [];
+
+    if (idParam) {
+      ids = idParam.split(',').map(s => s.trim()).filter(Boolean);
+    } else {
+      try {
+        const body = await request.json();
+        if (Array.isArray(body.ids)) ids = body.ids;
+        else if (body.id) ids = [body.id];
+      } catch (e) {}
     }
 
-    mockAdmins = mockAdmins.filter(a => a.id !== id);
-    return NextResponse.json({ success: true });
+    if (!ids || ids.length === 0) {
+      return NextResponse.json({ error: 'Admin ID(s) required' }, { status: 400 });
+    }
+
+    // Filter out root superadmin to prevent accidental lock out
+    const deletableIds = ids.filter(id => id !== 'adm-001');
+    mockAdmins = mockAdmins.filter(a => !deletableIds.includes(a.id));
+
+    return NextResponse.json({ success: true, deletedCount: deletableIds.length });
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to delete admin' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to delete admin(s)' }, { status: 500 });
   }
 }

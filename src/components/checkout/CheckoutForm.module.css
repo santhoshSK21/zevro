@@ -1,219 +1,453 @@
 /* ============================================================
-   CheckoutForm — CSS Module
-   Premium editorial checkout styling
+   CheckoutForm — Luxury Haute Couture Checkout Experience
    ============================================================ */
 
 .checkoutWrap {
-  background-color: var(--color-white);
-  padding: var(--space-12);
+  background-color: #FFFFFF;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 4px;
+  padding: 36px 32px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
 }
 
-/* Progress */
-.progressBar {
+/* Luxury Step Indicator */
+.stepperHeader {
   display: flex;
-  margin-bottom: var(--space-12);
+  align-items: center;
+  justify-content: space-between;
   position: relative;
+  margin-bottom: 36px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid #ECEAE5;
 }
 
-.progressTrack {
-  position: absolute;
-  top: 12px;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background-color: var(--color-stone);
-  z-index: 1;
+.stepPill {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: #8C827A;
+  font-family: var(--font-ui, sans-serif);
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  transition: all 0.25s ease;
 }
 
-.progressFill {
-  position: absolute;
-  top: 12px;
-  left: 0;
-  height: 1px;
-  background-color: var(--color-ink);
-  z-index: 2;
-  transition: width var(--duration-base) var(--ease-in-out);
+.stepPillActive {
+  color: #111111;
+  font-weight: 600;
 }
 
-.progressStep {
-  flex: 1;
-  position: relative;
-  z-index: 3;
+.stepPillCompleted {
+  color: #C5A880;
 }
 
-.progressStepCenter { text-align: center; }
-.progressStepRight { text-align: right; }
-
-.progressDot {
-  width: 24px;
-  height: 24px;
+.stepBadge {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid #D1CDC7;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: var(--font-ui);
-  font-size: var(--text-xs);
-  border: 1px solid var(--color-stone);
-  background: var(--color-white);
-  color: var(--color-ink-muted);
-  transition: all var(--duration-base) var(--ease-in-out);
+  font-size: 11px;
+  font-weight: 600;
+  transition: all 0.25s ease;
 }
 
-.progressDotActive {
-  background: var(--color-ink);
-  border-color: var(--color-ink);
-  color: var(--color-white);
+.stepBadgeActive {
+  background-color: #111111;
+  border-color: #111111;
+  color: #FAF8F5;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-.progressDotCenter { margin: 0 auto; }
-.progressDotRight { margin: 0 0 0 auto; }
-
-.progressLabel {
-  font-family: var(--font-ui);
-  font-size: var(--text-xs);
-  letter-spacing: var(--tracking-wider);
-  text-transform: uppercase;
-  margin-top: var(--space-2);
-  color: var(--color-ink-muted);
+.stepBadgeCompleted {
+  background-color: #C5A880;
+  border-color: #C5A880;
+  color: #FFFFFF;
 }
 
-.progressLabelActive {
-  color: var(--color-ink);
-  font-weight: 500;
+.stepConnector {
+  flex: 1;
+  height: 1px;
+  background-color: #E6E2DC;
+  margin: 0 16px;
 }
 
-/* Section heading */
-.sectionHeading {
-  font-family: var(--font-display);
-  font-size: var(--text-xl);
+.stepConnectorFilled {
+  background-color: #C5A880;
+}
+
+/* Headings */
+.sectionTitle {
+  font-family: var(--font-display, serif);
+  font-size: 22px;
   font-weight: 400;
-  line-height: var(--leading-tight);
-  letter-spacing: var(--tracking-tight);
-  color: var(--color-ink);
-  margin-bottom: var(--space-8);
+  letter-spacing: 0.04em;
+  color: #111111;
+  margin: 0 0 6px 0;
 }
 
-/* Form fields */
-.fieldGrid2 {
+.sectionSubtitle {
+  font-family: var(--font-body, sans-serif);
+  font-size: 12px;
+  color: #79716B;
+  letter-spacing: 0.04em;
+  margin: 0 0 28px 0;
+}
+
+/* Modern Floating / Boxed Luxury Input Fields */
+.fieldRow {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: var(--space-6);
-  margin-bottom: var(--space-6);
+  gap: 16px;
+  margin-bottom: 18px;
 }
 
-.fieldGrid3 {
+.fieldRow3 {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
-  gap: var(--space-6);
-  margin-bottom: var(--space-12);
+  gap: 16px;
+  margin-bottom: 24px;
 }
 
-.fieldFull {
-  margin-bottom: var(--space-6);
-}
-
-.field {
-  width: 100%;
-  padding: var(--space-4) var(--space-3);
-  border: var(--border-hairline);
-  border-radius: var(--radius);
-  background: transparent;
-  font-family: var(--font-body);
-  font-size: var(--text-base);
-  color: var(--color-ink);
-  outline: none;
-  transition: border-color var(--duration-base) var(--ease-in-out);
-}
-
-.field:focus {
-  border-color: var(--color-ink);
-}
-
-.field::placeholder {
-  color: var(--color-ink-muted);
-}
-
-.fieldLabel {
-  display: block;
-  font-family: var(--font-ui);
-  font-size: var(--text-xs);
-  font-weight: 500;
-  letter-spacing: var(--tracking-wider);
-  text-transform: uppercase;
-  color: var(--color-ink-muted);
-  margin-bottom: var(--space-2);
-}
-
-/* Payment options */
-.paymentOptions {
+.inputGroup {
+  position: relative;
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
-  margin-bottom: var(--space-12);
 }
 
-.paymentOption {
+.inputFloatingWrapper {
+  position: relative;
+  width: 100%;
+}
+
+.luxInput {
+  width: 100%;
+  height: 52px;
+  padding: 16px 16px 6px 42px;
+  border: 1px solid #E2DED9;
+  border-radius: 4px;
+  background-color: #FAF9F6;
+  font-family: var(--font-body, sans-serif);
+  font-size: 14px;
+  color: #111111;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.luxInput:focus {
+  background-color: #FFFFFF;
+  border-color: #111111;
+  box-shadow: 0 0 0 1px #111111;
+}
+
+.luxInput:not(:placeholder-shown) + .luxLabel,
+.luxInput:focus + .luxLabel {
+  top: 8px;
+  font-size: 10px;
+  color: #9C8263;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+}
+
+.luxLabel {
+  position: absolute;
+  left: 42px;
+  top: 17px;
+  font-family: var(--font-ui, sans-serif);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #8C827A;
+  pointer-events: none;
+  transition: all 0.2s ease;
+}
+
+.inputIcon {
+  position: absolute;
+  left: 14px;
+  top: 17px;
+  color: #8C827A;
   display: flex;
   align-items: center;
-  gap: var(--space-4);
-  padding: var(--space-6);
-  border: var(--border-hairline);
+  pointer-events: none;
+}
+
+.luxInput:focus ~ .inputIcon {
+  color: #111111;
+}
+
+/* Payment Selector Cards */
+.paymentGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 28px;
+}
+
+.paymentCard {
+  border: 1px solid #E5E1DB;
+  border-radius: 6px;
+  padding: 18px 20px;
+  background: #FAF9F7;
   cursor: pointer;
-  transition: border-color var(--duration-base) var(--ease-in-out);
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
-.paymentOptionActive {
-  border-color: var(--color-ink);
+.paymentCard:hover {
+  border-color: #C5A880;
+  background: #FFFFFF;
 }
 
-.paymentRadio {
-  accent-color: var(--color-ink);
-  width: 18px;
-  height: 18px;
+.paymentCardActive {
+  border-color: #111111;
+  background: #FFFFFF;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
 }
 
-.paymentLabel {
-  font-family: var(--font-body);
-  font-size: var(--text-sm);
-  font-weight: 500;
-  color: var(--color-ink);
+.paymentLeft {
+  display: flex;
+  align-items: center;
+  gap: 14px;
 }
 
-/* Review */
-.reviewBlock {
-  background-color: var(--color-surface);
-  padding: var(--space-6);
-  margin-bottom: var(--space-12);
+.paymentRadioOuter {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid #D1CDC7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
 }
 
-.reviewTitle {
-  font-family: var(--font-ui);
-  font-size: var(--text-xs);
-  font-weight: 500;
-  letter-spacing: var(--tracking-wider);
+.paymentCardActive .paymentRadioOuter {
+  border-color: #111111;
+}
+
+.paymentRadioInner {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #111111;
+  transform: scale(0);
+  transition: transform 0.2s ease;
+}
+
+.paymentCardActive .paymentRadioInner {
+  transform: scale(1);
+}
+
+.paymentTitle {
+  font-family: var(--font-body, sans-serif);
+  font-size: 14px;
+  font-weight: 600;
+  color: #111111;
+  letter-spacing: 0.02em;
+  margin: 0;
+}
+
+.paymentSub {
+  font-size: 12px;
+  color: #79716B;
+  margin: 2px 0 0 0;
+}
+
+.paymentBadges {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tagPopular {
+  font-family: var(--font-ui, sans-serif);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--color-ink);
-  margin-bottom: var(--space-4);
+  background: #EDE8DE;
+  color: #7A5F35;
+  padding: 4px 8px;
+  border-radius: 3px;
 }
 
-.reviewText {
-  font-family: var(--font-body);
-  font-size: var(--text-sm);
-  color: var(--color-ink-muted);
-  line-height: var(--leading-loose);
+/* Review Summary Card */
+.reviewCard {
+  background: #FAF9F6;
+  border: 1px solid #ECEAE5;
+  border-radius: 6px;
+  padding: 20px;
+  margin-bottom: 24px;
 }
 
-/* Button row */
+.reviewItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 12px 0;
+  border-bottom: 1px dashed #E2DED9;
+}
+
+.reviewItem:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.reviewItemLabel {
+  font-family: var(--font-ui, sans-serif);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #79716B;
+}
+
+.reviewItemValue {
+  font-family: var(--font-body, sans-serif);
+  font-size: 13px;
+  color: #111111;
+  text-align: right;
+  line-height: 1.5;
+}
+
+/* Upgraded Action Button */
+.submitBtnLuxury {
+  position: relative;
+  width: 100%;
+  height: 56px;
+  background: linear-gradient(135deg, #111111 0%, #242220 100%);
+  color: #FAF8F5;
+  border: none;
+  border-radius: 4px;
+  font-family: var(--font-ui, sans-serif);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+}
+
+.submitBtnLuxury::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(212, 175, 55, 0.25),
+    transparent
+  );
+  transition: left 0.6s ease;
+}
+
+.submitBtnLuxury:hover {
+  background: linear-gradient(135deg, #1F1D1B 0%, #302D2A 100%);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22);
+  transform: translateY(-1px);
+}
+
+.submitBtnLuxury:hover::before {
+  left: 100%;
+}
+
+.submitBtnLuxury:active {
+  transform: translateY(1px);
+}
+
+.btnPriceTag {
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 3px;
+  padding: 3px 8px;
+  font-size: 11px;
+  color: #C5A880;
+}
+
 .buttonRow {
   display: flex;
-  gap: var(--space-4);
+  gap: 12px;
+  margin-top: 24px;
 }
 
+.btnBack {
+  background: transparent;
+  border: 1px solid #D5D1CB;
+  border-radius: 4px;
+  padding: 0 24px;
+  height: 56px;
+  font-family: var(--font-ui, sans-serif);
+  font-size: 11px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: #55504C;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btnBack:hover {
+  border-color: #111111;
+  color: #111111;
+}
+
+.securityNote {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 11px;
+  color: #79716B;
+  letter-spacing: 0.04em;
+  margin-top: 16px;
+  text-align: center;
+}
+
+/* Mobile Responsiveness */
 @media (max-width: 768px) {
   .checkoutWrap {
-    padding: var(--space-6);
+    padding: 24px 16px;
+    border: none;
+    box-shadow: none;
   }
-  .fieldGrid2,
-  .fieldGrid3 {
+  .stepperHeader {
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+  }
+  .stepPill span:not(.stepBadge) {
+    display: none;
+  }
+  .fieldRow,
+  .fieldRow3 {
     grid-template-columns: 1fr;
+    gap: 14px;
+    margin-bottom: 14px;
+  }
+  .submitBtnLuxury {
+    height: 52px;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+  }
+  .btnBack {
+    height: 52px;
+    padding: 0 16px;
   }
 }

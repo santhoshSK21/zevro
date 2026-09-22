@@ -17,6 +17,7 @@ export default function HeroSection() {
           alt="Zevro Autumn / Winter Collection"
           fill
           priority
+          loading="eager"
           className="hero-img"
           sizes="100vw"
         />
@@ -84,7 +85,7 @@ export default function HeroSection() {
       </motion.div>
 
       {/* Minimal Scroll Indicator */}
-      <motion.div 
+      <motion.div
         className="scroll-indicator"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -94,7 +95,8 @@ export default function HeroSection() {
         <span>SCROLL</span>
       </motion.div>
 
-      <style dangerouslySetInnerHTML={{__html: `
+      <style dangerouslySetInnerHTML={{
+        __html: `
         .hero-editorial {
           position: relative;
           height: 100svh;
@@ -127,47 +129,44 @@ export default function HeroSection() {
         }
         .hero-content {
           position: absolute;
-          top: 50%;
-          left: max(5vw, 24px);
-          transform: translateY(-46%);
+          position: relative;
           z-index: 3;
-          display: flex;
-          flex-direction: column;
-          align-items: flex-start;
-          max-width: 580px;
-          color: #FAF8F5;
+          padding: 0 var(--container-gutter);
+          max-width: 680px;
+          margin-top: 40px;
         }
         .hero-eyebrow {
           font-family: var(--font-ui);
           font-size: 11px;
           letter-spacing: 0.22em;
           text-transform: uppercase;
-          color: #B49A68;
+          color: #D4AF37;
+          margin-bottom: var(--space-4);
           font-weight: 600;
-          margin-bottom: 8px;
         }
         .hero-headline {
           font-family: var(--font-display);
-          font-size: clamp(48px, 6.2vw, 88px);
-          font-weight: 400;
+          font-size: clamp(2.5rem, 5.5vw, 4.5rem);
           line-height: 1.05;
-          letter-spacing: -0.02em;
+          letter-spacing: -0.01em;
           color: #FAF8F5;
-          margin: 0 0 16px 0;
+          margin-bottom: var(--space-6);
+          font-weight: 400;
+          text-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
         }
         .hero-body {
           font-family: var(--font-body);
-          font-size: clamp(14px, 1.1vw, 16px);
-          line-height: 1.65;
-          color: rgba(245, 241, 232, 0.85);
-          margin-bottom: 32px;
+          font-size: clamp(0.9rem, 1.3vw, 1.05rem);
+          line-height: 1.6;
+          color: rgba(250, 248, 245, 0.88);
+          margin-bottom: var(--space-8);
           max-width: 440px;
+          text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
         }
         .hero-actions {
           display: flex;
           align-items: center;
-          gap: 16px;
-          flex-wrap: wrap;
+          gap: var(--space-4);
         }
         .hero-btn-primary {
           display: inline-flex;
@@ -181,18 +180,20 @@ export default function HeroSection() {
           letter-spacing: 0.14em;
           text-transform: uppercase;
           text-decoration: none;
-          transition: all 0.35s ease;
+          transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
           border: 1px solid #FAF8F5;
+          box-shadow: 0 8px 24px rgba(0,0,0,0.3);
         }
         .hero-btn-primary:hover {
-          background: transparent;
-          color: #FAF8F5;
-          transform: translateY(-1px);
+          background: #D4AF37;
+          border-color: #D4AF37;
+          color: #1C1C1A;
+          transform: translateY(-2px);
         }
         .hero-btn-secondary {
           display: inline-flex;
           align-items: center;
-          background: transparent;
+          background: rgba(26, 24, 22, 0.4);
           color: #FAF8F5;
           padding: 14px 28px;
           font-family: var(--font-ui);
@@ -202,37 +203,80 @@ export default function HeroSection() {
           text-transform: uppercase;
           text-decoration: none;
           border: 1px solid rgba(250, 248, 245, 0.45);
+          backdrop-filter: blur(8px);
           transition: all 0.35s ease;
         }
         .hero-btn-secondary:hover {
           border-color: #FAF8F5;
-          background: rgba(250, 248, 245, 0.1);
-          transform: translateY(-1px);
+          background: rgba(250, 248, 245, 0.15);
+          transform: translateY(-2px);
         }
-        .scroll-indicator {
+
+        /* Jumping Centered Scroll Indicator */
+        .scroll-indicator-center {
           position: absolute;
-          bottom: 5%;
-          left: max(5vw, 24px);
-          z-index: 3;
+          bottom: 28px;
+          left: 50%;
+          transform: translateX(-50%);
+          z-index: 5;
           display: flex;
+          flex-direction: column;
           align-items: center;
-          gap: 12px;
+          gap: 8px;
+          cursor: pointer;
+          animation: heroJump 2.4s ease-in-out infinite;
+          user-select: none;
+        }
+        .scroll-pill {
+          width: 20px;
+          height: 32px;
+          border-radius: 12px;
+          border: 1.5px solid rgba(250, 248, 245, 0.75);
+          background: rgba(20, 18, 16, 0.35);
+          backdrop-filter: blur(6px);
+          padding-top: 5px;
+          display: flex;
+          justify-content: center;
+          box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+        }
+        .scroll-dot {
+          width: 3px;
+          height: 7px;
+          border-radius: 2px;
+          background: #D4AF37;
+          animation: scrollDot 1.8s ease-in-out infinite;
+        }
+        .scroll-text {
           font-family: var(--font-ui);
-          font-size: 10px;
-          letter-spacing: 0.18em;
-          color: rgba(250, 248, 245, 0.7);
+          font-size: 9px;
+          font-weight: 600;
+          letter-spacing: 0.22em;
+          text-transform: uppercase;
+          color: #FAF8F5;
+          text-shadow: 0 2px 8px rgba(0, 0, 0, 0.7);
         }
-        .scroll-line {
-          width: 32px;
-          height: 1px;
-          background: rgba(250, 248, 245, 0.4);
+        @keyframes heroJump {
+          0%, 20%, 50%, 80%, 100% {
+            transform: translateX(-50%) translateY(0);
+          }
+          40% {
+            transform: translateX(-50%) translateY(-10px);
+          }
+          60% {
+            transform: translateX(-50%) translateY(-5px);
+          }
         }
+        @keyframes scrollDot {
+          0% { transform: translateY(0); opacity: 1; }
+          60% { transform: translateY(10px); opacity: 0; }
+          100% { transform: translateY(0); opacity: 0; }
+        }
+
         @media (max-width: 768px) {
           .hero-content {
-            top: auto;
-            bottom: 12%;
-            transform: none;
-            width: calc(100% - 48px);
+            margin-top: 0;
+            padding-bottom: 80px;
+            max-width: 100%;
           }
           .hero-actions {
             flex-direction: column;
@@ -241,9 +285,13 @@ export default function HeroSection() {
           }
           .hero-btn-primary, .hero-btn-secondary {
             justify-content: center;
+            text-align: center;
           }
-          .scroll-indicator {
-            display: none;
+          .scroll-indicator-center {
+            bottom: 16px;
+          }
+          .scroll-text {
+            font-size: 8px;
           }
         }
       `}} />

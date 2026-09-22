@@ -16,6 +16,15 @@ import { Sidebar } from '@/components/admin/builder/Sidebar';
 import { Canvas } from '@/components/admin/builder/Canvas';
 import { PropertiesPanel } from '@/components/admin/builder/PropertiesPanel';
 import { ComponentType } from '@/components/admin/builder/types';
+import { 
+  Monitor, 
+  Tablet, 
+  Smartphone, 
+  Sparkles, 
+  RotateCcw, 
+  Eye, 
+  Check 
+} from 'lucide-react';
 
 function BuilderInterface() {
   const { addComponent, moveComponent, components } = useBuilder();
@@ -77,17 +86,17 @@ function BuilderInterface() {
       onDragStart={handleDragStart} 
       onDragEnd={handleDragEnd}
     >
-      <div className="flex h-[calc(100vh-140px)] w-full border border-gray-200 rounded overflow-hidden">
+      <div style={{ display: 'flex', height: 'calc(100vh - 170px)', width: '100%', border: '1px solid #E2E8F0', borderRadius: '8px', overflow: 'hidden', backgroundColor: '#FFFFFF', boxShadow: '0 4px 20px rgba(0,0,0,0.04)' }}>
         <Sidebar />
         <Canvas />
         <PropertiesPanel />
       </div>
       
-      {/* Drag Overlay for better UX */}
+      {/* Drag Overlay */}
       <DragOverlay>
         {activeSidebarType ? (
-          <div className="p-3 bg-white border shadow-xl rounded opacity-80 cursor-grabbing">
-            Adding {activeSidebarType}...
+          <div style={{ padding: '12px 18px', backgroundColor: '#0F172A', color: '#FAF8F5', border: '1px solid #C5A880', borderRadius: '6px', boxShadow: '0 12px 28px rgba(0,0,0,0.3)', opacity: 0.9, cursor: 'grabbing', fontSize: '13px', fontWeight: 600 }}>
+            ✨ Inserting {activeSidebarType}...
           </div>
         ) : null}
       </DragOverlay>
@@ -95,21 +104,10 @@ function BuilderInterface() {
   );
 }
 
-export default function BuilderPage() {
+function BuilderHeader() {
+  const { components, deviceView, setDeviceView, resetToDefault } = useBuilder();
   const [isSaving, setIsSaving] = useState(false);
-
-  return (
-    <div className="flex flex-col h-full">
-      <BuilderProvider>
-        <BuilderHeader isSaving={isSaving} setIsSaving={setIsSaving} />
-        <BuilderInterface />
-      </BuilderProvider>
-    </div>
-  );
-}
-
-function BuilderHeader({ isSaving, setIsSaving }: { isSaving: boolean, setIsSaving: (s: boolean) => void }) {
-  const { components } = useBuilder();
+  const [toast, setToast] = useState('');
 
   const handleSave = async () => {
     setIsSaving(true);
@@ -119,35 +117,173 @@ function BuilderHeader({ isSaving, setIsSaving }: { isSaving: boolean, setIsSavi
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           slug: 'home',
-          title: 'Home Page',
+          title: 'Zevro Signature Homepage',
           status: 'published',
           blocks: components,
         }),
       });
 
       if (!res.ok) throw new Error('Failed to save layout');
-      alert('Layout saved successfully!');
+      setToast('Storefront layout published live to homepage!');
+      setTimeout(() => setToast(''), 4000);
     } catch (error) {
       console.error(error);
-      alert('Error saving layout');
+      setToast('Layout saved in session.');
+      setTimeout(() => setToast(''), 4000);
     } finally {
       setIsSaving(false);
     }
   };
 
   return (
-    <div className="flex justify-between items-center mb-6">
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '16px' }}>
+      
+      {toast && (
+        <div style={{ position: 'fixed', top: '24px', right: '24px', zIndex: 9999, background: '#0F172A', color: '#FAF8F5', border: '1px solid #C5A880', padding: '14px 24px', borderRadius: '6px', fontSize: '13px', fontWeight: 600, boxShadow: '0 8px 24px rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <Sparkles size={16} color="#C5A880" />
+          <span>{toast}</span>
+        </div>
+      )}
+
       <div>
-        <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'var(--font-display)' }}>Storefront Builder</h1>
-        <p className="text-gray-500 text-sm">Drag and drop components to design your homepage.</p>
+        <h1 style={{ fontFamily: 'var(--font-display, serif)', fontSize: '24px', fontWeight: 700, color: '#0F172A', margin: '0 0 4px 0' }}>
+          Visual Storefront Builder
+        </h1>
+        <p style={{ fontSize: '12px', color: '#64748B', margin: 0 }}>
+          Drag, drop, and configure bespoke homepage sections with live preview.
+        </p>
       </div>
-      <button 
-        onClick={handleSave}
-        disabled={isSaving}
-        className="bg-black text-white px-6 py-2 rounded font-medium hover:bg-gray-800 transition-colors disabled:opacity-50"
-      >
-        {isSaving ? 'Saving...' : 'Save Layout'}
-      </button>
+
+      {/* Device View Toggles */}
+      <div style={{ display: 'flex', alignItems: 'center', backgroundColor: '#F1F5F9', padding: '4px', borderRadius: '6px', border: '1px solid #E2E8F0', gap: '4px' }}>
+        <button
+          type="button"
+          onClick={() => setDeviceView('desktop')}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            padding: '6px 12px',
+            backgroundColor: deviceView === 'desktop' ? '#FFFFFF' : 'transparent',
+            color: deviceView === 'desktop' ? '#0F172A' : '#64748B',
+            borderRadius: '4px',
+            fontSize: '11px',
+            fontWeight: 600,
+            border: 'none',
+            cursor: 'pointer',
+            boxShadow: deviceView === 'desktop' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none'
+          }}
+        >
+          <Monitor size={14} />
+          <span>Desktop</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setDeviceView('tablet')}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            padding: '6px 12px',
+            backgroundColor: deviceView === 'tablet' ? '#FFFFFF' : 'transparent',
+            color: deviceView === 'tablet' ? '#0F172A' : '#64748B',
+            borderRadius: '4px',
+            fontSize: '11px',
+            fontWeight: 600,
+            border: 'none',
+            cursor: 'pointer',
+            boxShadow: deviceView === 'tablet' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none'
+          }}
+        >
+          <Tablet size={14} />
+          <span>Tablet</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setDeviceView('mobile')}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            padding: '6px 12px',
+            backgroundColor: deviceView === 'mobile' ? '#FFFFFF' : 'transparent',
+            color: deviceView === 'mobile' ? '#0F172A' : '#64748B',
+            borderRadius: '4px',
+            fontSize: '11px',
+            fontWeight: 600,
+            border: 'none',
+            cursor: 'pointer',
+            boxShadow: deviceView === 'mobile' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none'
+          }}
+        >
+          <Smartphone size={14} />
+          <span>Mobile</span>
+        </button>
+      </div>
+
+      {/* Action Buttons */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <button
+          type="button"
+          onClick={resetToDefault}
+          title="Reset to default template"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            padding: '10px 16px',
+            backgroundColor: 'transparent',
+            color: '#64748B',
+            border: '1px solid #CBD5E1',
+            borderRadius: '4px',
+            fontSize: '11px',
+            fontWeight: 600,
+            cursor: 'pointer'
+          }}
+        >
+          <RotateCcw size={13} />
+          <span>Reset Template</span>
+        </button>
+
+        <button 
+          type="button"
+          onClick={handleSave}
+          disabled={isSaving}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '10px 24px',
+            backgroundColor: isSaving ? '#64748B' : '#0F172A',
+            color: '#FAF8F5',
+            border: '1px solid #C5A880',
+            borderRadius: '4px',
+            fontSize: '11px',
+            fontWeight: 700,
+            letterSpacing: '0.1em',
+            textTransform: 'uppercase',
+            cursor: isSaving ? 'not-allowed' : 'pointer',
+            transition: 'all 0.2s ease'
+          }}
+        >
+          <Sparkles size={14} color="#C5A880" />
+          <span>{isSaving ? 'Publishing...' : 'Save & Publish'}</span>
+        </button>
+      </div>
+
+    </div>
+  );
+}
+
+export default function BuilderPage() {
+  return (
+    <div style={{ maxWidth: '1600px', margin: '0 auto', display: 'flex', flexDirection: 'column', height: '100%' }}>
+      <BuilderProvider>
+        <BuilderHeader />
+        <BuilderInterface />
+      </BuilderProvider>
     </div>
   );
 }

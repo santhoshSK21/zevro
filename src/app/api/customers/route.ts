@@ -94,3 +94,41 @@ export async function POST(request: Request) {
   }
 }
 
+export async function DELETE(request: Request) {
+  try {
+    const isAdmin = await assertAdminAccess();
+    if (!isAdmin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+    await dbConnect();
+    let ids: string[] = [];
+
+    const { searchParams } = new URL(request.url);
+    const idParam = searchParams.get('id') || searchParams.get('ids');
+
+    if (idParam) {
+      ids = idParam.split(',').map(s => s.trim()).filter(Boolean);
+    } else {
+      try {
+        const body = await request.json();
+        if (Array.isArray(body.ids)) ids = body.ids;
+        else if (body.id) ids = [body.id];
+      } catch (e) {}
+    }
+
+    if (!ids || ids.length === 0) {
+      return NextResponse.json({ error: 'Customer ID(s) required' }, { status: 400 });
+    }
+
+    const result = await User.deleteMany({ _id: { $in: ids }, role: 'customer' });
+
+    return NextResponse.json({
+      success: true,
+      deletedCount: result.deletedCount
+    });
+  } catch (error: any) {
+    console.error('Delete customer error:', error);
+    return NextResponse.json({ error: 'Failed to delete customer(s)' }, { status: 500 });
+  }
+}
+
+

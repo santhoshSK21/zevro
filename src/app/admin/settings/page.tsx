@@ -44,10 +44,10 @@ export default function AdminSettingsPage() {
     setTimeout(() => setToast(null), 3000);
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setIsDirty(true);
     const target = e.target as HTMLInputElement;
-    const value = target.type === 'checkbox' ? target.checked : target.value;
+    const value = target.type === 'checkbox' ? target.checked : (target.type === 'number' || target.name === 'catalogBatchSize' ? Number(target.value) : target.value);
     setFormData({ ...formData, [target.name]: value });
   };
 
@@ -166,10 +166,10 @@ export default function AdminSettingsPage() {
           </div>
         </div>
 
-        {/* Commerce Settings */}
+          {/* Commerce & Catalog Settings */}
         <div style={{ backgroundColor: '#fff', padding: '32px', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid #E9ECEF' }}>
-          <h2 style={{ fontSize: '16px', fontWeight: 600, color: 'var(--espresso)', marginBottom: '24px', paddingBottom: '16px', borderBottom: '1px solid #E9ECEF' }}>Commerce</h2>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '24px' }}>
+          <h2 style={{ fontSize: '16px', fontWeight: 600, color: 'var(--espresso)', marginBottom: '24px', paddingBottom: '16px', borderBottom: '1px solid #E9ECEF' }}>Commerce & Catalog</h2>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '20px', marginBottom: '24px' }}>
             <div>
               <label style={{ display: 'block', fontSize: '12px', marginBottom: '8px', fontWeight: 600 }}>FREE SHIPPING THRESHOLD (₹)</label>
               <input type="number" min="0" name="freeShippingThreshold" value={formData.freeShippingThreshold} onChange={handleChange} style={{ width: '100%', padding: '12px', border: '1px solid var(--linen)', outline: 'none' }} />
@@ -178,8 +178,25 @@ export default function AdminSettingsPage() {
               <label style={{ display: 'block', fontSize: '12px', marginBottom: '8px', fontWeight: 600 }}>STANDARD SHIPPING CHARGE (₹)</label>
               <input type="number" min="0" name="shippingCharge" value={formData.shippingCharge} onChange={handleChange} style={{ width: '100%', padding: '12px', border: '1px solid var(--linen)', outline: 'none' }} />
             </div>
+            <div>
+              <label style={{ display: 'block', fontSize: '12px', marginBottom: '8px', fontWeight: 600 }}>CATALOG BATCH SIZE (INFINITE SCROLL)</label>
+              <select 
+                name="catalogBatchSize" 
+                value={formData.catalogBatchSize || 16} 
+                onChange={handleChange} 
+                style={{ width: '100%', padding: '12px', border: '1px solid var(--linen)', outline: 'none', backgroundColor: '#FFF' }}
+              >
+                <option value={8}>8 items per batch</option>
+                <option value={12}>12 items per batch</option>
+                <option value={16}>16 items per batch (Default)</option>
+                <option value={20}>20 items per batch</option>
+                <option value={24}>24 items per batch</option>
+                <option value={32}>32 items per batch</option>
+                <option value={48}>48 items per batch</option>
+              </select>
+            </div>
           </div>
-          <div style={{ display: 'flex', gap: '32px' }}>
+          <div style={{ display: 'flex', gap: '32px', flexWrap: 'wrap' }}>
             <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '14px' }}>
               <input type="checkbox" name="codEnabled" checked={formData.codEnabled} onChange={handleChange} style={{ width: '16px', height: '16px', accentColor: 'var(--espresso)' }} /> Cash on Delivery (COD) Enabled
             </label>

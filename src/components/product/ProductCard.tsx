@@ -46,6 +46,8 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
               src={primaryImage}
               alt={product.name}
               fill
+              priority={index < 4}
+              loading={index < 4 ? 'eager' : 'lazy'}
               className={`pcard-img-primary ${hasSecondary ? 'pcard-has-hover' : ''}`}
               sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
             />

@@ -37,34 +37,50 @@ export default function AnnouncementBar() {
       </button>
       <style dangerouslySetInnerHTML={{__html: `
         .announcement-bar {
-          background-color: var(--color-ink);
-          color: var(--color-white);
-          height: 40px;
+          background-color: #161614;
+          color: #FAF8F5;
+          height: 38px;
           display: flex;
           align-items: center;
           position: relative;
+          z-index: 1002;
           overflow: hidden;
           font-family: var(--font-ui);
-          font-size: var(--text-xs);
-          letter-spacing: var(--tracking-wider);
+          font-size: 11px;
+          letter-spacing: 0.12em;
           text-transform: uppercase;
           font-weight: 500;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.08);
         }
         .announcement-marquee {
           display: flex;
           white-space: nowrap;
-          animation: marquee 25s linear infinite;
+          animation: marquee 28s linear infinite;
         }
         .announcement-close {
           position: absolute;
           right: 16px;
-          color: var(--color-white);
-          opacity: 0.7;
-          font-size: 16px;
-          padding: 4px;
+          background: none;
+          border: none;
+          color: rgba(255, 255, 255, 0.7);
+          cursor: pointer;
+          font-size: 11px;
+          padding: 4px 8px;
+          transition: color 0.2s ease;
+          z-index: 2;
         }
         .announcement-close:hover {
-          opacity: 1;
+          color: #FAF8F5;
+        }
+        @keyframes marquee {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
+        @media (max-width: 640px) {
+          .announcement-bar {
+            height: 34px;
+            font-size: 10px;
+          }
         }
       `}} />
     </div>

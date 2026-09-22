@@ -18,8 +18,10 @@
       "type": "node",
       "request": "launch",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev"],
-      "port": 9229,
+      "runtimeArgs": [
+        "run",
+        "dev"
+      ],
       "serverReadyAction": {
         "pattern": "- Local:.+(http://.+)",
         "uriFormat": "%s",

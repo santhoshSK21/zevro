@@ -1,4 +1,12 @@
-export type ComponentType = 'hero' | 'product-grid' | 'text' | 'spacer';
+export type ComponentType = 
+  | 'hero' 
+  | 'product-grid' 
+  | 'category-grid' 
+  | 'editorial-banner' 
+  | 'trust-bar' 
+  | 'newsletter' 
+  | 'text' 
+  | 'spacer';
 
 export interface BuilderComponent {
   id: string;
