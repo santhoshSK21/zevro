@@ -98,8 +98,8 @@ export default function MobileMenu() {
           <span>{session ? 'Account' : 'Login'}</span>
         </Link>
         <div className="quickbar-divider" />
-        <Link href="/account/wishlist" onClick={close} className="quickbar-item">
-          <Heart size={16} />
+        <Link href="/wishlist" onClick={close} className="quickbar-item">
+          <Heart size={16} fill={productIds.length > 0 ? "currentColor" : "none"} />
           <span>Wishlist ({productIds.length})</span>
         </Link>
         <div className="quickbar-divider" />

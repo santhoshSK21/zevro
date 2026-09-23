@@ -94,7 +94,7 @@ export async function POST(request: Request) {
     }
 
     if (isValid) {
-      // Create signed JWT token
+      // Create signed JWT token with 15-minute idle expiration
       const token = jwt.sign(
         { 
           user: identifier, 
@@ -102,7 +102,7 @@ export async function POST(request: Request) {
           role: adminRole 
         }, 
         ADMIN_SECRET, 
-        { expiresIn: '7d' }
+        { expiresIn: '15m' }
       );
 
       const cookieStore = await cookies();
@@ -113,7 +113,7 @@ export async function POST(request: Request) {
         path: '/',
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
-        maxAge: 60 * 60 * 24 * 7 // 7 days
+        maxAge: 15 * 60 // 15 minutes (900 seconds)
       });
 
       return NextResponse.json({ 

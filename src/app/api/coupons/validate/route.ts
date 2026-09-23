@@ -4,6 +4,17 @@ import { Coupon } from '../../../../models/Coupon';
 
 const DEFAULT_COUPONS = [
   {
+    code: 'ZEVRO10',
+    description: '10% exclusive discount on luxury atelier collection',
+    type: 'percent',
+    value: 10,
+    minOrderValue: 0,     // No minimum order value
+    maxDiscount: 200000,  // ₹2,000 max
+    usageLimit: 10000,
+    usedCount: 0,
+    isActive: true
+  },
+  {
     code: 'WELCOME10',
     description: '10% discount on first luxury purchase',
     type: 'percent',

@@ -11,11 +11,14 @@ interface CartItemProps {
 }
 
 export default function CartItem({ item, updateQuantity, removeItem }: CartItemProps) {
+  const itemImage = item.image || '/pdp_hero_1.png';
+  const targetHref = item.slug ? `/products/${item.slug}` : (item.productId ? `/products/${item.productId}` : `/products/${item.variantId || ''}`);
+
   return (
-    <div style={{ display: 'flex', gap: '24px', padding: '24px 0', borderBottom: '1px solid var(--linen)' }}>
-      <div style={{ position: 'relative', width: '120px', aspectRatio: '3/4', backgroundColor: 'var(--beige)' }}>
-        <Link href={`/products/${item.variantId}`}>
-          <Image src={item.image} alt={item.name} fill style={{ objectFit: 'cover' }} />
+    <div style={{ display: 'flex', gap: '20px', padding: '20px 0', borderBottom: '1px solid rgba(0,0,0,0.06)', alignItems: 'center' }}>
+      <div style={{ position: 'relative', width: '100px', minWidth: '100px', maxWidth: '100px', height: '133px', backgroundColor: '#F4F1EC', borderRadius: '6px', overflow: 'hidden', flexShrink: 0 }}>
+        <Link href={targetHref}>
+          <Image src={itemImage} alt={item.name} fill style={{ objectFit: 'cover' }} sizes="100px" />
         </Link>
       </div>
 

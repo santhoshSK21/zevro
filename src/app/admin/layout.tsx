@@ -35,15 +35,47 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
 
+  const IDLE_TIMEOUT_MS = 15 * 60 * 1000; // 15 Minutes
+
   // Close mobile sidebar on route change
   useEffect(() => {
     setMobileMenuOpen(false);
   }, [pathname]);
 
+  // Handle logout
+  const handleLogout = async (dueToTimeout = false) => {
+    try {
+      if (typeof window !== 'undefined') {
+        sessionStorage.removeItem('zevro_superadmin_auth');
+        localStorage.removeItem('zevro_admin_last_active');
+      }
+      await fetch('/api/admin/auth', { method: 'DELETE' });
+      setIsAuthenticated(false);
+      if (dueToTimeout) {
+        setErrorMsg('Session timed out after 15 minutes of inactivity. Please sign in again.');
+      }
+      router.push('/admin');
+    } catch (err) {
+      setIsAuthenticated(false);
+    }
+  };
+
   // Check auth status on mount
   useEffect(() => {
     let isMounted = true;
     async function checkAuth() {
+      // Check idle timeout from last recorded activity
+      if (typeof window !== 'undefined') {
+        const lastActiveStr = localStorage.getItem('zevro_admin_last_active');
+        if (lastActiveStr) {
+          const elapsed = Date.now() - Number(lastActiveStr);
+          if (elapsed > IDLE_TIMEOUT_MS) {
+            handleLogout(true);
+            return;
+          }
+        }
+      }
+
       // Check if superadmin session exists in browser
       const isSuper = typeof window !== 'undefined' && sessionStorage.getItem('zevro_superadmin_auth') === 'true';
       if (isSuper) {
@@ -51,6 +83,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           setIsSuperAdmin(true);
           setIsAuthenticated(true);
           setAdminName('Super Administrator');
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('zevro_admin_last_active', String(Date.now()));
+          }
         }
         // Silently sync cookie
         try {
@@ -67,8 +102,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         const res = await fetch('/api/admin/auth');
         const data = await res.json();
         if (isMounted) {
-          setIsAuthenticated(!!data.authenticated);
-          if (data.admin?.name) setAdminName(data.admin.name);
+          if (data.authenticated) {
+            setIsAuthenticated(true);
+            if (data.admin?.name) setAdminName(data.admin.name);
+            if (typeof window !== 'undefined') {
+              localStorage.setItem('zevro_admin_last_active', String(Date.now()));
+            }
+          } else {
+            setIsAuthenticated(false);
+          }
         }
       } catch (err) {
         if (isMounted) {
@@ -84,6 +126,50 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     return () => { isMounted = false; };
   }, [pathname]);
 
+  // 15-Minute Inactivity Idle Detector
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    let throttleTimer: NodeJS.Timeout | null = null;
+
+    const resetIdleTimer = () => {
+      if (throttleTimer) return;
+      throttleTimer = setTimeout(() => {
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('zevro_admin_last_active', String(Date.now()));
+        }
+        throttleTimer = null;
+      }, 2000); // Throttle writes to every 2 seconds
+    };
+
+    // Track user interaction events
+    const activityEvents = ['mousedown', 'mousemove', 'keydown', 'scroll', 'touchstart', 'click'];
+    activityEvents.forEach(evt => {
+      window.addEventListener(evt, resetIdleTimer, { passive: true });
+    });
+
+    // Periodic check every 15 seconds to evaluate idle timeout
+    const checkInterval = setInterval(() => {
+      if (typeof window !== 'undefined') {
+        const lastActiveStr = localStorage.getItem('zevro_admin_last_active');
+        if (lastActiveStr) {
+          const elapsed = Date.now() - Number(lastActiveStr);
+          if (elapsed >= IDLE_TIMEOUT_MS) {
+            handleLogout(true);
+          }
+        }
+      }
+    }, 15000);
+
+    return () => {
+      activityEvents.forEach(evt => {
+        window.removeEventListener(evt, resetIdleTimer);
+      });
+      clearInterval(checkInterval);
+      if (throttleTimer) clearTimeout(throttleTimer);
+    };
+  }, [isAuthenticated]);
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
@@ -96,6 +182,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       });
       const data = await res.json();
       if (res.ok && data.success) {
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('zevro_admin_last_active', String(Date.now()));
+        }
         setIsAuthenticated(true);
         if (data.admin?.name) setAdminName(data.admin.name);
       } else {
@@ -105,16 +194,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       setErrorMsg('Failed to connect to authentication service');
     } finally {
       setIsSubmitting(false);
-    }
-  };
-
-  const handleLogout = async () => {
-    try {
-      await fetch('/api/admin/auth', { method: 'DELETE' });
-      setIsAuthenticated(false);
-      router.push('/admin');
-    } catch (err) {
-      setIsAuthenticated(false);
     }
   };
 
@@ -251,7 +330,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <Link href="/" className="adm-footer-store">
             <Store size={14} /> Storefront
           </Link>
-          <button onClick={handleLogout} className="adm-footer-logout">
+          <button onClick={() => handleLogout(false)} className="adm-footer-logout">
             <LogOut size={14} /> Logout
           </button>
         </div>
@@ -282,7 +361,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             )}
             <span className="adm-admin-name">{adminName}</span>
             <div className="adm-avatar">{isSuperAdmin ? 'SA' : 'A'}</div>
-            <button onClick={handleLogout} className="adm-logout-btn">Logout</button>
+            <button onClick={() => handleLogout(false)} className="adm-logout-btn">Logout</button>
           </div>
         </header>
 
@@ -294,93 +373,301 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       <style dangerouslySetInnerHTML={{__html: `
         /* Shell */
-        .adm-shell { display: flex; min-height: 100vh; background: #F8F9FA; position: relative; overflow: hidden; }
+        .adm-shell {
+          display: flex;
+          min-height: 100vh;
+          background: #0B0F19;
+          color: #F8FAFC;
+          position: relative;
+          overflow: hidden;
+          font-family: var(--font-body, system-ui, sans-serif);
+        }
 
         /* Backdrop */
-        .adm-backdrop { position: fixed; inset: 0; background: rgba(15,23,42,0.65); backdrop-filter: blur(4px); z-index: 998; }
+        .adm-backdrop {
+          position: fixed;
+          inset: 0;
+          background: rgba(3, 7, 18, 0.75);
+          backdrop-filter: blur(8px);
+          -webkit-backdrop-filter: blur(8px);
+          z-index: 998;
+        }
 
         /* Sidebar */
         .adm-sidebar {
-          width: 260px; min-width: 260px;
-          background: #0F172A; color: #F8FAFC;
-          display: flex; flex-direction: column;
-          border-right: 1px solid #1E293B;
-          z-index: 999; transition: transform 0.3s ease;
+          width: 270px;
+          min-width: 270px;
+          background: radial-gradient(circle at top left, #172033 0%, #0D1322 100%);
+          color: #F8FAFC;
+          display: flex;
+          flex-direction: column;
+          border-right: 1px solid rgba(197, 168, 128, 0.15);
+          z-index: 999;
+          transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
           flex-shrink: 0;
+          box-shadow: 4px 0 24px rgba(0, 0, 0, 0.3);
         }
         .adm-sidebar-header {
-          padding: 20px; border-bottom: 1px solid #1E293B;
-          display: flex; align-items: center; justify-content: space-between;
+          padding: 24px 20px;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
           flex-shrink: 0;
+          background: rgba(255, 255, 255, 0.02);
         }
-        .adm-brand { font-family: var(--font-display,serif); font-size: 17px; letter-spacing: .14em; color: #C5A880; margin: 0; }
-        .adm-tagline { font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: #94A3B8; }
-        .adm-close-btn { display: none; background: none; border: none; color: #94A3B8; cursor: pointer; padding: 4px; }
-        .adm-nav { flex: 1; padding: 14px 0; overflow-y: auto; }
+        .adm-brand {
+          font-family: var(--font-display, serif);
+          font-size: 19px;
+          letter-spacing: 0.18em;
+          background: linear-gradient(135deg, #FAF8F5 30%, #C5A880 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          margin: 0 0 2px 0;
+          font-weight: 700;
+        }
+        .adm-tagline {
+          font-size: 9px;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          color: #94A3B8;
+          font-weight: 500;
+        }
+        .adm-close-btn {
+          display: none;
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: 6px;
+          color: #94A3B8;
+          cursor: pointer;
+          padding: 6px;
+        }
+        .adm-nav {
+          flex: 1;
+          padding: 18px 12px;
+          overflow-y: auto;
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
         .adm-nav-link {
-          display: flex; align-items: center; gap: 12px;
-          padding: 12px 20px;
-          color: #94A3B8; text-decoration: none;
-          border-left: 3px solid transparent;
-          font-size: 13px; letter-spacing: .02em;
-          transition: all 0.15s ease;
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding: 11px 16px;
+          color: #94A3B8;
+          text-decoration: none;
+          border-radius: 8px;
+          font-size: 13px;
+          letter-spacing: 0.03em;
+          font-weight: 500;
+          transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+          border: 1px solid transparent;
         }
-        .adm-nav-link--active { background: rgba(197,168,128,.12); color: #C5A880; border-left-color: #C5A880; font-weight: 600; }
+        .adm-nav-link:hover {
+          color: #FAF8F5;
+          background: rgba(255, 255, 255, 0.04);
+          transform: translateX(3px);
+        }
+        .adm-nav-link--active {
+          background: linear-gradient(90deg, rgba(197, 168, 128, 0.18) 0%, rgba(197, 168, 128, 0.04) 100%);
+          color: #E2C9A5;
+          border: 1px solid rgba(197, 168, 128, 0.3);
+          font-weight: 600;
+          box-shadow: 0 4px 16px rgba(197, 168, 128, 0.08);
+        }
         .adm-sidebar-footer {
-          padding: 16px 20px; border-top: 1px solid #1E293B;
-          display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;
+          padding: 18px 20px;
+          border-top: 1px solid rgba(255, 255, 255, 0.06);
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          flex-shrink: 0;
+          background: rgba(0, 0, 0, 0.2);
         }
-        .adm-footer-store { display: flex; align-items: center; gap: 6px; color: #94A3B8; font-size: 12px; text-decoration: none; }
-        .adm-footer-logout { display: flex; align-items: center; gap: 6px; background: none; border: none; color: #F87171; font-size: 12px; cursor: pointer; padding: 0; }
+        .adm-footer-store {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          color: #CBD5E1;
+          font-size: 12px;
+          text-decoration: none;
+          padding: 6px 10px;
+          border-radius: 6px;
+          background: rgba(255, 255, 255, 0.04);
+          border: 1px solid rgba(255, 255, 255, 0.06);
+          transition: all 0.2s ease;
+        }
+        .adm-footer-store:hover {
+          color: #C5A880;
+          border-color: rgba(197, 168, 128, 0.3);
+        }
+        .adm-footer-logout {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          background: none;
+          border: none;
+          color: #F87171;
+          font-size: 12px;
+          cursor: pointer;
+          padding: 6px;
+          opacity: 0.85;
+          transition: opacity 0.2s ease;
+        }
+        .adm-footer-logout:hover {
+          opacity: 1;
+        }
 
         /* Main */
-        .adm-main { flex: 1; display: flex; flex-direction: column; min-width: 0; overflow: hidden; }
+        .adm-main {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          min-width: 0;
+          overflow: hidden;
+          background: #0B0F19;
+        }
 
         /* Header */
         .adm-header {
-          height: 60px; min-height: 60px; flex-shrink: 0;
-          background: #fff; border-bottom: 1px solid #E2E8F0;
-          display: flex; align-items: center; justify-content: space-between;
-          padding: 0 20px; gap: 12px;
+          height: 66px;
+          min-height: 66px;
+          flex-shrink: 0;
+          background: rgba(15, 23, 42, 0.75);
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+          border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 0 24px;
+          gap: 16px;
+          z-index: 10;
         }
-        .adm-header-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
-        .adm-header-title { font-size: 13px; color: #64748B; font-weight: 500; white-space: nowrap; }
-        .adm-hamburger { display: none; background: none; border: none; color: #0F172A; cursor: pointer; padding: 6px; flex-shrink: 0; }
-        .adm-header-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+        .adm-header-left {
+          display: flex;
+          align-items: center;
+          gap: 14px;
+          min-width: 0;
+        }
+        .adm-header-title {
+          font-size: 13px;
+          color: #94A3B8;
+          font-weight: 500;
+          white-space: nowrap;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+        .adm-header-title::before {
+          content: '';
+          width: 7px;
+          height: 7px;
+          border-radius: 50%;
+          background: #10B981;
+          box-shadow: 0 0 10px #10B981;
+        }
+        .adm-hamburger {
+          display: none;
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: 6px;
+          color: #FAF8F5;
+          cursor: pointer;
+          padding: 8px;
+          flex-shrink: 0;
+        }
+        .adm-header-right {
+          display: flex;
+          align-items: center;
+          gap: 14px;
+          flex-shrink: 0;
+        }
         .adm-super-btn {
-          display: flex; align-items: center; gap: 6px;
-          background: #0F172A; color: #C5A880; border: 1px solid #C5A880;
-          padding: 5px 10px; border-radius: 4px;
-          font-size: 11px; font-weight: 700; letter-spacing: .06em; text-decoration: none; white-space: nowrap;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          background: linear-gradient(135deg, rgba(197, 168, 128, 0.25) 0%, rgba(197, 168, 128, 0.1) 100%);
+          color: #FAF8F5;
+          border: 1px solid rgba(197, 168, 128, 0.4);
+          padding: 6px 12px;
+          border-radius: 6px;
+          font-size: 11px;
+          font-weight: 600;
+          letter-spacing: 0.06em;
+          text-decoration: none;
+          white-space: nowrap;
+          transition: all 0.2s ease;
         }
-        .adm-admin-name { font-size: 13px; font-weight: 600; color: #1E293B; white-space: nowrap; }
+        .adm-super-btn:hover {
+          border-color: #C5A880;
+          box-shadow: 0 0 14px rgba(197, 168, 128, 0.25);
+        }
+        .adm-admin-name {
+          font-size: 13px;
+          font-weight: 500;
+          color: #E2E8F0;
+          white-space: nowrap;
+        }
         .adm-avatar {
-          width: 32px; height: 32px; min-width: 32px; border-radius: 50%;
-          background: #0F172A; color: #C5A880;
-          display: flex; align-items: center; justify-content: center;
-          font-weight: bold; font-size: 12px; border: 1px solid #C5A880;
+          width: 34px;
+          height: 34px;
+          min-width: 34px;
+          border-radius: 50%;
+          background: linear-gradient(135deg, #2A364F 0%, #151D2C 100%);
+          color: #C5A880;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: 700;
+          font-size: 12px;
+          border: 1px solid rgba(197, 168, 128, 0.4);
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
         }
         .adm-logout-btn {
-          background: #F8FAFC; border: 1px solid #E2E8F0;
-          padding: 6px 12px; border-radius: 4px;
-          font-size: 11px; cursor: pointer; color: #475569;
-          font-weight: 600; letter-spacing: .04em; white-space: nowrap;
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          color: #94A3B8;
+          padding: 6px 14px;
+          border-radius: 6px;
+          font-size: 11px;
+          cursor: pointer;
+          font-weight: 600;
+          letter-spacing: 0.05em;
+          white-space: nowrap;
+          transition: all 0.2s ease;
+        }
+        .adm-logout-btn:hover {
+          color: #F87171;
+          border-color: rgba(248, 113, 113, 0.3);
+          background: rgba(248, 113, 113, 0.08);
         }
 
         /* Content */
-        .adm-content { padding: 24px; flex: 1; overflow-y: auto; background: #F8F9FA; }
+        .adm-content {
+          padding: 28px;
+          flex: 1;
+          overflow-y: auto;
+          background: #0B0F19;
+          color: #F8FAFC;
+        }
 
         /* ── Tablet ── */
         @media (max-width: 1024px) {
-          .adm-sidebar { width: 220px; min-width: 220px; }
+          .adm-sidebar { width: 230px; min-width: 230px; }
           .adm-admin-name { display: none; }
         }
 
         /* ── Mobile ── */
         @media (max-width: 768px) {
           .adm-sidebar {
-            position: fixed; top: 0; left: 0; bottom: 0;
-            width: 280px; min-width: 280px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: 280px;
+            min-width: 280px;
             transform: translateX(-100%);
             height: 100dvh;
           }
@@ -390,14 +677,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           .adm-header-title { display: none; }
           .adm-super-label { display: none; }
           .adm-logout-btn { display: none; }
-          .adm-content { padding: 16px; }
-          .adm-header { padding: 0 14px; }
+          .adm-content { padding: 18px; }
+          .adm-header { padding: 0 16px; }
         }
 
         /* ── Small Mobile ── */
         @media (max-width: 480px) {
-          .adm-content { padding: 12px; }
-          .adm-header { padding: 0 10px; }
+          .adm-content { padding: 14px; }
+          .adm-header { padding: 0 12px; }
           .adm-super-btn { padding: 5px 8px; }
         }
 
