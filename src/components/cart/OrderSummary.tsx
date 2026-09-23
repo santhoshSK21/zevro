@@ -5,7 +5,10 @@ import Link from 'next/link';
 import { useCartStore } from '../../store/cartStore';
 
 export default function OrderSummary() {
-  const { total, savings, itemCount } = useCartStore();
+  const { getTotal, getSavings, getItemCount } = useCartStore();
+  const total = getTotal();
+  const savings = getSavings();
+  const itemCount = getItemCount();
 
   if (itemCount === 0) return null;
 

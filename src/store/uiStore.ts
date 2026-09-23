@@ -34,12 +34,12 @@ export const useUiStore = create<UiStore>()((set) => ({
   setMobileMenuOpen: (open) => set({ isMobileMenuOpen: open }),
   setModalOpen: (open) => set({ isAnyModalOpen: open }),
   hideAnnouncementBar: () => {
-    if (typeof window !== 'undefined') localStorage.setItem('zevro-bar-hidden', 'true');
+    if (typeof window !== 'undefined') sessionStorage.setItem('zevro-bar-hidden', 'true');
     set({ announcementBarVisible: false })
   },
   initAnnouncementBar: () => {
     if (typeof window !== 'undefined') {
-      const hidden = localStorage.getItem('zevro-bar-hidden') === 'true';
+      const hidden = sessionStorage.getItem('zevro-bar-hidden') === 'true';
       set({ announcementBarVisible: !hidden });
     }
   },

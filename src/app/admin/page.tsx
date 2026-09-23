@@ -48,7 +48,7 @@ export default async function AdminDashboardPage() {
     <div>
       <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '28px', color: 'var(--espresso)', marginBottom: '24px' }}>DASHBOARD OVERVIEW</h1>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '24px', marginBottom: '32px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '32px' }}>
         {stats.map((stat, i) => (
           <div key={i} style={{ backgroundColor: '#FFF', padding: '24px', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid #E9ECEF' }}>
             <p style={{ fontSize: '13px', color: '#6C757D', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px' }}>{stat.label}</p>
@@ -57,13 +57,14 @@ export default async function AdminDashboardPage() {
         ))}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '24px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 380px), 1fr))', gap: '24px' }}>
         <div style={{ backgroundColor: '#FFF', padding: '24px', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid #E9ECEF' }}>
           <h3 style={{ fontSize: '16px', fontWeight: 600, color: 'var(--espresso)', marginBottom: '24px' }}>Recent Orders</h3>
           {recentOrders.length === 0 ? (
             <p style={{ color: '#6C757D', fontSize: '14px' }}>No orders yet.</p>
           ) : (
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
+          <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px', minWidth: '500px' }}>
               <thead>
                 <tr style={{ borderBottom: '2px solid #E9ECEF', textAlign: 'left' }}>
                   <th style={{ padding: '12px 8px', color: '#6C757D', fontWeight: 500 }}>Order ID</th>
@@ -89,6 +90,7 @@ export default async function AdminDashboardPage() {
                 ))}
               </tbody>
             </table>
+          </div>
           )}
         </div>
 

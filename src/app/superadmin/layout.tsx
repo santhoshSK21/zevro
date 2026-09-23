@@ -182,96 +182,48 @@ export default function SuperAdminLayout({ children }: { children: React.ReactNo
   ];
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: '#0B1120', color: '#F8FAFC', fontFamily: 'var(--font-body, sans-serif)' }}>
-      
+    <div className="sa-shell">
+
       {/* Mobile Backdrop Overlay */}
       {mobileMenuOpen && (
-        <div 
-          onClick={() => setMobileMenuOpen(false)}
-          style={{
-            position: 'fixed',
-            inset: 0,
-            backgroundColor: 'rgba(11, 17, 32, 0.7)',
-            backdropFilter: 'blur(4px)',
-            zIndex: 998
-          }}
-        />
+        <div onClick={() => setMobileMenuOpen(false)} className="sa-backdrop" />
       )}
 
       {/* Superadmin Sidebar */}
-      <aside 
-        className="superadmin-sidebar"
-        style={{ 
-          width: '270px', 
-          backgroundColor: '#0F172A', 
-          borderRight: '1px solid #1E293B', 
-          display: 'flex', 
-          flexDirection: 'column',
-          position: mobileMenuOpen ? 'fixed' : 'relative',
-          top: 0,
-          bottom: 0,
-          left: 0,
-          zIndex: 999,
-          transition: 'transform 0.3s ease'
-        }}
-      >
-        
+      <aside className={`sa-sidebar${mobileMenuOpen ? ' sa-sidebar--open' : ''}`}>
+
         {/* Logo & Superadmin Badge */}
-        <div style={{ padding: '24px 20px', borderBottom: '1px solid #1E293B', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: 'rgba(197, 168, 128, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#C5A880' }}>
-              <Crown size={18} />
-            </div>
+        <div className="sa-sidebar-header">
+          <div className="sa-sidebar-brand">
+            <div className="sa-logo-icon"><Crown size={18} /></div>
             <div>
-              <h1 style={{ fontFamily: 'var(--font-display, serif)', fontSize: '15px', letterSpacing: '0.14em', color: '#C5A880', margin: 0 }}>
-                ZEVRO MASTER
-              </h1>
-              <span style={{ fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase', color: '#94A3B8' }}>
-                Governance Console
-              </span>
+              <h1 className="sa-brand">ZEVRO MASTER</h1>
+              <span className="sa-tagline">Governance Console</span>
             </div>
           </div>
-          {mobileMenuOpen && (
-            <button 
-              onClick={() => setMobileMenuOpen(false)}
-              style={{ background: 'transparent', border: 'none', color: '#94A3B8', cursor: 'pointer' }}
-            >
-              <X size={20} />
-            </button>
-          )}
+          <button onClick={() => setMobileMenuOpen(false)} className="sa-close-btn" aria-label="Close menu">
+            <X size={20} />
+          </button>
         </div>
 
         {/* Navigation Sections */}
-        <nav style={{ flex: 1, padding: '18px 0', overflowY: 'auto' }}>
-          
-          {/* Section 1: Superadmin Exclusives */}
-          <div style={{ padding: '0 20px 8px 20px' }}>
-            <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#C5A880' }}>
-              PLATFORM GOVERNANCE
-            </span>
-          </div>
+        <nav className="sa-nav">
 
-          <div style={{ marginBottom: '20px' }}>
+          {/* Section 1: Superadmin Exclusives */}
+          <div className="sa-nav-section-label sa-nav-section-label--gold">PLATFORM GOVERNANCE</div>
+
+          <div className="sa-nav-section">
             {superAdminNav.map(item => {
               const Icon = item.icon;
               const isActive = pathname === item.href;
               return (
-                <Link 
-                  key={item.href} 
+                <Link
+                  key={item.href}
                   href={item.href}
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: '12px',
-                    padding: '11px 20px',
-                    backgroundColor: isActive ? 'rgba(197, 168, 128, 0.12)' : 'transparent',
-                    color: isActive ? '#C5A880' : '#94A3B8',
-                    textDecoration: 'none',
-                    borderLeft: isActive ? '3px solid #C5A880' : '3px solid transparent',
-                    fontSize: '13px',
-                    fontWeight: isActive ? 600 : 400,
-                    transition: 'all 0.15s ease'
-                  }}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`sa-nav-link${isActive ? ' sa-nav-link--active' : ''}`}
                 >
-                  <Icon size={16} color={isActive ? '#C5A880' : '#94A3B8'} />
+                  <Icon size={16} />
                   <span>{item.label}</span>
                 </Link>
               );
@@ -279,32 +231,20 @@ export default function SuperAdminLayout({ children }: { children: React.ReactNo
           </div>
 
           {/* Section 2: Store Operations */}
-          <div style={{ padding: '0 20px 8px 20px' }}>
-            <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#64748B' }}>
-              STORE OPERATIONS
-            </span>
-          </div>
+          <div className="sa-nav-section-label sa-nav-section-label--muted">STORE OPERATIONS</div>
 
-          <div>
+          <div className="sa-nav-section">
             {standardStoreNav.map(item => {
               const Icon = item.icon;
               const isActive = pathname.startsWith(item.href);
               return (
-                <Link 
-                  key={item.href} 
+                <Link
+                  key={item.href}
                   href={item.href}
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: '12px',
-                    padding: '10px 20px',
-                    backgroundColor: isActive ? 'rgba(255, 255, 255, 0.05)' : 'transparent',
-                    color: isActive ? '#FFFFFF' : '#64748B',
-                    textDecoration: 'none',
-                    borderLeft: isActive ? '3px solid #94A3B8' : '3px solid transparent',
-                    fontSize: '13px',
-                    transition: 'all 0.15s ease'
-                  }}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`sa-nav-link sa-nav-link--store${isActive ? ' sa-nav-link--store-active' : ''}`}
                 >
-                  <Icon size={15} color={isActive ? '#FFFFFF' : '#64748B'} />
+                  <Icon size={15} />
                   <span>{item.label}</span>
                 </Link>
               );
@@ -314,14 +254,9 @@ export default function SuperAdminLayout({ children }: { children: React.ReactNo
         </nav>
 
         {/* Footer Actions */}
-        <div style={{ padding: '18px 20px', borderTop: '1px solid #1E293B', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Link href="/admin" style={{ color: '#94A3B8', fontSize: '12px', textDecoration: 'none' }}>
-            ← Admin View
-          </Link>
-          <button 
-            onClick={handleSuperLogout}
-            style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'none', border: 'none', color: '#F87171', fontSize: '12px', cursor: 'pointer', padding: 0 }}
-          >
+        <div className="sa-sidebar-footer">
+          <Link href="/admin" className="sa-footer-link">← Admin View</Link>
+          <button onClick={handleSuperLogout} className="sa-footer-logout">
             <Lock size={13} /> Lock Console
           </button>
         </div>
@@ -329,61 +264,158 @@ export default function SuperAdminLayout({ children }: { children: React.ReactNo
       </aside>
 
       {/* Superadmin Main Content */}
-      <main style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden' }}>
-        
+      <main className="sa-main">
+
         {/* Top Header */}
-        <header style={{ height: '64px', backgroundColor: '#0F172A', borderBottom: '1px solid #1E293B', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 24px' }}>
-          
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <header className="sa-header">
+
+          <div className="sa-header-left">
             {/* Mobile Hamburger Button */}
-            <button 
-              className="superadmin-mobile-toggle"
+            <button
+              className="sa-hamburger"
               onClick={() => setMobileMenuOpen(true)}
-              style={{
-                display: 'none',
-                background: 'transparent',
-                border: 'none',
-                color: '#F8FAFC',
-                cursor: 'pointer',
-                padding: '6px'
-              }}
+              aria-label="Open navigation"
             >
               <Menu size={22} />
             </button>
 
-            <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#4ADE80', fontWeight: 600 }}>
-              <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#4ADE80', display: 'inline-block' }} />
-              Cluster Active • MongoDB Atlas Connected
+            <span className="sa-cluster-status">
+              <span className="sa-cluster-dot" />
+              <span className="sa-cluster-text">Cluster Active • MongoDB Atlas Connected</span>
             </span>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-            <span style={{ fontSize: '11px', background: 'rgba(197, 168, 128, 0.15)', color: '#C5A880', border: '1px solid rgba(197, 168, 128, 0.3)', padding: '4px 10px', borderRadius: '12px', fontWeight: 600, letterSpacing: '0.08em' }}>
-              ROOT SUPERADMIN
-            </span>
-            <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: '#C5A880', color: '#0F172A', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '12px' }}>
-              SA
-            </div>
+          <div className="sa-header-right">
+            <span className="sa-root-badge">ROOT SUPERADMIN</span>
+            <div className="sa-avatar">SA</div>
           </div>
         </header>
 
         {/* View Content */}
-        <div style={{ padding: '24px', flex: 1, overflowY: 'auto', backgroundColor: '#0B1120' }}>
+        <div className="sa-content">
           {children}
         </div>
 
       </main>
 
       <style dangerouslySetInnerHTML={{__html: `
-        @media (max-width: 768px) {
-          .superadmin-sidebar {
-            position: fixed !important;
-            transform: ${mobileMenuOpen ? 'translateX(0)' : 'translateX(-100%)'};
-          }
-          .superadmin-mobile-toggle {
-            display: inline-flex !important;
-          }
+        /* Shell */
+        .sa-shell { display: flex; min-height: 100vh; background: #0B1120; color: #F8FAFC; font-family: var(--font-body,sans-serif); position: relative; overflow: hidden; }
+
+        /* Backdrop */
+        .sa-backdrop { position: fixed; inset: 0; background: rgba(11,17,32,0.75); backdrop-filter: blur(4px); z-index: 998; }
+
+        /* Sidebar */
+        .sa-sidebar {
+          width: 270px; min-width: 270px; flex-shrink: 0;
+          background: #0F172A; border-right: 1px solid #1E293B;
+          display: flex; flex-direction: column;
+          z-index: 999; transition: transform 0.3s ease;
         }
+        .sa-sidebar-header {
+          padding: 20px; border-bottom: 1px solid #1E293B;
+          display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
+        }
+        .sa-sidebar-brand { display: flex; align-items: center; gap: 10px; }
+        .sa-logo-icon {
+          width: 32px; height: 32px; min-width: 32px; border-radius: 50%;
+          background: rgba(197,168,128,.15);
+          display: flex; align-items: center; justify-content: center; color: #C5A880;
+        }
+        .sa-brand { font-family: var(--font-display,serif); font-size: 15px; letter-spacing: .14em; color: #C5A880; margin: 0; }
+        .sa-tagline { font-size: 9px; letter-spacing: .12em; text-transform: uppercase; color: #94A3B8; }
+        .sa-close-btn { display: none; background: none; border: none; color: #94A3B8; cursor: pointer; padding: 4px; flex-shrink: 0; }
+
+        /* Nav */
+        .sa-nav { flex: 1; padding: 16px 0; overflow-y: auto; }
+        .sa-nav-section-label {
+          padding: 0 20px 8px 20px;
+          font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
+        }
+        .sa-nav-section-label--gold { color: #C5A880; }
+        .sa-nav-section-label--muted { color: #64748B; margin-top: 8px; }
+        .sa-nav-section { margin-bottom: 8px; }
+        .sa-nav-link {
+          display: flex; align-items: center; gap: 12px;
+          padding: 11px 20px;
+          background: transparent; color: #94A3B8; text-decoration: none;
+          border-left: 3px solid transparent;
+          font-size: 13px; font-weight: 400;
+          transition: all 0.15s ease;
+        }
+        .sa-nav-link--active { background: rgba(197,168,128,.12); color: #C5A880; border-left-color: #C5A880; font-weight: 600; }
+        .sa-nav-link--store { color: #64748B; padding: 10px 20px; font-size: 13px; }
+        .sa-nav-link--store-active { background: rgba(255,255,255,.05); color: #FFF; border-left-color: #94A3B8; }
+
+        /* Sidebar Footer */
+        .sa-sidebar-footer {
+          padding: 18px 20px; border-top: 1px solid #1E293B;
+          display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;
+        }
+        .sa-footer-link { color: #94A3B8; font-size: 12px; text-decoration: none; }
+        .sa-footer-logout { display: flex; align-items: center; gap: 4px; background: none; border: none; color: #F87171; font-size: 12px; cursor: pointer; padding: 0; }
+
+        /* Main */
+        .sa-main { flex: 1; display: flex; flex-direction: column; min-width: 0; overflow: hidden; }
+
+        /* Header */
+        .sa-header {
+          height: 64px; min-height: 64px; flex-shrink: 0;
+          background: #0F172A; border-bottom: 1px solid #1E293B;
+          display: flex; align-items: center; justify-content: space-between;
+          padding: 0 24px; gap: 12px;
+        }
+        .sa-header-left { display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1; }
+        .sa-hamburger { display: none; background: none; border: none; color: #F8FAFC; cursor: pointer; padding: 6px; flex-shrink: 0; }
+        .sa-cluster-status { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #4ADE80; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .sa-cluster-dot { width: 8px; height: 8px; min-width: 8px; border-radius: 50%; background: #4ADE80; display: inline-block; }
+        .sa-cluster-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .sa-header-right { display: flex; align-items: center; gap: 14px; flex-shrink: 0; }
+        .sa-root-badge {
+          font-size: 11px; background: rgba(197,168,128,.15); color: #C5A880;
+          border: 1px solid rgba(197,168,128,.3); padding: 4px 10px;
+          border-radius: 12px; font-weight: 600; letter-spacing: .08em; white-space: nowrap;
+        }
+        .sa-avatar {
+          width: 32px; height: 32px; min-width: 32px; border-radius: 50%;
+          background: #C5A880; color: #0F172A;
+          display: flex; align-items: center; justify-content: center;
+          font-weight: bold; font-size: 12px;
+        }
+
+        /* Content */
+        .sa-content { padding: 24px; flex: 1; overflow-y: auto; background: #0B1120; }
+
+        /* ── Tablet ── */
+        @media (max-width: 1024px) {
+          .sa-sidebar { width: 230px; min-width: 230px; }
+          .sa-root-badge { display: none; }
+          .sa-cluster-text { max-width: 180px; }
+        }
+
+        /* ── Mobile ── */
+        @media (max-width: 768px) {
+          .sa-sidebar {
+            position: fixed; top: 0; left: 0; bottom: 0;
+            width: 290px; min-width: 290px;
+            transform: translateX(-100%);
+            height: 100dvh;
+          }
+          .sa-sidebar--open { transform: translateX(0); }
+          .sa-close-btn { display: flex; }
+          .sa-hamburger { display: flex; }
+          .sa-cluster-text { display: none; }
+          .sa-content { padding: 16px; }
+          .sa-header { padding: 0 14px; }
+        }
+
+        /* ── Small Mobile ── */
+        @media (max-width: 480px) {
+          .sa-content { padding: 12px; }
+          .sa-header { padding: 0 10px; height: 56px; min-height: 56px; }
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
       `}} />
 
     </div>

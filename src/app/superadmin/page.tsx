@@ -35,7 +35,7 @@ export default function SuperAdminDashboard() {
     <div style={{ maxWidth: '1380px', margin: '0 auto' }}>
       
       {/* Welcome Banner */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px', flexWrap: 'wrap', gap: '16px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '32px', flexWrap: 'wrap', gap: '16px' }}>
         <div>
           <span style={{ fontSize: '11px', letterSpacing: '0.16em', color: '#D4AF37', textTransform: 'uppercase', fontWeight: 600 }}>
             COMMAND CONSOLE • ENTERPRISE GOVERNANCE
@@ -107,7 +107,7 @@ export default function SuperAdminDashboard() {
         Master Governance Modules
       </h3>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px', marginBottom: '40px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '20px', marginBottom: '40px' }}>
         {quickActions.map(action => (
           <Link
             key={action.title}

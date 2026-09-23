@@ -18,29 +18,63 @@ interface CartStore {
   setCoupon: (code: string | null, discount: number) => void
   clearCart: () => void
   openDrawer: () => void; closeDrawer: () => void
-  total: number; itemCount: number; savings: number
+  // Computed selectors (not getters — getters break with persist middleware)
+  getTotal: () => number
+  getItemCount: () => number
+  getSavings: () => number
+  /** @deprecated use getTotal() */ total: number
+  /** @deprecated use getItemCount() */ itemCount: number
+  /** @deprecated use getSavings() */ savings: number
 }
 
 export const useCartStore = create<CartStore>()(
   persist(
     (set, get) => ({
       items: [], isDrawerOpen: false, couponCode: null, couponDiscount: 0,
+      // Deprecated legacy getter shims — kept for backwards compat but may be stale from persist
+      total: 0, itemCount: 0, savings: 0,
       addItem: (item) => set((s) => {
         const ex = s.items.find(i => i.sku === item.sku)
-        if (ex) return { items: s.items.map(i => i.sku === item.sku ? {...i, quantity: i.quantity + item.quantity} : i) }
-        return { items: [...s.items, item], isDrawerOpen: true }
+        const newItems = ex
+          ? s.items.map(i => i.sku === item.sku ? {...i, quantity: i.quantity + item.quantity} : i)
+          : [...s.items, item]
+        const total = newItems.reduce((acc, i) => acc + i.price * i.quantity, 0)
+        const itemCount = newItems.reduce((acc, i) => acc + i.quantity, 0)
+        const savings = newItems.reduce((acc, i) => acc + (i.originalPrice - i.price) * i.quantity, 0) + s.couponDiscount
+        return { items: newItems, isDrawerOpen: !ex, total, itemCount, savings }
       }),
-      removeItem: (sku) => set(s => ({ items: s.items.filter(i => i.sku !== sku) })),
-      updateQuantity: (sku, qty) => set(s => ({
-        items: qty <= 0 ? s.items.filter(i => i.sku !== sku) : s.items.map(i => i.sku === sku ? {...i, quantity: qty} : i)
+      removeItem: (sku) => set((s) => {
+        const newItems = s.items.filter(i => i.sku !== sku)
+        return {
+          items: newItems,
+          total: newItems.reduce((acc, i) => acc + i.price * i.quantity, 0),
+          itemCount: newItems.reduce((acc, i) => acc + i.quantity, 0),
+          savings: newItems.reduce((acc, i) => acc + (i.originalPrice - i.price) * i.quantity, 0) + s.couponDiscount,
+        }
+      }),
+      updateQuantity: (sku, qty) => set((s) => {
+        const newItems = qty <= 0
+          ? s.items.filter(i => i.sku !== sku)
+          : s.items.map(i => i.sku === sku ? {...i, quantity: qty} : i)
+        return {
+          items: newItems,
+          total: newItems.reduce((acc, i) => acc + i.price * i.quantity, 0),
+          itemCount: newItems.reduce((acc, i) => acc + i.quantity, 0),
+          savings: newItems.reduce((acc, i) => acc + (i.originalPrice - i.price) * i.quantity, 0) + s.couponDiscount,
+        }
+      }),
+      setCoupon: (code, discount) => set((s) => ({
+        couponCode: code,
+        couponDiscount: discount,
+        savings: s.items.reduce((acc, i) => acc + (i.originalPrice - i.price) * i.quantity, 0) + discount,
       })),
-      setCoupon: (code, discount) => set({ couponCode: code, couponDiscount: discount }),
-      clearCart: () => set({ items: [], couponCode: null, couponDiscount: 0 }),
+      clearCart: () => set({ items: [], couponCode: null, couponDiscount: 0, total: 0, itemCount: 0, savings: 0 }),
       openDrawer: () => set({ isDrawerOpen: true }),
       closeDrawer: () => set({ isDrawerOpen: false }),
-      get total()     { return get().items.reduce((s, i) => s + i.price * i.quantity, 0) },
-      get itemCount() { return get().items.reduce((s, i) => s + i.quantity, 0) },
-      get savings()   { return get().items.reduce((s, i) => s + (i.originalPrice - i.price) * i.quantity, 0) + get().couponDiscount }
+      // Live computed selectors — always accurate, never stale
+      getTotal:     () => get().items.reduce((s, i) => s + i.price * i.quantity, 0),
+      getItemCount: () => get().items.reduce((s, i) => s + i.quantity, 0),
+      getSavings:   () => get().items.reduce((s, i) => s + (i.originalPrice - i.price) * i.quantity, 0) + get().couponDiscount,
     }),
     { name: 'zevro-cart' }
   )

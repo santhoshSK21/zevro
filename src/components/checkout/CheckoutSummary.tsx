@@ -6,7 +6,7 @@ import { useCartStore } from '../../store/cartStore';
 import { useConfigStore } from '../../store/configStore';
 
 export default function CheckoutSummary() {
-  const { items, total, savings, couponCode, couponDiscount, setCoupon } = useCartStore();
+  const { items, getTotal, getSavings, couponCode, couponDiscount, setCoupon } = useCartStore();
   const { config, fetchConfig } = useConfigStore();
   const [couponInput, setCouponInput] = useState('');
   const [validatingCoupon, setValidatingCoupon] = useState(false);
@@ -16,6 +16,8 @@ export default function CheckoutSummary() {
     if (!config) fetchConfig();
   }, [config, fetchConfig]);
 
+  const total = getTotal();
+  const savings = getSavings();
   const tax = total * 0.05; // 5%
   const shippingThreshold = config?.freeShippingThreshold ?? 99900;
   const shippingFee = config?.shippingCharge ?? 15000;

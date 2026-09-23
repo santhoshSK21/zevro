@@ -25,7 +25,7 @@ import styles from './CheckoutForm.module.css';
 
 export default function CheckoutForm() {
   const router = useRouter();
-  const { items, total, couponCode, couponDiscount, clearCart } = useCartStore();
+  const { items, getTotal, couponCode, couponDiscount, clearCart } = useCartStore();
   const { config } = useConfigStore();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -66,6 +66,7 @@ export default function CheckoutForm() {
     });
   };
 
+  const total = getTotal();
   const tax = total * 0.05;
   const shippingThreshold = config?.freeShippingThreshold ?? 99900;
   const shippingFee = config?.shippingCharge ?? 15000;

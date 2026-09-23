@@ -25,11 +25,15 @@ export async function GET(request: Request) {
 }
 
 import { calculateOrderTotals } from '../../../lib/commerce';
+import { Product } from '../../../models/Product';
+import { InventoryTransaction } from '../../../models/InventoryTransaction';
+import { Coupon } from '../../../models/Coupon';
+import { Cart } from '../../../models/Cart';
 
 export async function POST(request: Request) {
   try {
     const session = await auth();
-    // Require authentication for Phase 2 orders to map securely to the user
+    // Require authentication for orders to map securely to the user
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
@@ -69,10 +73,13 @@ export async function POST(request: Request) {
       sku: item.sku
     }));
 
-    // Increment coupon usage ONLY for COD/demo bypass flows here.
-    // Real Razorpay flows will increment in /api/payment/verify
-    if (pricing.couponCode && (body.paymentMethod === 'cod' || body.demoMode)) {
-      const { Coupon } = require('../../../models/Coupon');
+    const isCod = body.paymentMethod === 'cod';
+    const isDemo = !!body.demoMode;
+    const initialStatus = isCod || isDemo ? 'confirmed' : 'placed';
+    const initialPaymentStatus = isCod ? 'cod-pending' : (isDemo ? 'paid' : 'pending');
+
+    // Increment coupon usage for COD/demo bypass flows here
+    if (pricing.couponCode && (isCod || isDemo)) {
       await Coupon.findOneAndUpdate(
         { code: pricing.couponCode },
         { $inc: { usedCount: 1 } }
@@ -95,20 +102,61 @@ export async function POST(request: Request) {
       },
       payment: {
         method: body.paymentMethod || 'razorpay',
-        status: 'pending'
+        status: initialPaymentStatus,
+        paidAt: isDemo ? new Date() : undefined
       },
-      status: 'pending',
+      status: initialStatus,
       timeline: [{
-        status: 'placed',
-        message: 'Order created',
+        status: initialStatus,
+        message: isCod ? 'Order confirmed with Cash on Delivery' : (isDemo ? 'Order placed in Demo Mode' : 'Order placed'),
         timestamp: new Date()
       }]
     });
+
+    // For COD and Demo flows, deduct stock immediately and clear user cart
+    if (isCod || isDemo) {
+      if (orderItems && orderItems.length > 0) {
+        for (const item of orderItems) {
+          try {
+            await Product.updateOne(
+              { 
+                _id: item.productId, 
+                "variants.sizes": { $elemMatch: { size: item.size, stock: { $gte: item.quantity } } } 
+              },
+              { 
+                $inc: { "variants.$[].sizes.$[sizeElem].stock": -item.quantity } 
+              },
+              { 
+                arrayFilters: [{ "sizeElem.size": item.size }] 
+              }
+            );
+
+            await InventoryTransaction.create({
+              productId: item.productId,
+              variantId: item.variantId,
+              size: item.size,
+              sku: item.sku,
+              quantityChange: -item.quantity,
+              type: 'STOCK_SOLD',
+              reason: `Sold in order ${orderId} (${isCod ? 'COD' : 'Demo'})`,
+              referenceType: 'Order',
+              referenceId: newOrder._id,
+              performedBy: userId
+            });
+          } catch (invErr) {
+            console.warn(`Inventory deduction warning for order ${orderId}:`, invErr);
+          }
+        }
+      }
+
+      await Cart.findOneAndDelete({ userId });
+    }
     
     return NextResponse.json(newOrder, { status: 201 });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Order creation error:', error);
-    return NextResponse.json({ error: 'Failed to create order' }, { status: 500 });
+    return NextResponse.json({ error: error.message || 'Failed to create order' }, { status: 500 });
   }
 }
+
 

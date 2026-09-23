@@ -50,7 +50,7 @@ const OrderSchema = new Schema({
   
   status: {
     type: String,
-    enum: ['placed','confirmed','processing','packed','shipped','out-for-delivery','delivered','cancelled','return-requested','return-approved','returned'],
+    enum: ['placed','confirmed','processing','packed','shipped','out-for-delivery','delivered','cancelled','return-requested','return-approved','returned','pending'],
     default: 'placed'
   },
   

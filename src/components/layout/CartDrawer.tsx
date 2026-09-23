@@ -6,7 +6,9 @@ import Image from 'next/image';
 import { useCartStore } from '../../store/cartStore';
 
 export default function CartDrawer() {
-  const { isDrawerOpen, closeDrawer, items, total, savings, updateQuantity } = useCartStore();
+  const { isDrawerOpen, closeDrawer, items, getTotal, getSavings, updateQuantity } = useCartStore();
+  const total = getTotal();
+  const savings = getSavings();
 
   if (!isDrawerOpen) return null;
 

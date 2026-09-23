@@ -134,7 +134,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   // Not authenticated -> Show Admin Login Screen
   if (!isAuthenticated) {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#0F172A', color: '#F8FAFC', padding: '24px' }}>
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#0F172A', color: '#F8FAFC', padding: '16px' }}>
         <div style={{ width: '100%', maxWidth: '420px', background: '#1E293B', border: '1px solid rgba(197, 168, 128, 0.3)', borderRadius: '8px', padding: '40px 32px', boxShadow: '0 24px 48px rgba(0,0,0,0.4)', backdropFilter: 'blur(16px)' }}>
           <div style={{ textAlign: 'center', marginBottom: '32px' }}>
             <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '44px', height: '44px', borderRadius: '50%', backgroundColor: 'rgba(197, 168, 128, 0.15)', color: '#C5A880', marginBottom: '12px' }}>
@@ -159,7 +159,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 onChange={(e) => setEmailOrUser(e.target.value)}
                 placeholder="admin@zevro.in or admin"
                 required
-                style={{ width: '100%', padding: '13px 14px', background: '#0F172A', border: '1px solid #334155', borderRadius: '4px', color: '#FFF', fontSize: '13px', outline: 'none' }}
+                style={{ width: '100%', padding: '13px 14px', background: '#0F172A', border: '1px solid #334155', borderRadius: '4px', color: '#FFF', fontSize: '13px', outline: 'none', boxSizing: 'border-box' }}
               />
             </div>
 
@@ -207,81 +207,39 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   ];
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: '#F8F9FA' }}>
-      
+    <div className="adm-shell">
+
       {/* Mobile Backdrop Overlay */}
       {mobileMenuOpen && (
-        <div 
-          onClick={() => setMobileMenuOpen(false)}
-          style={{
-            position: 'fixed',
-            inset: 0,
-            backgroundColor: 'rgba(15, 23, 42, 0.6)',
-            backdropFilter: 'blur(4px)',
-            zIndex: 998
-          }}
-        />
+        <div onClick={() => setMobileMenuOpen(false)} className="adm-backdrop" />
       )}
 
-      {/* Admin Sidebar (English Oxford Navy & Antique Brass) */}
-      <aside 
-        className="admin-sidebar"
-        style={{ 
-          width: '260px', 
-          backgroundColor: '#0F172A', 
-          color: '#F8FAFC', 
-          display: 'flex', 
-          flexDirection: 'column',
-          borderRight: '1px solid #1E293B',
-          position: mobileMenuOpen ? 'fixed' : 'relative',
-          top: 0,
-          bottom: 0,
-          left: 0,
-          zIndex: 999,
-          transition: 'transform 0.3s ease',
-        }}
-      >
+      {/* Admin Sidebar */}
+      <aside className={`adm-sidebar${mobileMenuOpen ? ' adm-sidebar--open' : ''}`}>
         {/* Brand Header */}
-        <div style={{ padding: '24px 20px', borderBottom: '1px solid #1E293B', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div className="adm-sidebar-header">
           <div>
-            <h1 style={{ fontFamily: 'var(--font-display, serif)', fontSize: '18px', letterSpacing: '0.14em', color: '#C5A880', margin: 0 }}>ZEVRO ADMIN</h1>
-            <span style={{ fontSize: '10px', letterSpacing: '0.08em', textTransform: 'uppercase', color: '#94A3B8' }}>Bespoke Couture Console</span>
+            <h1 className="adm-brand">ZEVRO ADMIN</h1>
+            <span className="adm-tagline">Bespoke Couture Console</span>
           </div>
-          {mobileMenuOpen && (
-            <button 
-              onClick={() => setMobileMenuOpen(false)}
-              style={{ background: 'transparent', border: 'none', color: '#94A3B8', cursor: 'pointer', padding: '4px' }}
-            >
-              <X size={20} />
-            </button>
-          )}
+          <button onClick={() => setMobileMenuOpen(false)} className="adm-close-btn" aria-label="Close menu">
+            <X size={20} />
+          </button>
         </div>
-        
-        {/* Nav list with clean Lucide SVG icons */}
-        <nav style={{ flex: 1, padding: '20px 0', overflowY: 'auto' }}>
+
+        {/* Nav list */}
+        <nav className="adm-nav">
           {navItems.map(item => {
             const Icon = item.icon;
             const isActive = pathname === item.href || (item.href !== '/admin' && pathname.startsWith(item.href));
             return (
-              <Link 
-                key={item.href} 
-                href={item.href} 
-                style={{
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  gap: '12px',
-                  padding: '12px 20px',
-                  backgroundColor: isActive ? 'rgba(197, 168, 128, 0.12)' : 'transparent',
-                  color: isActive ? '#C5A880' : '#94A3B8',
-                  textDecoration: 'none',
-                  borderLeft: isActive ? '3px solid #C5A880' : '3px solid transparent',
-                  transition: 'all 0.15s ease',
-                  fontWeight: isActive ? 600 : 400,
-                  fontSize: '13px',
-                  letterSpacing: '0.02em'
-                }}
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => setMobileMenuOpen(false)}
+                className={`adm-nav-link${isActive ? ' adm-nav-link--active' : ''}`}
               >
-                <Icon size={17} color={isActive ? '#C5A880' : '#94A3B8'} />
+                <Icon size={17} />
                 <span>{item.label}</span>
               </Link>
             );
@@ -289,96 +247,162 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </nav>
 
         {/* Sidebar Footer */}
-        <div style={{ padding: '20px', borderTop: '1px solid #1E293B', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#94A3B8', fontSize: '12px', textDecoration: 'none' }}>
+        <div className="adm-sidebar-footer">
+          <Link href="/" className="adm-footer-store">
             <Store size={14} /> Storefront
           </Link>
-          <button 
-            onClick={handleLogout} 
-            style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'transparent', border: 'none', color: '#F87171', fontSize: '12px', cursor: 'pointer', padding: 0 }}
-          >
+          <button onClick={handleLogout} className="adm-footer-logout">
             <LogOut size={14} /> Logout
           </button>
         </div>
       </aside>
 
       {/* Admin Main Workspace */}
-      <main style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden' }}>
-        
+      <main className="adm-main">
+
         {/* Top Header */}
-        <header style={{ height: '64px', backgroundColor: '#FFFFFF', borderBottom: '1px solid #E2E8F0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 24px' }}>
-          
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            {/* Mobile Hamburger Button */}
-            <button 
-              className="admin-mobile-toggle"
+        <header className="adm-header">
+          <div className="adm-header-left">
+            <button
+              className="adm-hamburger"
               onClick={() => setMobileMenuOpen(true)}
-              style={{
-                display: 'none',
-                background: 'transparent',
-                border: 'none',
-                color: '#0F172A',
-                cursor: 'pointer',
-                padding: '6px'
-              }}
+              aria-label="Open navigation"
             >
               <Menu size={22} />
             </button>
-            <div style={{ fontSize: '13px', color: '#64748B', fontWeight: 500 }}>
-              Live Operations Panel
-            </div>
+            <div className="adm-header-title">Live Operations Panel</div>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+          <div className="adm-header-right">
             {isSuperAdmin && (
-              <Link 
-                href="/superadmin"
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  backgroundColor: '#0F172A',
-                  color: '#C5A880',
-                  border: '1px solid #C5A880',
-                  padding: '5px 12px',
-                  borderRadius: '4px',
-                  fontSize: '11px',
-                  fontWeight: 700,
-                  letterSpacing: '0.06em',
-                  textDecoration: 'none'
-                }}
-              >
-                <span>👑 Superadmin Console</span>
+              <Link href="/superadmin" className="adm-super-btn">
+                <span>👑</span>
+                <span className="adm-super-label">Superadmin</span>
               </Link>
             )}
-            <span style={{ fontSize: '13px', fontWeight: 600, color: '#1E293B' }}>{adminName}</span>
-            <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: '#0F172A', color: '#C5A880', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '13px', border: '1px solid #C5A880' }}>
-              {isSuperAdmin ? 'SA' : 'A'}
-            </div>
-            <button onClick={handleLogout} style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', padding: '6px 12px', borderRadius: '4px', fontSize: '11px', cursor: 'pointer', color: '#475569', fontWeight: 600, letterSpacing: '0.04em' }}>
-              Logout
-            </button>
+            <span className="adm-admin-name">{adminName}</span>
+            <div className="adm-avatar">{isSuperAdmin ? 'SA' : 'A'}</div>
+            <button onClick={handleLogout} className="adm-logout-btn">Logout</button>
           </div>
         </header>
-        
+
         {/* Main Content Area */}
-        <div style={{ padding: '24px', flex: 1, overflowY: 'auto', backgroundColor: '#F8F9FA' }}>
+        <div className="adm-content">
           {children}
         </div>
       </main>
 
       <style dangerouslySetInnerHTML={{__html: `
-        @media (max-width: 768px) {
-          .admin-sidebar {
-            position: fixed !important;
-            transform: ${mobileMenuOpen ? 'translateX(0)' : 'translateX(-100%)'};
-          }
-          .admin-mobile-toggle {
-            display: inline-flex !important;
-          }
-        }
-      `}} />
+        /* Shell */
+        .adm-shell { display: flex; min-height: 100vh; background: #F8F9FA; position: relative; overflow: hidden; }
 
+        /* Backdrop */
+        .adm-backdrop { position: fixed; inset: 0; background: rgba(15,23,42,0.65); backdrop-filter: blur(4px); z-index: 998; }
+
+        /* Sidebar */
+        .adm-sidebar {
+          width: 260px; min-width: 260px;
+          background: #0F172A; color: #F8FAFC;
+          display: flex; flex-direction: column;
+          border-right: 1px solid #1E293B;
+          z-index: 999; transition: transform 0.3s ease;
+          flex-shrink: 0;
+        }
+        .adm-sidebar-header {
+          padding: 20px; border-bottom: 1px solid #1E293B;
+          display: flex; align-items: center; justify-content: space-between;
+          flex-shrink: 0;
+        }
+        .adm-brand { font-family: var(--font-display,serif); font-size: 17px; letter-spacing: .14em; color: #C5A880; margin: 0; }
+        .adm-tagline { font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: #94A3B8; }
+        .adm-close-btn { display: none; background: none; border: none; color: #94A3B8; cursor: pointer; padding: 4px; }
+        .adm-nav { flex: 1; padding: 14px 0; overflow-y: auto; }
+        .adm-nav-link {
+          display: flex; align-items: center; gap: 12px;
+          padding: 12px 20px;
+          color: #94A3B8; text-decoration: none;
+          border-left: 3px solid transparent;
+          font-size: 13px; letter-spacing: .02em;
+          transition: all 0.15s ease;
+        }
+        .adm-nav-link--active { background: rgba(197,168,128,.12); color: #C5A880; border-left-color: #C5A880; font-weight: 600; }
+        .adm-sidebar-footer {
+          padding: 16px 20px; border-top: 1px solid #1E293B;
+          display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;
+        }
+        .adm-footer-store { display: flex; align-items: center; gap: 6px; color: #94A3B8; font-size: 12px; text-decoration: none; }
+        .adm-footer-logout { display: flex; align-items: center; gap: 6px; background: none; border: none; color: #F87171; font-size: 12px; cursor: pointer; padding: 0; }
+
+        /* Main */
+        .adm-main { flex: 1; display: flex; flex-direction: column; min-width: 0; overflow: hidden; }
+
+        /* Header */
+        .adm-header {
+          height: 60px; min-height: 60px; flex-shrink: 0;
+          background: #fff; border-bottom: 1px solid #E2E8F0;
+          display: flex; align-items: center; justify-content: space-between;
+          padding: 0 20px; gap: 12px;
+        }
+        .adm-header-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
+        .adm-header-title { font-size: 13px; color: #64748B; font-weight: 500; white-space: nowrap; }
+        .adm-hamburger { display: none; background: none; border: none; color: #0F172A; cursor: pointer; padding: 6px; flex-shrink: 0; }
+        .adm-header-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+        .adm-super-btn {
+          display: flex; align-items: center; gap: 6px;
+          background: #0F172A; color: #C5A880; border: 1px solid #C5A880;
+          padding: 5px 10px; border-radius: 4px;
+          font-size: 11px; font-weight: 700; letter-spacing: .06em; text-decoration: none; white-space: nowrap;
+        }
+        .adm-admin-name { font-size: 13px; font-weight: 600; color: #1E293B; white-space: nowrap; }
+        .adm-avatar {
+          width: 32px; height: 32px; min-width: 32px; border-radius: 50%;
+          background: #0F172A; color: #C5A880;
+          display: flex; align-items: center; justify-content: center;
+          font-weight: bold; font-size: 12px; border: 1px solid #C5A880;
+        }
+        .adm-logout-btn {
+          background: #F8FAFC; border: 1px solid #E2E8F0;
+          padding: 6px 12px; border-radius: 4px;
+          font-size: 11px; cursor: pointer; color: #475569;
+          font-weight: 600; letter-spacing: .04em; white-space: nowrap;
+        }
+
+        /* Content */
+        .adm-content { padding: 24px; flex: 1; overflow-y: auto; background: #F8F9FA; }
+
+        /* ── Tablet ── */
+        @media (max-width: 1024px) {
+          .adm-sidebar { width: 220px; min-width: 220px; }
+          .adm-admin-name { display: none; }
+        }
+
+        /* ── Mobile ── */
+        @media (max-width: 768px) {
+          .adm-sidebar {
+            position: fixed; top: 0; left: 0; bottom: 0;
+            width: 280px; min-width: 280px;
+            transform: translateX(-100%);
+            height: 100dvh;
+          }
+          .adm-sidebar--open { transform: translateX(0); }
+          .adm-close-btn { display: flex; }
+          .adm-hamburger { display: flex; }
+          .adm-header-title { display: none; }
+          .adm-super-label { display: none; }
+          .adm-logout-btn { display: none; }
+          .adm-content { padding: 16px; }
+          .adm-header { padding: 0 14px; }
+        }
+
+        /* ── Small Mobile ── */
+        @media (max-width: 480px) {
+          .adm-content { padding: 12px; }
+          .adm-header { padding: 0 10px; }
+          .adm-super-btn { padding: 5px 8px; }
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+      `}} />
     </div>
   );
 }
