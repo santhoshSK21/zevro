@@ -11,6 +11,7 @@ import SearchOverlay from "../components/layout/SearchOverlay";
 import CartDrawer from "../components/layout/CartDrawer";
 import CartSync from "../components/layout/CartSync";
 import ThemeSync from "../components/layout/ThemeSync";
+import InAppNavigationGuard from "../components/layout/InAppNavigationGuard";
 import Footer from "../components/layout/Footer";
 import ToastProvider from "../components/ui/ToastProvider";
 
@@ -49,6 +50,7 @@ export default function RootLayout({
     <html lang="en" className={`${playfair.variable} ${inter.variable}`} data-scroll-behavior="smooth">
       <body>
         <Providers>
+          <InAppNavigationGuard />
           <ThemeSync />
           <CartSync />
           <AnnouncementBar />
