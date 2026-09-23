@@ -4,24 +4,26 @@ import type { NextRequest } from 'next/server';
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Ignore static assets, images, api routes, next internals
+  // Ignore static assets, images, api routes, next internals, and Admin/Superadmin management portals
   if (
     pathname === '/' ||
     pathname.startsWith('/api') ||
     pathname.startsWith('/_next') ||
     pathname.startsWith('/favicon') ||
+    pathname.startsWith('/admin') ||
+    pathname.startsWith('/superadmin') ||
+    pathname.startsWith('/adminControl') ||
     pathname.includes('.')
   ) {
-    return NextResponse.next();
-  }
-
-  // Admin Control protection
-  if (pathname.startsWith('/adminControl')) {
-    if (pathname === '/adminControl/login') return NextResponse.next();
-    const adminToken = request.cookies.get('adminControlSession');
-    if (!adminToken) {
-      return NextResponse.redirect(new URL('/adminControl/login', request.url));
+    // Admin Control legacy protection
+    if (pathname.startsWith('/adminControl')) {
+      if (pathname === '/adminControl/login') return NextResponse.next();
+      const adminToken = request.cookies.get('adminControlSession');
+      if (!adminToken) {
+        return NextResponse.redirect(new URL('/adminControl/login', request.url));
+      }
     }
+    return NextResponse.next();
   }
 
   // Check if navigation is initiated directly from URL bar or externally
