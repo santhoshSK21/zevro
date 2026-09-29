@@ -1,12 +1,12 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { 
-  Trash2, 
-  Search, 
-  AlertTriangle, 
-  Users, 
-  ShoppingBag, 
+import {
+  Trash2,
+  Search,
+  AlertTriangle,
+  Users,
+  ShoppingBag,
   Calendar,
   X
 } from 'lucide-react';
@@ -21,7 +21,7 @@ export default function AdminCustomersPage() {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [confirmDelete, setConfirmDelete] = useState<string[] | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
-  
+
   const [search, setSearch] = useState('');
   const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
   const [currentPage, setCurrentPage] = useState(1);
@@ -114,7 +114,7 @@ export default function AdminCustomersPage() {
 
   return (
     <div style={{ maxWidth: '1400px', margin: '0 auto', fontFamily: 'var(--font-body, sans-serif)' }}>
-      
+
       {/* Toast Notification */}
       {toast && (
         <div style={{ position: 'fixed', top: '24px', right: '24px', zIndex: 9999, padding: '14px 24px', borderRadius: '6px', color: '#fff', backgroundColor: toast.type === 'success' ? '#16A34A' : '#EF4444', boxShadow: '0 8px 24px rgba(0,0,0,0.2)', fontSize: '13px', fontWeight: 600 }}>
@@ -145,18 +145,18 @@ export default function AdminCustomersPage() {
           )}
 
           <div style={{ position: 'relative', width: '260px' }}>
-            <input 
-              type="text" 
-              placeholder="Search Name or Email..." 
+            <input
+              type="text"
+              placeholder="Search Name or Email..."
               value={search}
               onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }}
-              style={{ width: '100%', padding: '10px 14px 10px 36px', border: '1px solid #CBD5E1', borderRadius: '4px', backgroundColor: '#FFF', fontSize: '13px', outline: 'none' }} 
+              style={{ width: '100%', padding: '10px 14px 10px 36px', border: '1px solid #CBD5E1', borderRadius: '4px', backgroundColor: '#FFF', fontSize: '13px', outline: 'none' }}
             />
             <Search size={15} color="#94A3B8" style={{ position: 'absolute', left: '12px', top: '12px' }} />
           </div>
 
-          <select 
-            value={sortOrder} 
+          <select
+            value={sortOrder}
             onChange={(e) => setSortOrder(e.target.value as 'asc' | 'desc')}
             style={{ padding: '10px 14px', border: '1px solid #CBD5E1', borderRadius: '4px', backgroundColor: '#FFF', fontSize: '13px', outline: 'none' }}
           >
@@ -176,7 +176,7 @@ export default function AdminCustomersPage() {
             <span>You have selected {selectedIds.length} customer record(s).</span>
           </div>
           <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-            <button 
+            <button
               onClick={() => setSelectedIds([])}
               style={{ background: 'transparent', border: 'none', color: '#94A3B8', fontSize: '12px', cursor: 'pointer', textDecoration: 'underline' }}
             >
@@ -195,7 +195,7 @@ export default function AdminCustomersPage() {
       {/* Customers Table */}
       <div style={{ backgroundColor: '#FFF', borderRadius: '6px', border: '1px solid #E2E8F0', overflowX: 'auto', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
         {error && <div style={{ padding: '16px', color: '#EF4444' }}>{error}</div>}
-        
+
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', textAlign: 'left' }}>
           <thead>
             <tr style={{ borderBottom: '1px solid #E2E8F0', backgroundColor: '#F8FAFC' }}>
@@ -208,7 +208,7 @@ export default function AdminCustomersPage() {
                   title="Select / Deselect all on this page"
                 />
               </th>
-              <th style={{ padding: '14px 16px', color: '#64748B', fontWeight: 600 }}>Customer Name</th>
+              <th style={{ padding: '14px 16px', color: '#64748B', fontWeight: 600 }}>User Name</th>
               <th style={{ padding: '14px 16px', color: '#64748B', fontWeight: 600 }}>Email Address</th>
               <th style={{ padding: '14px 16px', color: '#64748B', fontWeight: 600 }}>Join Date</th>
               <th style={{ padding: '14px 16px', color: '#64748B', fontWeight: 600 }}>Total Orders</th>
@@ -230,9 +230,9 @@ export default function AdminCustomersPage() {
               paginated.map(cust => {
                 const isSelected = selectedIds.includes(cust._id);
                 return (
-                  <tr 
-                    key={cust._id} 
-                    style={{ 
+                  <tr
+                    key={cust._id}
+                    style={{
                       borderBottom: '1px solid #F1F5F9',
                       backgroundColor: isSelected ? 'rgba(197, 168, 128, 0.08)' : 'transparent',
                       transition: 'background-color 0.15s'
@@ -265,7 +265,7 @@ export default function AdminCustomersPage() {
                       {cust.lastOrder ? new Date(cust.lastOrder).toLocaleDateString() : 'No orders yet'}
                     </td>
                     <td style={{ padding: '14px 16px', textAlign: 'right' }}>
-                      <button 
+                      <button
                         onClick={() => setConfirmDelete([cust._id])}
                         title="Delete customer"
                         style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#FEE2E2', border: '1px solid #FCA5A5', color: '#EF4444', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 500 }}
@@ -279,7 +279,7 @@ export default function AdminCustomersPage() {
             )}
           </tbody>
         </table>
-        
+
         {!loading && paginated.length > 0 && (
           <div style={{ padding: '14px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #E2E8F0', color: '#64748B', fontSize: '12px', backgroundColor: '#F8FAFC' }}>
             <span>Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, filtered.length)} of {filtered.length} entries</span>
@@ -305,15 +305,15 @@ export default function AdminCustomersPage() {
               This will remove customer profile login credentials and account history.
             </p>
             <div style={{ display: 'flex', gap: '12px' }}>
-              <button 
-                onClick={() => setConfirmDelete(null)} 
+              <button
+                onClick={() => setConfirmDelete(null)}
                 disabled={isDeleting}
                 style={{ flex: 1, padding: '12px', border: '1px solid #CBD5E1', background: '#fff', borderRadius: '4px', cursor: 'pointer', fontSize: '13px', fontWeight: 600, color: '#475569' }}
               >
                 Cancel
               </button>
-              <button 
-                onClick={handleExecuteDelete} 
+              <button
+                onClick={handleExecuteDelete}
                 disabled={isDeleting}
                 style={{ flex: 1, padding: '12px', backgroundColor: '#EF4444', color: '#fff', border: 'none', borderRadius: '4px', cursor: isDeleting ? 'not-allowed' : 'pointer', fontSize: '13px', fontWeight: 700 }}
               >

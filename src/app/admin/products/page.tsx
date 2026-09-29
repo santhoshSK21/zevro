@@ -422,7 +422,7 @@ export default function AdminProductsPage() {
                     </span>
                   </td>
                   <td style={{ padding: '14px 16px', textAlign: 'right' }}>
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '6px' }}>
                       <button 
                         onClick={() => router.push(`/admin/products/form?id=${product._id}`)} 
                         title="Edit Product"
@@ -432,10 +432,10 @@ export default function AdminProductsPage() {
                       </button>
                       <button 
                         onClick={() => setConfirmDelete([product._id])} 
-                        title="Delete Product"
+                        title="Remove Product"
                         style={{ display: 'flex', alignItems: 'center', gap: '4px', background: '#FEE2E2', border: '1px solid #FCA5A5', color: '#EF4444', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 500 }}
                       >
-                        <Trash2 size={13} /> Delete
+                        <Trash2 size={13} /> Remove
                       </button>
                     </div>
                   </td>
