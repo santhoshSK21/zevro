@@ -21,36 +21,88 @@ import {
 export const dynamic = 'force-dynamic';
 
 export default async function AdminDashboardPage() {
-  await dbConnect();
+  let isDbUnavailable = false;
+  let totalOrders = 0;
+  let totalProducts = 0;
+  let totalCustomers = 0;
+  let totalRevenue = 0;
+  let pendingOrders = 0;
+  let lowStockProducts: any[] = [];
+  let recentOrders: any[] = [];
+  let recentCustomers: any[] = [];
 
-  const totalOrders = await Order.countDocuments();
-  const totalProducts = await Product.countDocuments();
-  const totalCustomers = await User.countDocuments({ role: 'customer' });
-  
-  // Calculate total revenue from paid orders
-  const paidOrders = await Order.find({ payment: { status: 'paid' } }).lean();
-  const totalRevenue = paidOrders.reduce((sum: number, o: any) => sum + (o.pricing?.total || 0), 0);
+  try {
+    const conn = await Promise.race([
+      dbConnect(),
+      new Promise<null>(resolve => setTimeout(() => resolve(null), 2500))
+    ]);
+    if (!conn) {
+      isDbUnavailable = true;
+    } else {
+      // Execute all dashboard queries in parallel with field projections
+      const [
+        ordersCount,
+        productsCount,
+        customersCount,
+        pendingOrdersCount,
+        revenueAgg,
+        candidateProducts,
+        ordersList,
+        customersList
+      ] = await Promise.all([
+        Order.countDocuments().exec(),
+        Product.countDocuments().exec(),
+        User.countDocuments({ role: 'customer' }).exec(),
+        Order.countDocuments({ status: { $in: ['placed', 'pending'] } }).exec(),
+        Order.aggregate([
+          { $match: { 'payment.status': 'paid' } },
+          { $group: { _id: null, total: { $sum: '$pricing.total' } } }
+        ]).exec(),
+        Product.find({ isActive: true })
+          .select('name price images variants')
+          .limit(100)
+          .lean()
+          .exec(),
+        Order.find()
+          .select('orderNumber customer pricing status createdAt items')
+          .sort({ createdAt: -1 })
+          .limit(8)
+          .lean()
+          .exec(),
+        User.find({ role: 'customer' })
+          .select('name email createdAt')
+          .sort({ createdAt: -1 })
+          .limit(5)
+          .lean()
+          .exec()
+      ]);
 
-  const pendingOrders = await Order.countDocuments({ status: { $in: ['placed', 'pending'] } });
-  
-  // Find products with low stock (< 5 across any variant size)
-  const products = await Product.find({ isActive: true }).lean();
-  let lowStockProducts = [];
-  for (const product of products) {
-    const totalStock = product.variants?.[0]?.sizes?.reduce((sum: number, s: any) => sum + s.stock, 0) || 0;
-    if (totalStock < 8) {
-      lowStockProducts.push({
-        _id: product._id,
-        name: product.name,
-        stock: totalStock,
-        price: product.price,
-        images: product.images || []
-      });
+      totalOrders = ordersCount || 0;
+      totalProducts = productsCount || 0;
+      totalCustomers = customersCount || 0;
+      pendingOrders = pendingOrdersCount || 0;
+      totalRevenue = revenueAgg?.[0]?.total || 0;
+
+      for (const product of candidateProducts) {
+        const totalStock = product.variants?.[0]?.sizes?.reduce((sum: number, s: any) => sum + (s.stock || 0), 0) || 0;
+        if (totalStock < 8) {
+          lowStockProducts.push({
+            _id: product._id,
+            name: product.name,
+            stock: totalStock,
+            price: product.price,
+            images: product.images || []
+          });
+        }
+      }
+
+      recentOrders = ordersList || [];
+      recentCustomers = customersList || [];
     }
+  } catch (err) {
+    console.warn('AdminDashboardPage: Database connection or query failed, entering graceful mode:', err);
+    isDbUnavailable = true;
   }
-
-  const recentOrders = await Order.find().sort({ createdAt: -1 }).limit(8).lean();
-  const recentCustomers = await User.find({ role: 'customer' }).sort({ createdAt: -1 }).limit(5).lean();
 
   const stats = [
     { 
@@ -85,6 +137,35 @@ export default async function AdminDashboardPage() {
 
   return (
     <div className="adm-dash">
+      {/* Service Unavailable Pop-up message if DB fails */}
+      {isDbUnavailable && (
+        <div style={{
+          position: 'fixed',
+          top: '24px',
+          right: '24px',
+          zIndex: 9999,
+          maxWidth: '400px',
+          backgroundColor: '#FFFFFF',
+          border: '1px solid #DDD6C8',
+          borderLeft: '4px solid #B49A68',
+          borderRadius: '8px',
+          padding: '16px 20px',
+          boxShadow: '0 8px 30px rgba(28, 28, 26, 0.12)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '12px'
+        }}>
+          <AlertCircle size={20} color="#B49A68" style={{ flexShrink: 0 }} />
+          <div>
+            <div style={{ fontSize: '13px', fontWeight: 700, color: '#1C1C1A', marginBottom: '2px' }}>
+              Service Unavailable
+            </div>
+            <div style={{ fontSize: '12px', color: '#68645C' }}>
+              Service unavailable. Please try again later.
+            </div>
+          </div>
+        </div>
+      )}
       {/* Top Banner with Atelier Live Status */}
       <div className="adm-hero-banner">
         <div>
@@ -296,13 +377,14 @@ export default async function AdminDashboardPage() {
           max-width: 1400px;
           margin: 0 auto;
         }
-        .text-gold { color: #D4AF37; }
-        .text-muted { color: #64748B; }
+
+        .text-gold { color: #B49A68; }
+        .text-muted { color: #68645C; }
 
         /* Hero Banner */
         .adm-hero-banner {
-          background: radial-gradient(circle at top left, rgba(212, 175, 55, 0.12) 0%, rgba(15, 23, 42, 0.6) 60%), #111827;
-          border: 1px solid rgba(212, 175, 55, 0.2);
+          background: #FFFFFF;
+          border: 1px solid #DDD6C8;
           border-radius: 12px;
           padding: 24px 28px;
           display: flex;
@@ -310,7 +392,18 @@ export default async function AdminDashboardPage() {
           align-items: center;
           gap: 20px;
           flex-wrap: wrap;
-          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
+          position: relative;
+          overflow: hidden;
+        }
+        .adm-hero-banner::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          height: 3px;
+          background: linear-gradient(90deg, #B49A68 0%, #EAE4D8 100%);
         }
         .adm-hero-eyebrow {
           display: inline-flex;
@@ -319,21 +412,21 @@ export default async function AdminDashboardPage() {
           font-size: 10px;
           letter-spacing: 0.18em;
           text-transform: uppercase;
-          color: #D4AF37;
+          color: #B49A68;
           font-weight: 700;
           margin-bottom: 6px;
         }
         .adm-hero-title {
           font-family: var(--font-display, serif);
           font-size: clamp(22px, 3vw, 28px);
-          letter-spacing: 0.08em;
-          color: #FAF8F5;
+          letter-spacing: 0.04em;
+          color: #1C1C1A;
           margin: 0 0 4px 0;
-          font-weight: 600;
+          font-weight: 700;
         }
         .adm-hero-desc {
           font-size: 13px;
-          color: #94A3B8;
+          color: #68645C;
           margin: 0;
         }
         .adm-hero-actions {
@@ -345,8 +438,9 @@ export default async function AdminDashboardPage() {
           display: inline-flex;
           align-items: center;
           gap: 8px;
-          background: linear-gradient(135deg, #D4AF37 0%, #C5A880 100%);
-          color: #0B0F19;
+          background: #1C1C1A;
+          color: #FAF8F5;
+          border: 1px solid #B49A68;
           font-size: 12px;
           font-weight: 700;
           letter-spacing: 0.08em;
@@ -354,20 +448,22 @@ export default async function AdminDashboardPage() {
           padding: 10px 18px;
           border-radius: 6px;
           text-decoration: none;
-          box-shadow: 0 4px 16px rgba(212, 175, 55, 0.25);
+          box-shadow: 0 2px 10px rgba(28, 28, 26, 0.15);
           transition: all 0.2s ease;
         }
         .adm-btn-gold:hover {
+          background: #B49A68;
+          color: #1C1C1A;
+          border-color: #B49A68;
           transform: translateY(-1px);
-          box-shadow: 0 6px 20px rgba(212, 175, 55, 0.35);
         }
         .adm-btn-ghost {
           display: inline-flex;
           align-items: center;
           gap: 8px;
-          background: rgba(255, 255, 255, 0.05);
-          border: 1px solid rgba(255, 255, 255, 0.12);
-          color: #E2E8F0;
+          background: #FAF7F0;
+          border: 1px solid #DDD6C8;
+          color: #1C1C1A;
           font-size: 12px;
           font-weight: 600;
           letter-spacing: 0.06em;
@@ -377,8 +473,8 @@ export default async function AdminDashboardPage() {
           transition: all 0.2s ease;
         }
         .adm-btn-ghost:hover {
-          background: rgba(255, 255, 255, 0.1);
-          border-color: rgba(255, 255, 255, 0.25);
+          background: #EAE4D8;
+          border-color: #C5A880;
         }
 
         /* Stats Grid */
@@ -388,18 +484,19 @@ export default async function AdminDashboardPage() {
           gap: 20px;
         }
         .adm-stat-card {
-          background: #111827;
-          border: 1px solid rgba(255, 255, 255, 0.07);
+          background: #FFFFFF;
+          border: 1px solid #DDD6C8;
           border-radius: 12px;
           padding: 22px;
-          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+          box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
           transition: all 0.2s ease;
           position: relative;
           overflow: hidden;
         }
         .adm-stat-card:hover {
           transform: translateY(-2px);
-          border-color: rgba(197, 168, 128, 0.3);
+          border-color: #B49A68;
+          box-shadow: 0 6px 20px rgba(180, 154, 104, 0.12);
         }
         .adm-stat-card::before {
           content: '';
@@ -408,7 +505,7 @@ export default async function AdminDashboardPage() {
           left: 0;
           right: 0;
           height: 2px;
-          background: linear-gradient(90deg, transparent, rgba(197, 168, 128, 0.4), transparent);
+          background: linear-gradient(90deg, transparent, rgba(180, 154, 104, 0.6), transparent);
         }
         .adm-stat-header {
           display: flex;
@@ -420,7 +517,7 @@ export default async function AdminDashboardPage() {
           font-size: 11px;
           letter-spacing: 0.12em;
           text-transform: uppercase;
-          color: #94A3B8;
+          color: #68645C;
           font-weight: 600;
         }
         .adm-stat-icon-wrap {
@@ -434,14 +531,14 @@ export default async function AdminDashboardPage() {
         .adm-stat-value {
           font-size: clamp(24px, 2.5vw, 30px);
           font-weight: 700;
-          color: #FAF8F5;
+          color: #1C1C1A;
           letter-spacing: -0.02em;
           margin-bottom: 6px;
           font-family: var(--font-display, serif);
         }
         .adm-stat-subtext {
           font-size: 12px;
-          color: #64748B;
+          color: #78716C;
         }
 
         /* Bento Grid */
@@ -456,11 +553,11 @@ export default async function AdminDashboardPage() {
           }
         }
         .adm-panel {
-          background: #111827;
-          border: 1px solid rgba(255, 255, 255, 0.07);
+          background: #FFFFFF;
+          border: 1px solid #DDD6C8;
           border-radius: 12px;
           padding: 24px;
-          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+          box-shadow: 0 2px 12px rgba(0, 0, 0, 0.03);
         }
         .adm-side-col {
           display: flex;
@@ -476,28 +573,30 @@ export default async function AdminDashboardPage() {
         }
         .adm-panel-title {
           font-size: 16px;
-          font-weight: 600;
-          color: #FAF8F5;
+          font-weight: 700;
+          color: #1C1C1A;
           margin: 0 0 2px 0;
-          letter-spacing: 0.02em;
+          letter-spacing: 0.01em;
+          font-family: var(--font-display, serif);
         }
         .adm-panel-subtitle {
           font-size: 12px;
-          color: #64748B;
+          color: #68645C;
         }
         .adm-panel-link {
           display: inline-flex;
           align-items: center;
           gap: 4px;
           font-size: 11px;
-          color: #C5A880;
+          color: #B49A68;
           text-decoration: none;
-          font-weight: 600;
+          font-weight: 700;
           letter-spacing: 0.05em;
           text-transform: uppercase;
+          transition: color 0.15s ease;
         }
         .adm-panel-link:hover {
-          color: #D4AF37;
+          color: #8C7343;
         }
 
         /* Table */
@@ -517,22 +616,24 @@ export default async function AdminDashboardPage() {
           font-size: 10px;
           letter-spacing: 0.12em;
           text-transform: uppercase;
-          color: #64748B;
-          border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-          font-weight: 600;
+          color: #68645C;
+          background: #FAF7F0;
+          border-bottom: 1px solid #DDD6C8;
+          font-weight: 700;
         }
         .adm-table td {
           padding: 14px;
-          border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+          border-bottom: 1px solid #EAE4D8;
           vertical-align: middle;
+          color: #1C1C1A;
         }
         .adm-table tr:hover td {
-          background: rgba(255, 255, 255, 0.02);
+          background: #FAF7F0;
         }
         .adm-order-code {
           font-family: var(--font-mono, monospace);
-          font-weight: 600;
-          color: #C5A880;
+          font-weight: 700;
+          color: #B49A68;
           font-size: 12px;
         }
         .adm-cust-info {
@@ -540,20 +641,20 @@ export default async function AdminDashboardPage() {
           flex-direction: column;
         }
         .adm-cust-name {
-          color: #F8FAFC;
-          font-weight: 500;
+          color: #1C1C1A;
+          font-weight: 600;
         }
         .adm-cust-city {
           font-size: 11px;
-          color: #64748B;
+          color: #78716C;
         }
         .adm-order-date {
-          color: #94A3B8;
+          color: #68645C;
           font-size: 12px;
         }
         .adm-order-amount {
-          font-weight: 600;
-          color: #FAF8F5;
+          font-weight: 700;
+          color: #1C1C1A;
         }
         .adm-status-pill {
           display: inline-block;
@@ -565,40 +666,42 @@ export default async function AdminDashboardPage() {
           border-radius: 20px;
         }
         .adm-status-delivered {
-          background: rgba(16, 185, 129, 0.15);
-          color: #34D399;
-          border: 1px solid rgba(16, 185, 129, 0.3);
+          background: #DCFCE7;
+          color: #16A34A;
+          border: 1px solid #86EFAC;
         }
         .adm-status-shipped {
-          background: rgba(56, 189, 248, 0.15);
-          color: #38BDF8;
-          border: 1px solid rgba(56, 189, 248, 0.3);
+          background: #E0F2FE;
+          color: #0284C7;
+          border: 1px solid #7DD3FC;
         }
         .adm-status-confirmed {
-          background: rgba(167, 139, 250, 0.15);
-          color: #C084FC;
-          border: 1px solid rgba(167, 139, 250, 0.3);
+          background: #F3E8FF;
+          color: #9333EA;
+          border: 1px solid #D8B4FE;
         }
         .adm-status-pending {
-          background: rgba(251, 191, 36, 0.15);
-          color: #FBBF24;
-          border: 1px solid rgba(251, 191, 36, 0.3);
+          background: #FEF3C7;
+          color: #D97706;
+          border: 1px solid #FCD34D;
         }
         .adm-row-action {
           display: inline-flex;
           align-items: center;
-          padding: 5px 10px;
+          padding: 6px 12px;
           border-radius: 4px;
-          background: rgba(255, 255, 255, 0.05);
-          color: #CBD5E1;
+          background: #FAF7F0;
+          border: 1px solid #DDD6C8;
+          color: #1C1C1A;
           font-size: 11px;
           font-weight: 600;
           text-decoration: none;
           transition: all 0.15s ease;
         }
         .adm-row-action:hover {
-          background: rgba(197, 168, 128, 0.2);
-          color: #C5A880;
+          background: #1C1C1A;
+          border-color: #1C1C1A;
+          color: #FAF8F5;
         }
 
         /* Stock Health List */
@@ -609,7 +712,7 @@ export default async function AdminDashboardPage() {
         }
         .adm-stock-ok {
           font-size: 13px;
-          color: #64748B;
+          color: #68645C;
           margin: 0;
         }
         .adm-stock-item {
@@ -623,13 +726,13 @@ export default async function AdminDashboardPage() {
         }
         .adm-stock-name {
           font-size: 13px;
-          font-weight: 500;
-          color: #E2E8F0;
+          font-weight: 600;
+          color: #1C1C1A;
           margin: 0 0 6px 0;
         }
         .adm-stock-bar-wrap {
-          height: 4px;
-          background: rgba(255, 255, 255, 0.08);
+          height: 5px;
+          background: #EAE4D8;
           border-radius: 4px;
           overflow: hidden;
         }
@@ -639,18 +742,20 @@ export default async function AdminDashboardPage() {
         }
         .adm-stock-badge {
           font-size: 11px;
-          font-weight: 600;
+          font-weight: 700;
           padding: 3px 8px;
           border-radius: 4px;
           white-space: nowrap;
         }
         .adm-stock-badge.crit {
-          background: rgba(239, 68, 68, 0.15);
-          color: #F87171;
+          background: #FEE2E2;
+          color: #DC2626;
+          border: 1px solid #FCA5A5;
         }
         .adm-stock-badge.warn {
-          background: rgba(245, 158, 11, 0.15);
-          color: #FBBF24;
+          background: #FEF3C7;
+          color: #D97706;
+          border: 1px solid #FCD34D;
         }
 
         /* Patrons List */
@@ -664,7 +769,7 @@ export default async function AdminDashboardPage() {
           align-items: center;
           gap: 12px;
           padding: 8px 0;
-          border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+          border-bottom: 1px solid #EAE4D8;
         }
         .adm-patron-item:last-child {
           border-bottom: none;
@@ -673,8 +778,8 @@ export default async function AdminDashboardPage() {
           width: 32px;
           height: 32px;
           border-radius: 50%;
-          background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%);
-          border: 1px solid rgba(197, 168, 128, 0.3);
+          background: #1C1C1A;
+          border: 1px solid #B49A68;
           color: #C5A880;
           font-size: 12px;
           font-weight: 700;
@@ -688,8 +793,8 @@ export default async function AdminDashboardPage() {
         }
         .adm-patron-name {
           font-size: 13px;
-          font-weight: 500;
-          color: #F8FAFC;
+          font-weight: 600;
+          color: #1C1C1A;
           margin: 0;
           white-space: nowrap;
           overflow: hidden;
@@ -697,7 +802,7 @@ export default async function AdminDashboardPage() {
         }
         .adm-patron-email {
           font-size: 11px;
-          color: #64748B;
+          color: #68645C;
           margin: 0;
           white-space: nowrap;
           overflow: hidden;
@@ -711,6 +816,7 @@ export default async function AdminDashboardPage() {
           padding: 48px 20px;
           text-align: center;
           gap: 12px;
+          color: #68645C;
         }
       `}} />
     </div>

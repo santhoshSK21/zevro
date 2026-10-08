@@ -200,10 +200,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   // Loading state
   if (isAuthenticated === null) {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#0F172A', color: '#F8FAFC', fontFamily: 'var(--font-body, sans-serif)' }}>
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#F5F1E8', color: '#1C1C1A', fontFamily: 'var(--font-body, sans-serif)' }}>
         <div style={{ textAlign: 'center' }}>
-          <div style={{ width: '40px', height: '40px', border: '2px solid rgba(197,168,128,0.2)', borderTopColor: '#C5A880', borderRadius: '50%', animation: 'spin 0.8s linear infinite', margin: '0 auto 16px' }} />
-          <p style={{ fontSize: '12px', letterSpacing: '0.12em', textTransform: 'uppercase', color: '#94A3B8' }}>Authorizing Admin Console...</p>
+          <div style={{ width: '40px', height: '40px', border: '2px solid rgba(180, 154, 104, 0.25)', borderTopColor: '#B49A68', borderRadius: '50%', animation: 'spin 0.8s linear infinite', margin: '0 auto 16px' }} />
+          <p style={{ fontSize: '11px', letterSpacing: '0.15em', textTransform: 'uppercase', color: '#68645C', fontWeight: 600 }}>Authorizing Atelier Console...</p>
         </div>
         <style dangerouslySetInnerHTML={{__html: `@keyframes spin { to { transform: rotate(360deg); } }`}} />
       </div>
@@ -213,58 +213,58 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   // Not authenticated -> Show Admin Login Screen
   if (!isAuthenticated) {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#0F172A', color: '#F8FAFC', padding: '16px' }}>
-        <div style={{ width: '100%', maxWidth: '420px', background: '#1E293B', border: '1px solid rgba(197, 168, 128, 0.3)', borderRadius: '8px', padding: '40px 32px', boxShadow: '0 24px 48px rgba(0,0,0,0.4)', backdropFilter: 'blur(16px)' }}>
-          <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-            <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '44px', height: '44px', borderRadius: '50%', backgroundColor: 'rgba(197, 168, 128, 0.15)', color: '#C5A880', marginBottom: '12px' }}>
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#F5F1E8', color: '#1C1C1A', padding: '16px' }}>
+        <div style={{ width: '100%', maxWidth: '420px', background: '#FFFFFF', border: '1px solid #DDD6C8', borderRadius: '12px', padding: '40px 32px', boxShadow: '0 20px 48px rgba(28, 28, 26, 0.08)' }}>
+          <div style={{ textAlign: 'center', marginBottom: '28px' }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '44px', height: '44px', borderRadius: '50%', backgroundColor: 'rgba(180, 154, 104, 0.12)', color: '#8A704C', marginBottom: '12px' }}>
               <Shield size={22} />
             </div>
-            <h1 style={{ fontFamily: 'var(--font-display, serif)', fontSize: '24px', letterSpacing: '0.15em', color: '#FAF8F5', margin: '0 0 6px' }}>ZEVRO ADMIN</h1>
-            <p style={{ fontSize: '11px', color: '#94A3B8', letterSpacing: '0.08em', textTransform: 'uppercase', margin: 0 }}>Bespoke Management Console</p>
+            <h1 style={{ fontFamily: 'var(--font-display, serif)', fontSize: '24px', letterSpacing: '0.12em', color: '#1C1C1A', margin: '0 0 6px', fontWeight: 700 }}>ZEVRO ATELIER</h1>
+            <p style={{ fontSize: '11px', color: '#68645C', letterSpacing: '0.08em', textTransform: 'uppercase', margin: 0, fontWeight: 600 }}>Bespoke Management Console</p>
           </div>
 
           {errorMsg && (
-            <div style={{ background: 'rgba(239, 68, 68, 0.12)', border: '1px solid rgba(239, 68, 68, 0.35)', color: '#FCA5A5', padding: '12px', borderRadius: '4px', fontSize: '12px', marginBottom: '20px', textAlign: 'center' }}>
+            <div style={{ background: '#FEF2F2', border: '1px solid #EF4444', color: '#991B1B', padding: '12px', borderRadius: '6px', fontSize: '12px', marginBottom: '20px', textAlign: 'center', fontWeight: 500 }}>
               {errorMsg}
             </div>
           )}
 
           <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
             <div>
-              <label style={{ display: 'block', fontSize: '10px', letterSpacing: '0.12em', color: '#C5A880', textTransform: 'uppercase', marginBottom: '8px', fontWeight: 600 }}>Email or Username</label>
+              <label style={{ display: 'block', fontSize: '11px', letterSpacing: '0.1em', color: '#1C1C1A', textTransform: 'uppercase', marginBottom: '8px', fontWeight: 700 }}>Email or Username</label>
               <input
                 type="text"
                 value={emailOrUser}
                 onChange={(e) => setEmailOrUser(e.target.value)}
                 placeholder="admin@zevro.in or admin"
                 required
-                style={{ width: '100%', padding: '13px 14px', background: '#0F172A', border: '1px solid #334155', borderRadius: '4px', color: '#FFF', fontSize: '13px', outline: 'none', boxSizing: 'border-box' }}
+                style={{ width: '100%', padding: '12px 14px', background: '#FAF7F0', border: '1px solid #DDD6C8', borderRadius: '6px', color: '#1C1C1A', fontSize: '13px', outline: 'none', boxSizing: 'border-box' }}
               />
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: '10px', letterSpacing: '0.12em', color: '#C5A880', textTransform: 'uppercase', marginBottom: '8px', fontWeight: 600 }}>Password</label>
+              <label style={{ display: 'block', fontSize: '11px', letterSpacing: '0.1em', color: '#1C1C1A', textTransform: 'uppercase', marginBottom: '8px', fontWeight: 700 }}>Password</label>
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
                 required
-                style={{ width: '100%', padding: '13px 14px', background: '#0F172A', border: '1px solid #334155', borderRadius: '4px', color: '#FFF', fontSize: '13px', outline: 'none' }}
+                style={{ width: '100%', padding: '12px 14px', background: '#FAF7F0', border: '1px solid #DDD6C8', borderRadius: '6px', color: '#1C1C1A', fontSize: '13px', outline: 'none', boxSizing: 'border-box' }}
               />
             </div>
 
             <button
               type="submit"
               disabled={isSubmitting}
-              style={{ marginTop: '6px', width: '100%', padding: '15px', background: isSubmitting ? '#94A3B8' : '#C5A880', color: '#0F172A', border: 'none', borderRadius: '4px', fontSize: '11px', fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', cursor: isSubmitting ? 'not-allowed' : 'pointer', transition: 'all 0.2s' }}
+              style={{ marginTop: '8px', width: '100%', padding: '14px', background: isSubmitting ? '#A8A29E' : '#1C1C1A', color: '#FAF8F5', border: 'none', borderRadius: '6px', fontSize: '11px', fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', cursor: isSubmitting ? 'not-allowed' : 'pointer', transition: 'all 0.2s', boxShadow: '0 4px 14px rgba(28, 28, 26, 0.15)' }}
             >
               {isSubmitting ? 'Verifying...' : 'Sign In to Dashboard'}
             </button>
           </form>
 
-          <div style={{ marginTop: '24px', textAlign: 'center', borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '16px' }}>
-            <Link href="/" style={{ color: '#94A3B8', fontSize: '12px', textDecoration: 'none', letterSpacing: '0.05em' }}>
+          <div style={{ marginTop: '24px', textAlign: 'center', borderTop: '1px solid #EAE4D8', paddingTop: '16px' }}>
+            <Link href="/" style={{ color: '#68645C', fontSize: '12px', textDecoration: 'none', letterSpacing: '0.04em', fontWeight: 500 }}>
               ← Return to Storefront
             </Link>
           </div>
@@ -376,8 +376,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         .adm-shell {
           display: flex;
           min-height: 100vh;
-          background: #0B0F19;
-          color: #F8FAFC;
+          background: #F5F1E8;
+          color: #1C1C1A;
           position: relative;
           overflow: hidden;
           font-family: var(--font-body, system-ui, sans-serif);
@@ -387,7 +387,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         .adm-backdrop {
           position: fixed;
           inset: 0;
-          background: rgba(3, 7, 18, 0.75);
+          background: rgba(28, 28, 26, 0.55);
           backdrop-filter: blur(8px);
           -webkit-backdrop-filter: blur(8px);
           z-index: 998;
@@ -397,19 +397,19 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         .adm-sidebar {
           width: 270px;
           min-width: 270px;
-          background: radial-gradient(circle at top left, #172033 0%, #0D1322 100%);
+          background: #1C1C1A;
           color: #F8FAFC;
           display: flex;
           flex-direction: column;
-          border-right: 1px solid rgba(197, 168, 128, 0.15);
+          border-right: 1px solid rgba(180, 154, 104, 0.25);
           z-index: 999;
           transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
           flex-shrink: 0;
-          box-shadow: 4px 0 24px rgba(0, 0, 0, 0.3);
+          box-shadow: 4px 0 24px rgba(0, 0, 0, 0.15);
         }
         .adm-sidebar-header {
           padding: 24px 20px;
-          border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+          border-bottom: 1px solid rgba(255, 255, 255, 0.08);
           display: flex;
           align-items: center;
           justify-content: space-between;
@@ -430,15 +430,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           font-size: 9px;
           letter-spacing: 0.14em;
           text-transform: uppercase;
-          color: #94A3B8;
+          color: #A8A29E;
           font-weight: 500;
         }
         .adm-close-btn {
           display: none;
-          background: rgba(255, 255, 255, 0.05);
-          border: 1px solid rgba(255, 255, 255, 0.1);
+          background: rgba(255, 255, 255, 0.08);
+          border: 1px solid rgba(255, 255, 255, 0.15);
           border-radius: 6px;
-          color: #94A3B8;
+          color: #E7E5E4;
           cursor: pointer;
           padding: 6px;
         }
@@ -455,7 +455,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           align-items: center;
           gap: 12px;
           padding: 11px 16px;
-          color: #94A3B8;
+          color: #A8A29E;
           text-decoration: none;
           border-radius: 8px;
           font-size: 13px;
@@ -466,19 +466,19 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         }
         .adm-nav-link:hover {
           color: #FAF8F5;
-          background: rgba(255, 255, 255, 0.04);
+          background: rgba(255, 255, 255, 0.06);
           transform: translateX(3px);
         }
         .adm-nav-link--active {
-          background: linear-gradient(90deg, rgba(197, 168, 128, 0.18) 0%, rgba(197, 168, 128, 0.04) 100%);
+          background: linear-gradient(90deg, rgba(197, 168, 128, 0.22) 0%, rgba(197, 168, 128, 0.06) 100%);
           color: #E2C9A5;
-          border: 1px solid rgba(197, 168, 128, 0.3);
+          border: 1px solid rgba(197, 168, 128, 0.35);
           font-weight: 600;
-          box-shadow: 0 4px 16px rgba(197, 168, 128, 0.08);
+          box-shadow: 0 4px 16px rgba(197, 168, 128, 0.1);
         }
         .adm-sidebar-footer {
           padding: 18px 20px;
-          border-top: 1px solid rgba(255, 255, 255, 0.06);
+          border-top: 1px solid rgba(255, 255, 255, 0.08);
           display: flex;
           justify-content: space-between;
           align-items: center;
@@ -489,18 +489,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           display: flex;
           align-items: center;
           gap: 8px;
-          color: #CBD5E1;
+          color: #D6D3D1;
           font-size: 12px;
           text-decoration: none;
           padding: 6px 10px;
           border-radius: 6px;
-          background: rgba(255, 255, 255, 0.04);
-          border: 1px solid rgba(255, 255, 255, 0.06);
+          background: rgba(255, 255, 255, 0.06);
+          border: 1px solid rgba(255, 255, 255, 0.1);
           transition: all 0.2s ease;
         }
         .adm-footer-store:hover {
           color: #C5A880;
-          border-color: rgba(197, 168, 128, 0.3);
+          border-color: rgba(197, 168, 128, 0.4);
         }
         .adm-footer-logout {
           display: flex;
@@ -512,7 +512,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           font-size: 12px;
           cursor: pointer;
           padding: 6px;
-          opacity: 0.85;
+          opacity: 0.9;
           transition: opacity 0.2s ease;
         }
         .adm-footer-logout:hover {
@@ -526,7 +526,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           flex-direction: column;
           min-width: 0;
           overflow: hidden;
-          background: #0B0F19;
+          background: #F5F1E8;
         }
 
         /* Header */
@@ -534,10 +534,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           height: 66px;
           min-height: 66px;
           flex-shrink: 0;
-          background: rgba(15, 23, 42, 0.75);
+          background: rgba(245, 241, 232, 0.92);
           backdrop-filter: blur(12px);
           -webkit-backdrop-filter: blur(12px);
-          border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+          border-bottom: 1px solid #DDD6C8;
           display: flex;
           align-items: center;
           justify-content: space-between;
@@ -553,8 +553,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         }
         .adm-header-title {
           font-size: 13px;
-          color: #94A3B8;
-          font-weight: 500;
+          color: #68645C;
+          font-weight: 600;
           white-space: nowrap;
           display: flex;
           align-items: center;
@@ -565,15 +565,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           width: 7px;
           height: 7px;
           border-radius: 50%;
-          background: #10B981;
-          box-shadow: 0 0 10px #10B981;
+          background: #16A34A;
+          box-shadow: 0 0 8px rgba(22, 163, 74, 0.4);
         }
         .adm-hamburger {
           display: none;
-          background: rgba(255, 255, 255, 0.05);
-          border: 1px solid rgba(255, 255, 255, 0.1);
+          background: #EAE4D8;
+          border: 1px solid #DDD6C8;
           border-radius: 6px;
-          color: #FAF8F5;
+          color: #1C1C1A;
           cursor: pointer;
           padding: 8px;
           flex-shrink: 0;
@@ -588,9 +588,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           display: flex;
           align-items: center;
           gap: 6px;
-          background: linear-gradient(135deg, rgba(197, 168, 128, 0.25) 0%, rgba(197, 168, 128, 0.1) 100%);
+          background: #1C1C1A;
           color: #FAF8F5;
-          border: 1px solid rgba(197, 168, 128, 0.4);
+          border: 1px solid #B49A68;
           padding: 6px 12px;
           border-radius: 6px;
           font-size: 11px;
@@ -601,13 +601,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           transition: all 0.2s ease;
         }
         .adm-super-btn:hover {
-          border-color: #C5A880;
-          box-shadow: 0 0 14px rgba(197, 168, 128, 0.25);
+          background: #B49A68;
+          color: #1C1C1A;
         }
         .adm-admin-name {
           font-size: 13px;
-          font-weight: 500;
-          color: #E2E8F0;
+          font-weight: 600;
+          color: #1C1C1A;
           white-space: nowrap;
         }
         .adm-avatar {
@@ -615,20 +615,20 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           height: 34px;
           min-width: 34px;
           border-radius: 50%;
-          background: linear-gradient(135deg, #2A364F 0%, #151D2C 100%);
+          background: #1C1C1A;
           color: #C5A880;
           display: flex;
           align-items: center;
           justify-content: center;
           font-weight: 700;
           font-size: 12px;
-          border: 1px solid rgba(197, 168, 128, 0.4);
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+          border: 1px solid #B49A68;
+          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
         }
         .adm-logout-btn {
-          background: rgba(255, 255, 255, 0.05);
-          border: 1px solid rgba(255, 255, 255, 0.1);
-          color: #94A3B8;
+          background: #EAE4D8;
+          border: 1px solid #DDD6C8;
+          color: #68645C;
           padding: 6px 14px;
           border-radius: 6px;
           font-size: 11px;
@@ -639,9 +639,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           transition: all 0.2s ease;
         }
         .adm-logout-btn:hover {
-          color: #F87171;
-          border-color: rgba(248, 113, 113, 0.3);
-          background: rgba(248, 113, 113, 0.08);
+          color: #EF4444;
+          border-color: #FCA5A5;
+          background: #FEE2E2;
         }
 
         /* Content */
@@ -649,8 +649,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           padding: 28px;
           flex: 1;
           overflow-y: auto;
-          background: #0B0F19;
-          color: #F8FAFC;
+          background: #F5F1E8;
+          color: #1C1C1A;
         }
 
         /* ── Tablet ── */

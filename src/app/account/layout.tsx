@@ -1,11 +1,35 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 
 export default function AccountLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const [checkingAuth, setCheckingAuth] = useState(true);
+
+  useEffect(() => {
+    fetch('/api/auth/session')
+      .then(res => res.json())
+      .then(session => {
+        if (!session?.user) {
+          router.push(`/login?callbackUrl=${encodeURIComponent(pathname)}`);
+        } else {
+          setCheckingAuth(false);
+        }
+      })
+      .catch(() => {
+        setCheckingAuth(false);
+      });
+  }, [pathname, router]);
+
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/signout', { method: 'POST' });
+    } catch (e) {}
+    router.push('/login');
+  };
 
   const links = [
     { href: '/account', label: 'My Dashboard' },
@@ -14,6 +38,16 @@ export default function AccountLayout({ children }: { children: React.ReactNode 
     { href: '/account/addresses', label: 'Addresses' },
     { href: '/account/settings', label: 'Account Settings' }
   ];
+
+  if (checkingAuth) {
+    return (
+      <div style={{ backgroundColor: 'var(--color-bg)', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <p style={{ color: 'var(--color-ink-muted)', fontSize: '12px', letterSpacing: '0.12em', textTransform: 'uppercase' }}>
+          Verifying Member Session...
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div style={{ backgroundColor: 'var(--color-bg)', display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
@@ -41,11 +75,14 @@ export default function AccountLayout({ children }: { children: React.ReactNode 
                 </Link>
               );
             })}
-            <button style={{ 
-              textAlign: 'left', background: 'none', border: 'none', color: 'var(--color-ink-muted)', 
-              fontFamily: 'var(--font-body)', fontSize: '13px', textTransform: 'uppercase', letterSpacing: 'var(--tracking-wider)', 
-              paddingBottom: '8px', marginTop: '24px', cursor: 'pointer' 
-            }}>
+            <button 
+              onClick={handleLogout}
+              style={{ 
+                textAlign: 'left', background: 'none', border: 'none', color: 'var(--color-ink-muted)', 
+                fontFamily: 'var(--font-body)', fontSize: '13px', textTransform: 'uppercase', letterSpacing: 'var(--tracking-wider)', 
+                paddingBottom: '8px', marginTop: '24px', cursor: 'pointer' 
+              }}
+            >
               Logout
             </button>
           </nav>

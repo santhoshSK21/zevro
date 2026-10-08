@@ -69,16 +69,16 @@ export default function MediaManager({ images, onChange }: MediaManagerProps) {
                 width: '120px',
                 height: '160px',
                 cursor: 'grab',
-                border: idx === 0 ? '2px solid var(--espresso)' : '1px solid var(--linen)',
+                border: idx === 0 ? '2px solid #B49A68' : '1px solid #DDD6C8',
                 borderRadius: '8px',
                 overflow: 'hidden',
-                backgroundColor: 'var(--color-surface)'
+                backgroundColor: '#FAF7F0'
               }}
             >
               <img src={img} alt="Product Media" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               
-              <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'rgba(0,0,0,0.6)', color: '#fff', fontSize: '10px', textAlign: 'center', padding: '4px' }}>
-                {idx === 0 ? 'Primary' : `Image ${idx + 1}`}
+              <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'rgba(28, 28, 26, 0.88)', color: idx === 0 ? '#C5A880' : '#FAF8F5', fontSize: '10px', fontWeight: 600, letterSpacing: '0.04em', textAlign: 'center', padding: '5px' }}>
+                {idx === 0 ? '✦ Primary' : `Image ${idx + 1}`}
               </div>
 
               <button
@@ -88,17 +88,18 @@ export default function MediaManager({ images, onChange }: MediaManagerProps) {
                   position: 'absolute',
                   top: '4px',
                   right: '4px',
-                  background: 'rgba(255,0,0,0.8)',
+                  background: 'rgba(220, 38, 38, 0.9)',
                   color: '#fff',
                   border: 'none',
                   borderRadius: '50%',
-                  width: '24px',
-                  height: '24px',
+                  width: '22px',
+                  height: '22px',
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  fontSize: '12px'
+                  fontSize: '11px',
+                  fontWeight: 700
                 }}
               >
                 ✕
@@ -114,7 +115,16 @@ export default function MediaManager({ images, onChange }: MediaManagerProps) {
             type="url" 
             id="media-url-input" 
             placeholder="Or paste image URL directly (e.g. https://images.unsplash.com/...)" 
-            style={{ flex: 1, padding: '10px 14px', border: '1px solid #CBD5E1', borderRadius: '4px', fontSize: '13px', outline: 'none' }}
+            style={{ 
+              flex: 1, 
+              padding: '11px 14px', 
+              backgroundColor: '#FAF7F0', 
+              color: '#1C1C1A', 
+              border: '1px solid #DDD6C8', 
+              borderRadius: '6px', 
+              fontSize: '13px', 
+              outline: 'none' 
+            }}
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
                 e.preventDefault();
@@ -135,7 +145,19 @@ export default function MediaManager({ images, onChange }: MediaManagerProps) {
                 input.value = '';
               }
             }}
-            style={{ padding: '10px 18px', backgroundColor: '#0F172A', color: '#FAF8F5', border: 'none', borderRadius: '4px', fontSize: '12px', fontWeight: 600, letterSpacing: '0.08em', cursor: 'pointer', whiteSpace: 'nowrap' }}
+            style={{ 
+              padding: '11px 20px', 
+              backgroundColor: '#1C1C1A', 
+              color: '#FAF8F5', 
+              border: 'none', 
+              borderRadius: '6px', 
+              fontSize: '12px', 
+              fontWeight: 700, 
+              letterSpacing: '0.08em', 
+              cursor: 'pointer', 
+              whiteSpace: 'nowrap',
+              boxShadow: '0 4px 12px rgba(28, 28, 26, 0.12)'
+            }}
           >
             ADD URL
           </button>

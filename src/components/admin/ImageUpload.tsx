@@ -48,7 +48,7 @@ export default function ImageUpload({ onUploadSuccess, maxFiles = 5 }: ImageUplo
   };
 
   return (
-    <div style={{ padding: '16px', border: '2px dashed var(--linen)', borderRadius: '4px', textAlign: 'center' }}>
+    <div style={{ padding: '24px 20px', border: '1.5px dashed #DDD6C8', borderRadius: '8px', textAlign: 'center', backgroundColor: '#FAF7F0' }}>
       <input 
         type="file" 
         multiple 
@@ -62,19 +62,23 @@ export default function ImageUpload({ onUploadSuccess, maxFiles = 5 }: ImageUplo
         onClick={() => fileInputRef.current?.click()}
         disabled={uploading}
         style={{
-          backgroundColor: 'var(--beige)',
-          color: 'var(--espresso)',
-          padding: '8px 16px',
+          backgroundColor: uploading ? '#A8A29E' : '#1C1C1A',
+          color: '#FAF8F5',
+          padding: '10px 22px',
+          borderRadius: '6px',
           border: 'none',
           cursor: uploading ? 'not-allowed' : 'pointer',
-          fontWeight: 600,
-          letterSpacing: '0.1em'
+          fontWeight: 700,
+          fontSize: '12px',
+          letterSpacing: '0.08em',
+          transition: 'all 0.2s ease',
+          boxShadow: '0 4px 14px rgba(28, 28, 26, 0.12)'
         }}
       >
         {uploading ? 'UPLOADING...' : 'UPLOAD IMAGES'}
       </button>
-      {error && <p style={{ color: 'var(--error)', marginTop: '8px', fontSize: '12px' }}>{error}</p>}
-      <p style={{ color: 'var(--warm-grey)', marginTop: '8px', fontSize: '12px' }}>Max file size: 5MB. Formats: JPG, PNG, WEBP.</p>
+      {error && <p style={{ color: '#DC2626', marginTop: '10px', fontSize: '12px', fontWeight: 600 }}>{error}</p>}
+      <p style={{ color: '#68645C', marginTop: '10px', fontSize: '12px', letterSpacing: '0.02em' }}>Max file size: 5MB per image. Formats: JPG, PNG, WEBP.</p>
     </div>
   );
 }
