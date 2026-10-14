@@ -1,12 +1,14 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import { Store, ArrowRight, AlertCircle, Lock, Mail, ShieldCheck } from 'lucide-react';
 
-export default function SellerLoginPage() {
+export const dynamic = 'force-dynamic';
+
+function SellerLoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get('callbackUrl') || '/seller';
@@ -234,5 +236,19 @@ export default function SellerLoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SellerLoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#F5F1E8', color: '#68645C' }}>
+          Loading Seller Portal...
+        </div>
+      }
+    >
+      <SellerLoginForm />
+    </Suspense>
   );
 }
