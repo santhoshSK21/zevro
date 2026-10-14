@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useUiStore } from '@/store/uiStore';
 import { useCartStore } from '@/store/cartStore';
 import { useWishlistStore } from '@/store/wishlistStore';
-import { useSession } from 'next-auth/react';
+import { useSession, signOut } from 'next-auth/react';
 import { 
   X, 
   ChevronDown, 
@@ -109,6 +109,43 @@ export default function MobileMenu() {
         </Link>
       </div>
 
+      {/* Logged in User Identity Card */}
+      {session?.user && (
+        <div style={{ padding: '14px 20px', backgroundColor: '#FFFFFF', borderBottom: '1px solid #ECEAE5', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
+            <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: '#1C1C1A', color: '#FAF8F5', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '14px', flexShrink: 0 }}>
+              {(session.user.name || session.user.email || 'U').charAt(0).toUpperCase()}
+            </div>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontSize: '13px', fontWeight: 700, color: '#1C1C1A', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {session.user.name || 'Member'}
+              </div>
+              <div style={{ fontSize: '11px', color: '#64748B', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {session.user.email}
+              </div>
+            </div>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+            <Link
+              href="/account/settings"
+              onClick={close}
+              style={{ fontSize: '11px', fontWeight: 600, color: '#1C1C1A', padding: '6px 12px', border: '1px solid #DDD6C8', borderRadius: '4px', textDecoration: 'none', backgroundColor: '#FAF9F6' }}
+            >
+              Edit
+            </Link>
+            <button
+              onClick={async () => {
+                close();
+                await signOut({ callbackUrl: '/' });
+              }}
+              style={{ fontSize: '11px', fontWeight: 600, color: '#B91C1C', padding: '6px 12px', background: '#FFF0F0', border: '1px solid #FECACA', borderRadius: '4px', cursor: 'pointer' }}
+            >
+              Sign Out
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Main Navigation */}
       <nav className="mobile-menu-nav">
         <div className="mobile-nav-list">
@@ -183,6 +220,7 @@ export default function MobileMenu() {
           <Link href="/faq" onClick={close}>FAQ & Help</Link>
           <Link href="/size-guide" onClick={close}>Size Guide</Link>
           <Link href="/returns" onClick={close}>Returns & Exchange</Link>
+          <Link href="/seller" onClick={close} style={{ color: '#B49A68', fontWeight: 600 }}>Seller Hub ↗</Link>
           <Link href="/contact" onClick={close}>Contact Us</Link>
           <Link href="/about" onClick={close}>Our Story</Link>
         </div>

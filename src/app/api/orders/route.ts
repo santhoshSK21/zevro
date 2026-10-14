@@ -59,7 +59,11 @@ export async function POST(request: Request) {
     const randomNum = Math.floor(10000 + Math.random() * 90000);
     const orderId = `ZEVRO-${year}-${randomNum}`;
     
-    // Map validated items for the order schema
+    // Map validated items for the order schema with sellerId attribution
+    const productIds = pricing.items.map(i => i.productId);
+    const dbProducts = await Product.find({ _id: { $in: productIds } }).select('_id sellerId').lean();
+    const sellerMap = new Map(dbProducts.map(p => [p._id.toString(), p.sellerId]));
+
     const orderItems = pricing.items.map(item => ({
       productId: item.productId,
       variantId: item.variantId,
@@ -70,7 +74,9 @@ export async function POST(request: Request) {
       quantity: item.quantity,
       priceAtPurchase: item.price,
       mrpAtPurchase: item.originalPrice,
-      sku: item.sku
+      sku: item.sku,
+      sellerId: (item as any).sellerId || sellerMap.get(item.productId?.toString()) || null,
+      fulfillmentStatus: 'unfulfilled'
     }));
 
     const isCod = body.paymentMethod === 'cod';

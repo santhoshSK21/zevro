@@ -17,7 +17,14 @@ export default function AnnouncementBar() {
     setMounted(true);
   }, [initAnnouncementBar, config, fetchConfig]);
 
-  if (!mounted || !announcementBarVisible || pathname?.startsWith('/admin') || pathname?.startsWith('/superadmin') || pathname?.startsWith('/adminControl')) return null;
+  if (
+    !mounted ||
+    !announcementBarVisible ||
+    pathname?.startsWith('/admin') ||
+    pathname?.startsWith('/superadmin') ||
+    pathname?.startsWith('/adminControl') ||
+    pathname?.startsWith('/seller')
+  ) return null;
   if (!config?.announcementText) return null;
 
   const msg = `${config.announcementText}  ·  `;

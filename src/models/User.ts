@@ -5,7 +5,8 @@ export interface IUser extends Document {
   email: string
   phone?: string
   passwordHash?: string
-  role: 'customer' | 'admin'
+  role: 'customer' | 'admin' | 'seller'
+  sellerId?: mongoose.Types.ObjectId
   avatar?: string
   gender?: string
   dob?: Date
@@ -28,7 +29,8 @@ const UserSchema = new Schema<IUser>({
   email: { type: String, required: true, unique: true, lowercase: true },
   phone: String,
   passwordHash: String,
-  role: { type: String, enum: ['customer', 'admin'], default: 'customer' },
+  role: { type: String, enum: ['customer', 'admin', 'seller'], default: 'customer' },
+  sellerId: { type: Schema.Types.ObjectId, ref: 'Seller' },
   avatar: String,
   gender: String,
   dob: Date,

@@ -4,19 +4,38 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import ProductCard from '../product/ProductCard';
 
-export default function FeaturedProducts() {
+export interface FeaturedProductsProps {
+  title?: string;
+  subtitle?: string;
+  limit?: number;
+  category?: string;
+}
+
+export default function FeaturedProducts({
+  title = 'NEW ARRIVALS',
+  subtitle = 'The latest pieces, carefully selected for the season.',
+  limit = 4,
+  category = 'all',
+}: FeaturedProductsProps = {}) {
   const [products, setProducts] = useState<any[]>([]);
 
   useEffect(() => {
     fetch('/api/products')
       .then(res => res.json())
       .then(data => {
-        if (Array.isArray(data)) {
-          setProducts(data.filter(p => p.isNewArrival).slice(0, 4));
+        const list: any[] = Array.isArray(data) ? data : (data?.products || []);
+        if (list.length > 0) {
+          let filtered = list;
+          if (category && category !== 'all') {
+            filtered = filtered.filter(p => p.category === category);
+          }
+          const arrivals = filtered.filter(p => p.isNewArrival);
+          const finalSelection = arrivals.length > 0 ? arrivals : filtered;
+          setProducts(finalSelection.slice(0, limit || 4));
         }
       })
       .catch(console.error);
-  }, []);
+  }, [category, limit]);
 
   if (products.length === 0) return null;
 
@@ -30,11 +49,11 @@ export default function FeaturedProducts() {
             <span className="label-caps" style={{ color: 'var(--color-accent)', marginBottom: '6px', display: 'block' }}>
               CURATED SELECTION
             </span>
-            <h2 className="section-title">NEW ARRIVALS</h2>
-            <p className="section-subtitle">The latest pieces, carefully selected for the season.</p>
+            <h2 className="section-title">{title}</h2>
+            <p className="section-subtitle">{subtitle}</p>
           </div>
           
-          <Link href="/products?category=new-in" className="link-underline">
+          <Link href={category && category !== 'all' ? `/category/${category}` : "/products?category=new-in"} className="link-underline">
             VIEW ALL PIECES →
           </Link>
         </div>

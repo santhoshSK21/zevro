@@ -49,6 +49,9 @@ const ProductSchema = new Schema({
   collections: [{ type: Schema.Types.ObjectId, ref: 'Collection' }],
   status: { type: String, enum: ['DRAFT', 'ACTIVE', 'ARCHIVED'], default: 'DRAFT' },
   
+  sellerId: { type: Schema.Types.ObjectId, ref: 'Seller', index: true },
+  sellerStoreName: String,
+  
   weight: Number,   // grams
   hsn: String,
   gst: { type: Number, default: 5 }, // GST percentage

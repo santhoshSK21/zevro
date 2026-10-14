@@ -26,7 +26,15 @@ const DEFAULT_BLOCKS: BuilderComponent[] = [
       buttonText: 'EXPLORE COLLECTION',
       buttonLink: '/products?category=ethnic-wear',
       badgeText: 'AUTUMN / WINTER 2026',
-      imageUrl: '/images/hero/hero-desktop.jpg'
+      imageUrl: '/hero.png'
+    }
+  },
+  {
+    id: 'category-1',
+    type: 'category-grid',
+    props: {
+      title: 'DISCOVER THE COLLECTIONS',
+      subtitle: 'CURATED DEPARTMENTS'
     }
   },
   {

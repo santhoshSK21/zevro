@@ -15,8 +15,10 @@ export default function BestsellerSlider() {
     fetch('/api/products')
       .then(res => res.json())
       .then(data => {
-        if (Array.isArray(data)) {
-          setProducts(data.filter(p => p.isFeatured).slice(0, 6));
+        const list: any[] = Array.isArray(data) ? data : (data?.products || []);
+        if (list.length > 0) {
+          const featured = list.filter(p => p.isFeatured || p.isBestseller);
+          setProducts(featured.length > 0 ? featured.slice(0, 6) : list.slice(0, 6));
         }
       })
       .catch(console.error);

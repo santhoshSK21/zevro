@@ -69,12 +69,25 @@ export function proxy(request: NextRequest) {
     }
   }
 
-  // 5. In-App Navigation Referrer Guard (preserves intentional store entry protection)
+  // 5. Seller Portal Protection (/seller)
+  if (pathname.startsWith('/seller')) {
+    if (pathname === '/seller/login' || pathname === '/seller/register') {
+      return applySecurityHeaders(NextResponse.next());
+    }
+    if (!hasValidSession(request)) {
+      const loginUrl = new URL('/seller/login', request.url);
+      loginUrl.searchParams.set('callbackUrl', pathname);
+      return applySecurityHeaders(NextResponse.redirect(loginUrl));
+    }
+  }
+
+  // 6. In-App Navigation Referrer Guard (preserves intentional store entry protection)
   const isExcludedFromReferrerGuard = 
     pathname === '/' ||
     pathname.startsWith('/api') ||
     pathname.startsWith('/admin') ||
     pathname.startsWith('/superadmin') ||
+    pathname.startsWith('/seller') ||
     pathname.startsWith('/login') ||
     pathname.startsWith('/account');
 

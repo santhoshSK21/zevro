@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import SizeSelector from './SizeSelector';
 import { useCartStore } from '../../store/cartStore';
 import { useRouter } from 'next/navigation';
@@ -71,6 +72,8 @@ export default function ProductInfo({ product, onColorChange }: ProductInfoProps
     quantity,
     price: product.price,
     originalPrice: product.originalPrice,
+    sellerId: product.sellerId || null,
+    sellerStoreName: product.sellerStoreName || 'ZEVRO Signature Atelier',
   });
 
   const handleAddToCart = () => {
@@ -184,6 +187,40 @@ export default function ProductInfo({ product, onColorChange }: ProductInfoProps
             <button onClick={checkDelivery} className="pinfo-check-btn">CHECK</button>
           </div>
           {deliveryMsg && <p className="pinfo-delivery-msg">{deliveryMsg}</p>}
+        </div>
+
+        {/* Amazon-style Merchant Attribution Box */}
+        <div className="pinfo-merchant-card">
+          <div className="merchant-card-row">
+            <div className="merchant-card-avatar">🏛️</div>
+            <div className="merchant-card-details">
+              <div className="merchant-card-soldby">
+                Sold by{' '}
+                <Link
+                  href={`/store/${product.sellerSlug || 'zevro-atelier'}`}
+                  className="merchant-store-highlight"
+                  style={{ textDecoration: 'underline', textUnderlineOffset: '3px' }}
+                  title="Visit Brand Store"
+                >
+                  {product.sellerStoreName || 'ZEVRO Signature Atelier'}
+                </Link>
+              </div>
+              <div className="merchant-card-fulfilled">
+                Dispatched via <strong>ZEVRO Logistics Network</strong>
+              </div>
+            </div>
+            <Link
+              href={`/store/${product.sellerSlug || 'zevro-atelier'}`}
+              className="merchant-verified-seal"
+              style={{ textDecoration: 'none' }}
+            >
+              ✓ Visit Store
+            </Link>
+          </div>
+          <div className="merchant-card-guarantees">
+            <span>✦ 100% Authentic Handcrafted Piece</span>
+            <span>✦ 7-Day Doorstep Exchange</span>
+          </div>
         </div>
 
         {/* Delivery perks */}
@@ -460,9 +497,69 @@ export default function ProductInfo({ product, onColorChange }: ProductInfoProps
           transition: background 0.2s, color 0.2s;
         }
         .pinfo-buy-btn:hover { background: var(--color-ink); color: var(--color-white); }
+        .pinfo-merchant-card {
+          margin-top: 24px;
+          margin-bottom: 24px;
+          padding: 16px 18px;
+          background: #FAF8F5;
+          border: 1px solid #EAE4D8;
+          border-radius: 8px;
+        }
+        .merchant-card-row {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+        .merchant-card-avatar {
+          font-size: 20px;
+          flex-shrink: 0;
+        }
+        .merchant-card-details {
+          flex: 1;
+          min-width: 0;
+        }
+        .merchant-card-soldby {
+          font-family: var(--font-body);
+          font-size: 13px;
+          color: var(--color-ink);
+        }
+        .merchant-store-highlight {
+          font-weight: 700;
+          color: var(--color-ink);
+        }
+        .merchant-card-fulfilled {
+          font-size: 11px;
+          color: var(--color-ink-muted);
+          margin-top: 2px;
+        }
+        .merchant-verified-seal {
+          font-family: var(--font-ui);
+          font-size: 10px;
+          font-weight: 700;
+          letter-spacing: 0.05em;
+          text-transform: uppercase;
+          background: rgba(46, 125, 50, 0.1);
+          color: #2E7D32;
+          border: 1px solid rgba(46, 125, 50, 0.25);
+          padding: 3px 8px;
+          border-radius: 20px;
+          white-space: nowrap;
+        }
+        .merchant-card-guarantees {
+          display: flex;
+          align-items: center;
+          gap: 18px;
+          margin-top: 12px;
+          padding-top: 10px;
+          border-top: 1px dashed #DDD6C8;
+          font-size: 11px;
+          color: var(--color-ink-muted);
+          flex-wrap: wrap;
+        }
         @media (max-width: 480px) {
           .pinfo-sticky-bar { padding: 10px 16px; }
           .pinfo-add-btn, .pinfo-buy-btn { font-size: 10px; }
+          .merchant-card-row { flex-wrap: wrap; }
         }
       `}} />
     </>

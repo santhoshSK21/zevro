@@ -13,7 +13,18 @@ const OrderSchema = new Schema({
     quantity: Number,
     priceAtPurchase: Number,
     mrpAtPurchase: Number,
-    sku: String
+    sku: String,
+    sellerId: { type: Schema.Types.ObjectId, ref: 'Seller', index: true },
+    fulfillmentStatus: {
+      type: String,
+      enum: ['unfulfilled', 'packing', 'ready_to_ship', 'shipped', 'delivered', 'cancelled'],
+      default: 'unfulfilled'
+    },
+    courierName: String,
+    trackingNumber: String,
+    trackingUrl: String,
+    shippedAt: Date,
+    deliveredAt: Date
   }],
   
   shippingAddress: {

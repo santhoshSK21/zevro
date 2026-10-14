@@ -5,7 +5,15 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { motion, useReducedMotion } from 'framer-motion';
 
-export default function CategoryGrid() {
+export interface CategoryGridProps {
+  title?: string;
+  subtitle?: string;
+}
+
+export default function CategoryGrid({
+  title = 'DISCOVER THE COLLECTIONS',
+  subtitle = 'CURATED DEPARTMENTS',
+}: CategoryGridProps = {}) {
   const prefersReducedMotion = useReducedMotion();
 
   const categories = [
@@ -49,8 +57,8 @@ export default function CategoryGrid() {
           viewport={{ once: true }}
           transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
         >
-          <span className="catgrid-tag">CURATED DEPARTMENTS</span>
-          <h2 className="catgrid-title">DISCOVER THE COLLECTIONS</h2>
+          <span className="catgrid-tag">{subtitle}</span>
+          <h2 className="catgrid-title">{title}</h2>
         </motion.div>
       </div>
 

@@ -59,6 +59,9 @@ export default function ProductDetailPage() {
           reviews: productDoc.reviews,
           variants: productDoc.variants,
           images: finalGalleryImages,
+          sellerId: productDoc.sellerId ? productDoc.sellerId.toString() : null,
+          sellerStoreName: productDoc.sellerStoreName || 'ZEVRO Signature Atelier',
+          sellerSlug: productDoc.sellerSlug || 'zevro-atelier',
         });
         setGalleryImages(finalGalleryImages);
       } catch (error) {

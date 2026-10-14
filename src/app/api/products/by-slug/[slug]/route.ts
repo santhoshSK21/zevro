@@ -8,10 +8,22 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
     await dbConnect();
     
     // Find active product by slug
-    const product = await Product.findOne({ slug: resolvedParams.slug, isActive: true }).lean();
+    const product: any = await Product.findOne({ slug: resolvedParams.slug, isActive: true }).lean();
     
     if (!product) {
       return NextResponse.json({ error: 'Product not found' }, { status: 404 });
+    }
+
+    // Attach sellerSlug if seller exists
+    if (product.sellerId) {
+      const { Seller } = await import('../../../../../models/Seller');
+      const seller = await Seller.findById(product.sellerId).select('storeName slug').lean();
+      if (seller) {
+        product.sellerStoreName = seller.storeName;
+        product.sellerSlug = seller.slug;
+      }
+    } else {
+      product.sellerSlug = 'zevro-atelier';
     }
     
     return NextResponse.json(product);

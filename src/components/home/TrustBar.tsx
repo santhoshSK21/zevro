@@ -1,11 +1,23 @@
 import React from 'react';
 
-export default function TrustBar() {
+export interface TrustBarProps {
+  item1?: string;
+  item2?: string;
+  item3?: string;
+  item4?: string;
+}
+
+export default function TrustBar({
+  item1 = 'On all orders above ₹999',
+  item2 = 'Handcrafted with perfection',
+  item3 = 'Encrypted payment gateway',
+  item4 = '7-day return policy',
+}: TrustBarProps = {}) {
   const items = [
-    { title: 'COMPLIMENTARY SHIPPING', sub: 'On all orders above ₹999' },
-    { title: 'ARTISANAL LUXURY', sub: 'Handcrafted with perfection' },
-    { title: 'SECURE CHECKOUT', sub: 'Encrypted payment gateway' },
-    { title: 'HASSLE-FREE RETURNS', sub: '7-day return policy' },
+    { title: 'COMPLIMENTARY SHIPPING', sub: item1 },
+    { title: 'ARTISANAL LUXURY', sub: item2 },
+    { title: 'SECURE CHECKOUT', sub: item3 },
+    { title: 'HASSLE-FREE RETURNS', sub: item4 },
   ];
 
   return (

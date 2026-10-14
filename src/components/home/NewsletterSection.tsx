@@ -4,7 +4,17 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 
-export default function NewsletterSection() {
+export interface NewsletterSectionProps {
+  headline?: string;
+  subheadline?: string;
+  buttonText?: string;
+}
+
+export default function NewsletterSection({
+  headline = 'SIGN UP & GET 10% OFF',
+  subheadline = 'Be the first to know about new collections, exclusive offers and more.',
+  buttonText = 'SUBSCRIBE',
+}: NewsletterSectionProps = {}) {
   const [email, setEmail] = useState('');
   const [submitted, setSubmitted] = useState(false);
 
@@ -59,10 +69,10 @@ export default function NewsletterSection() {
       <div className="newsletter-panel" style={{ flex: '1.2 1 350px', backgroundColor: 'var(--beige)', display: 'flex', flexDirection: 'column', justifyContent: 'center', position: 'relative', overflow: 'hidden' }}>
         <p style={{ fontSize: '10px', fontWeight: 500, letterSpacing: '0.2em', color: 'var(--warm-grey)', textTransform: 'uppercase', marginBottom: '16px' }}>STAY INSPIRED</p>
         <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(28px, 3vw, 32px)', color: 'var(--espresso)', marginBottom: '16px', fontWeight: 400 }}>
-          SIGN UP & GET 10% OFF
+          {headline}
         </h2>
         <p style={{ color: 'var(--espresso)', fontSize: '13px', marginBottom: '32px', maxWidth: '320px', lineHeight: 1.6, opacity: 0.8 }}>
-          Be the first to know about new collections, exclusive offers and more.
+          {subheadline}
         </p>
         
         {!submitted ? (

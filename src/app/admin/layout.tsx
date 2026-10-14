@@ -279,6 +279,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { href: '/admin/products', label: 'Products', icon: Shirt },
     { href: '/admin/categories', label: 'Categories', icon: FolderTree },
     { href: '/admin/customers', label: 'Customers', icon: Users },
+    { href: '/admin/sellers', label: 'Sellers & Brands', icon: Store },
     { href: '/admin/reports', label: 'Financial Reports', icon: TrendingUp },
     { href: '/admin/theme', label: 'Theme & Styling', icon: Palette },
     { href: '/admin/builder', label: 'Store Builder', icon: Layers },

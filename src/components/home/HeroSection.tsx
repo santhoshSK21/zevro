@@ -5,16 +5,52 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { motion, useReducedMotion } from 'framer-motion';
 
-export default function HeroSection() {
+export interface HeroSectionProps {
+  headline?: string;
+  subheadline?: string;
+  buttonText?: string;
+  buttonLink?: string;
+  badgeText?: string;
+  imageUrl?: string;
+}
+
+export default function HeroSection({
+  headline,
+  subheadline = 'Modern silhouettes. Timeless traditions.\nCrafted with quiet elegance.',
+  buttonText = 'DISCOVER COLLECTION',
+  buttonLink = '/products',
+  badgeText = 'AUTUMN / WINTER 2026 EDITORIAL',
+  imageUrl,
+}: HeroSectionProps = {}) {
   const prefersReducedMotion = useReducedMotion();
+
+  // Safely resolve image: if missing or dummy path, use default /hero.png
+  const resolvedImage = imageUrl && !imageUrl.includes('hero-desktop.jpg') ? imageUrl : '/hero.png';
+
+  // Parse headline into two lines if space-delimited
+  let headlineTop = 'WEAR';
+  let headlineAccent = 'Your Story';
+  if (headline) {
+    const parts = headline.trim().split(' ');
+    if (parts.length > 2) {
+      headlineTop = parts.slice(0, Math.ceil(parts.length / 2)).join(' ');
+      headlineAccent = parts.slice(Math.ceil(parts.length / 2)).join(' ');
+    } else if (parts.length === 2) {
+      headlineTop = parts[0];
+      headlineAccent = parts[1];
+    } else {
+      headlineTop = headline;
+      headlineAccent = '';
+    }
+  }
 
   return (
     <section className="hero-editorial">
       {/* Background Image with warm grading */}
       <div className="hero-bg-wrap">
         <Image
-          src="/hero.png"
-          alt="Zevro Autumn / Winter Collection"
+          src={resolvedImage}
+          alt={headline || "Zevro Autumn / Winter Collection"}
           fill
           priority
           loading="eager"
@@ -48,7 +84,7 @@ export default function HeroSection() {
           >
             <div className="hero-pill-badge">
               <span className="badge-sparkle">✦</span>
-              <span>AUTUMN / WINTER 2026 EDITORIAL</span>
+              <span>{badgeText}</span>
               <span className="badge-sparkle">✦</span>
             </div>
           </motion.div>
@@ -61,8 +97,8 @@ export default function HeroSection() {
               visible: { opacity: 1, y: 0, transition: { duration: 0.9, ease: [0.16, 1, 0.3, 1] } }
             }}
           >
-            <span className="headline-top">WEAR</span>
-            <span className="headline-accent">Your Story</span>
+            <span className="headline-top">{headlineTop}</span>
+            {headlineAccent && <span className="headline-accent">{headlineAccent}</span>}
           </motion.h1>
 
           {/* Divider Line */}
@@ -82,8 +118,7 @@ export default function HeroSection() {
               visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } }
             }}
           >
-            Modern silhouettes. Timeless traditions.<br />
-            Crafted with quiet elegance.
+            {subheadline}
           </motion.p>
 
           {/* Action Buttons */}
@@ -94,8 +129,8 @@ export default function HeroSection() {
               visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } }
             }}
           >
-            <Link href="/products" className="hero-btn-primary">
-              DISCOVER COLLECTION
+            <Link href={buttonLink} className="hero-btn-primary">
+              {buttonText}
             </Link>
             <Link href="/category/ethnic-wear" className="hero-btn-secondary">
               EXPLORE EDITORIAL

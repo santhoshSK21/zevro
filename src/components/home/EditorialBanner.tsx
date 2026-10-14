@@ -1,28 +1,46 @@
 import React from 'react';
 import Link from 'next/link';
 
-export default function EditorialBanner() {
+export interface EditorialBannerProps {
+  tag?: string;
+  title?: string;
+  description?: string;
+  buttonText?: string;
+  buttonLink?: string;
+  imageUrl?: string;
+}
+
+export default function EditorialBanner({
+  tag = 'THE EDITORIAL',
+  title = 'THE SIGNATURE EDIT',
+  description = 'Effortless silhouettes crafted with quiet confidence.',
+  buttonText = 'EXPLORE COLLECTION →',
+  buttonLink = '/category/ethnic-wear',
+  imageUrl = '/pdp_hero_1.png',
+}: EditorialBannerProps = {}) {
+  const resolvedBg = imageUrl && !imageUrl.includes('placeholder') ? imageUrl : '/pdp_hero_1.png';
+
   return (
     <section className="editorial-banner-section">
       <div 
         className="editorial-banner-bg"
         style={{ 
-          backgroundImage: 'url(/pdp_hero_1.png)',
+          backgroundImage: `url(${resolvedBg})`,
         }} 
       />
       <div className="editorial-banner-overlay" />
       
       <div className="container editorial-banner-content">
-        <span className="editorial-tag">THE EDITORIAL</span>
+        <span className="editorial-tag">{tag}</span>
         <h2 className="editorial-title">
-          THE SIGNATURE EDIT
+          {title}
         </h2>
         <p className="editorial-desc">
-          Effortless silhouettes crafted with quiet confidence.
+          {description}
         </p>
         <div>
-          <Link href="/category/ethnic-wear" className="editorial-btn">
-            EXPLORE COLLECTION →
+          <Link href={buttonLink} className="editorial-btn">
+            {buttonText.includes('→') ? buttonText : `${buttonText} →`}
           </Link>
         </div>
       </div>

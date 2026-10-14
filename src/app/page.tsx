@@ -13,37 +13,120 @@ import NewsletterSection from '../components/home/NewsletterSection';
 import dbConnect from '../lib/mongodb';
 import { Page, IPage } from '../models/Page';
 
+// Ensure the homepage always serves fresh layout changes published via the Visual Builder
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 // Dynamic Block Renderer based on Builder schema
 const DynamicBlock = ({ block }: { block: any }) => {
+  const props = block?.props || {};
+
   switch (block.type) {
     case 'hero':
       return (
-        <div className="relative w-full h-[80vh] bg-cover bg-center flex items-center justify-center" style={{ backgroundImage: `url(${block.props.imageUrl})` }}>
-           <div className="absolute inset-0 bg-black bg-opacity-30"></div>
-           <div className="relative z-10 text-center text-white p-4">
-             <h1 className="text-5xl md:text-7xl font-display mb-4 uppercase tracking-wider">{block.props.headline}</h1>
-             <p className="text-lg md:text-xl font-body max-w-2xl mx-auto">{block.props.subheadline}</p>
-           </div>
-        </div>
+        <HeroSection
+          headline={props.headline}
+          subheadline={props.subheadline}
+          buttonText={props.buttonText}
+          buttonLink={props.buttonLink}
+          badgeText={props.badgeText}
+          imageUrl={props.imageUrl}
+        />
       );
-    case 'product-grid':
-      // Currently just uses the existing FeaturedProducts component but we could pass down limit/title
+
+    case 'category-grid':
       return (
-        <div className="my-16">
-          <h2 className="text-3xl text-center font-display mb-8">{block.props.title}</h2>
-          <FeaturedProducts /> 
-        </div>
+        <CategoryGrid
+          title={props.title}
+          subtitle={props.subtitle}
+        />
       );
+
+    case 'trust-bar':
+      return (
+        <TrustBar
+          item1={props.item1}
+          item2={props.item2}
+          item3={props.item3}
+          item4={props.item4}
+        />
+      );
+
+    case 'product-grid':
+      return (
+        <FeaturedProducts
+          title={props.title}
+          subtitle={props.subtitle}
+          limit={props.limit}
+          category={props.category}
+        />
+      );
+
+    case 'editorial-banner':
+      return (
+        <EditorialBanner
+          tag={props.tag}
+          title={props.title}
+          description={props.description}
+          buttonText={props.buttonText}
+          buttonLink={props.buttonLink}
+          imageUrl={props.imageUrl}
+        />
+      );
+
+    case 'brand-story':
+      return <BrandStory />;
+
+    case 'bestsellers':
+      return <BestsellerSlider />;
+
+    case 'lookbook':
+      return <LookbookStrip />;
+
+    case 'testimonials':
+      return <Testimonials />;
+
+    case 'newsletter':
+      return (
+        <NewsletterSection
+          headline={props.headline}
+          subheadline={props.subheadline}
+          buttonText={props.buttonText}
+        />
+      );
+
     case 'text':
       return (
-        <div className="container mx-auto my-16 px-4" style={{ textAlign: block.props.align || 'left' }}>
-          <p className="text-lg md:text-xl font-body text-gray-800 max-w-3xl mx-auto leading-relaxed whitespace-pre-wrap">
-            {block.props.text}
-          </p>
-        </div>
+        <section
+          style={{
+            padding: '64px 24px',
+            backgroundColor: 'var(--color-bg, #F5F1E8)',
+            textAlign: props.align || 'center',
+            borderTop: '1px solid var(--color-stone, #E8E2D6)',
+            borderBottom: '1px solid var(--color-stone, #E8E2D6)',
+          }}
+        >
+          <div style={{ maxWidth: '840px', margin: '0 auto' }}>
+            <p
+              style={{
+                fontFamily: 'var(--font-display, serif)',
+                fontSize: props.fontSize || '22px',
+                color: 'var(--color-ink, #1C1C1A)',
+                lineHeight: 1.65,
+                fontStyle: 'italic',
+                letterSpacing: '0.02em',
+                margin: 0,
+              }}
+            >
+              "{props.text || 'At ZEVRO, our craft is a testament to the seamless harmony of timeless tradition and contemporary luxury.'}"
+            </p>
+          </div>
+        </section>
       );
+
     case 'spacer':
-      return <div style={{ height: `${block.props.height || 50}px` }}></div>;
+      return <div style={{ height: `${props.height || 50}px` }} />;
+
     default:
       return null;
   }
@@ -59,17 +142,17 @@ export default async function Home() {
   }
 
   // If a published dynamic page exists and has blocks, render it
-  if (homePage && homePage.status === 'published' && homePage.blocks && homePage.blocks.length > 0) {
+  if (homePage && homePage.status === 'published' && Array.isArray(homePage.blocks) && homePage.blocks.length > 0) {
     return (
       <div className="dynamic-storefront">
         {homePage.blocks.map((block) => (
-          <DynamicBlock key={block.id} block={block} />
+          <DynamicBlock key={block.id || `${block.type}-${Math.random()}`} block={block} />
         ))}
       </div>
     );
   }
 
-  // Fallback to the beautiful Zara-like static layout if no dynamic layout exists
+  // Fallback to the signature luxury static layout if no dynamic layout exists
   return (
     <>
       <HeroSection />

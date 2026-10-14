@@ -44,6 +44,11 @@ export default function AccountOrdersPage() {
                 <p style={{ fontFamily: 'var(--font-ui)', fontSize: '12px', textTransform: 'uppercase', color: 'var(--color-ink-muted)', marginBottom: '8px', letterSpacing: 'var(--tracking-wider)' }}>Order {order.orderId || order._id.slice(-6).toUpperCase()}</p>
                 <p style={{ fontFamily: 'var(--font-body)', fontSize: '14px', marginBottom: '4px' }}>Placed on {new Date(order.createdAt).toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
                 <p style={{ fontFamily: 'var(--font-body)', fontSize: '14px', color: 'var(--color-ink)' }}>Total: ₹{((order.pricing?.total || 0) / 100).toLocaleString('en-IN')} for {order.items?.length || 0} item(s)</p>
+                {order.items?.[0]?.sellerStoreName && (
+                  <p style={{ fontSize: '11px', color: '#8A704C', marginTop: '4px', fontWeight: 600 }}>
+                    Fulfilled by: {order.items[0].sellerStoreName}
+                  </p>
+                )}
               </div>
               <div style={{ textAlign: 'right' }}>
                 <span className="label-caps" style={{ marginBottom: '16px', display: 'inline-block', color: 'var(--color-ink)', border: '1px solid var(--color-ink)', padding: '4px 8px', fontSize: '10px' }}>
