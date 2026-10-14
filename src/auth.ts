@@ -5,6 +5,8 @@ import { User } from "./models/User"
 import dbConnect from "./lib/mongodb"
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET || "zevro-super-secret-auth-key-change-in-prod",
+  trustHost: true,
   providers: [
     CredentialsProvider({
       name: "Credentials",
