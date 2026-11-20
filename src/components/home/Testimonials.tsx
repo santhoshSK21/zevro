@@ -4,56 +4,240 @@ import React, { useState, useEffect } from 'react';
 
 export default function Testimonials() {
   const [activeIndex, setActiveIndex] = useState(0);
-  
+
   const reviews = [
-    { text: "The craftsmanship is unparalleled. I wore the ivory anarkali to my friend's wedding and received so many compliments.", author: "Priya S.", city: "Mumbai" },
-    { text: "ZEVRO manages to blend modern aesthetics with traditional techniques perfectly. The quality is worth every penny.", author: "Ananya R.", city: "Delhi" },
-    { text: "My go-to brand for work and festive wear. The fits are always perfect and the fabrics feel luxurious.", author: "Meera K.", city: "Bangalore" },
-    { text: "Excellent customer service and the packaging is beautiful. Makes opening every order feel like a special occasion.", author: "Neha M.", city: "Chennai" },
+    {
+      text: "The drape of the ivory Mulberry silk anarkali is pure poetry. I wore it for our family gala in Mumbai and the compliments were endless. You feel the generational craftsmanship in every stitch.",
+      author: "Priya Singhania",
+      city: "Mumbai",
+      role: "Art Curator",
+      initials: "PS",
+    },
+    {
+      text: "ZEVRO bridges traditional Indian textile heritage with crisp contemporary silhouettes better than any international couture house. The velvet jacket has become my signature evening piece.",
+      author: "Dr. Ananya Roy",
+      city: "New Delhi",
+      role: "Architectural Designer",
+      initials: "AR",
+    },
+    {
+      text: "Opening the ZEVRO parcel is an exquisite ceremony in itself. The gold wax seal, hand-pressed linen garment bag, and personalized note reflect authentic bespoke luxury.",
+      author: "Meera Krishnan",
+      city: "Bengaluru",
+      role: "Creative Director",
+      initials: "MK",
+    },
+    {
+      text: "The Indo-Western drape set ordered for our reception in Mayfair arrived impeccably fitted. Exceptional concierge service and peerless artisanal embroidery.",
+      author: "Neha Malhotra",
+      city: "London",
+      role: "Venture Partner",
+      initials: "NM",
+    },
   ];
 
   useEffect(() => {
     const timer = setInterval(() => {
       setActiveIndex((prev) => (prev + 1) % reviews.length);
-    }, 4000);
+    }, 5500);
     return () => clearInterval(timer);
   }, [reviews.length]);
 
   return (
-    <section className="section" style={{ backgroundColor: 'var(--cream)', textAlign: 'center' }}>
+    <section className="testimonials-section">
       <div className="container-sm">
-        <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '18px', letterSpacing: '0.2em', color: 'var(--espresso)', marginBottom: '48px', textTransform: 'uppercase' }}>
-          WHAT OUR CUSTOMERS SAY
-        </h2>
+        {/* Header */}
+        <div className="testimonials-header">
+          <div className="test-tag-row">
+            <span className="test-star">✦</span>
+            <span className="test-eyebrow">PATRON DIARIES</span>
+            <span className="test-star">✦</span>
+          </div>
+          <h2 className="test-title">
+            VOICES OF <span className="serif-italic">Distinction</span>
+          </h2>
+        </div>
 
-        <div style={{ maxWidth: '800px', margin: '0 auto', position: 'relative', minHeight: '250px' }}>
+        {/* Testimonial Card Stage */}
+        <div className="test-stage">
           {reviews.map((r, i) => (
-            <div 
-              key={i} 
-              style={{ 
-                position: 'absolute', 
-                top: 0, 
-                left: 0, 
-                width: '100%',
-                opacity: activeIndex === i ? 1 : 0,
-                visibility: activeIndex === i ? 'visible' : 'hidden',
-                transition: 'opacity 0.8s ease-in-out, visibility 0.8s ease-in-out',
-                padding: '0 24px' 
-              }}
+            <div
+              key={i}
+              className={`test-card ${activeIndex === i ? 'is-active' : ''}`}
             >
-              <div style={{ color: 'var(--gold)', fontSize: '20px', letterSpacing: '4px', marginBottom: '24px' }}>
-                ★★★★★
+              <div className="test-stars">
+                <span>★</span>
+                <span>★</span>
+                <span>★</span>
+                <span>★</span>
+                <span>★</span>
               </div>
-              <p style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(20px, 4vw, 28px)', fontStyle: 'italic', color: 'var(--espresso)', lineHeight: 1.6, marginBottom: '32px' }}>
-                "{r.text}"
+              <p className="test-quote">
+                “{r.text}”
               </p>
-              <p style={{ fontFamily: 'var(--font-body)', fontSize: '12px', letterSpacing: '0.1em', color: 'var(--warm-grey)', textTransform: 'uppercase' }}>
-                — {r.author}, {r.city}
-              </p>
+              <div className="test-author-row">
+                <div className="test-avatar">{r.initials}</div>
+                <div className="test-meta">
+                  <span className="test-author-name">{r.author}</span>
+                  <span className="test-author-role">
+                    {r.role} • {r.city}
+                  </span>
+                </div>
+              </div>
             </div>
           ))}
         </div>
+
+        {/* Carousel Dots */}
+        <div className="test-dots-row">
+          {reviews.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setActiveIndex(i)}
+              className={`test-dot ${activeIndex === i ? 'is-active' : ''}`}
+              aria-label={`View review ${i + 1}`}
+            />
+          ))}
+        </div>
       </div>
+
+      <style dangerouslySetInnerHTML={{ __html: `
+        .testimonials-section {
+          background-color: var(--color-surface);
+          border-top: 1px solid var(--color-stone);
+          border-bottom: 1px solid var(--color-stone);
+          padding: clamp(48px, 6vw, 76px) 0;
+          text-align: center;
+          position: relative;
+        }
+        .testimonials-header {
+          margin-bottom: clamp(24px, 4vw, 36px);
+        }
+        .test-tag-row {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          margin-bottom: 6px;
+        }
+        .test-star {
+          color: var(--color-accent);
+          font-size: 11px;
+        }
+        .test-eyebrow {
+          font-family: var(--font-ui);
+          font-size: 11px;
+          letter-spacing: 0.24em;
+          text-transform: uppercase;
+          color: var(--color-accent);
+          font-weight: 600;
+        }
+        .test-title {
+          font-family: var(--font-display);
+          font-size: clamp(2rem, 3.6vw, 2.8rem);
+          color: var(--color-ink);
+          font-weight: 400;
+          letter-spacing: -0.015em;
+          margin: 0;
+        }
+        .test-stage {
+          position: relative;
+          min-height: 230px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .test-card {
+          position: absolute;
+          inset: 0;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          opacity: 0;
+          visibility: hidden;
+          transform: translateY(10px);
+          transition: all 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+          padding: 0 16px;
+        }
+        .test-card.is-active {
+          opacity: 1;
+          visibility: visible;
+          transform: translateY(0);
+        }
+        .test-stars {
+          color: var(--color-accent);
+          font-size: 16px;
+          letter-spacing: 5px;
+          margin-bottom: 18px;
+        }
+        .test-quote {
+          font-family: var(--font-display);
+          font-size: clamp(17px, 2.4vw, 23px);
+          font-style: italic;
+          color: var(--color-ink);
+          line-height: 1.65;
+          margin-bottom: 24px;
+          max-width: 780px;
+        }
+        .test-author-row {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+        .test-avatar {
+          width: 36px;
+          height: 36px;
+          border-radius: 50%;
+          background: #141412;
+          color: #C5A869;
+          font-family: var(--font-display);
+          font-size: 12px;
+          font-weight: 600;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border: 1px solid var(--color-accent);
+        }
+        .test-meta {
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 2px;
+        }
+        .test-author-name {
+          font-family: var(--font-ui);
+          font-size: 12px;
+          font-weight: 700;
+          letter-spacing: 0.1em;
+          color: var(--color-ink);
+          text-transform: uppercase;
+        }
+        .test-author-role {
+          font-family: var(--font-body);
+          font-size: 11px;
+          color: var(--color-ink-muted);
+        }
+        .test-dots-row {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          margin-top: 24px;
+        }
+        .test-dot {
+          width: 24px;
+          height: 3px;
+          background: var(--color-stone);
+          border: none;
+          cursor: pointer;
+          border-radius: 2px;
+          transition: all 0.3s ease;
+        }
+        .test-dot.is-active {
+          background: var(--color-ink);
+          width: 36px;
+        }
+      `}} />
     </section>
   );
 }

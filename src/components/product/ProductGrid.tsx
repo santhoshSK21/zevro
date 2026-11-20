@@ -6,7 +6,6 @@ import { useFilterStore } from '../../store/filterStore';
 import { motion, useReducedMotion } from 'framer-motion';
 import { useSearchParams } from 'next/navigation';
 import { Loader2, ArrowDown } from 'lucide-react';
-
 import { useConfigStore } from '../../store/configStore';
 
 interface ProductGridProps {
@@ -15,7 +14,67 @@ interface ProductGridProps {
   title?: string;
 }
 
-export default function ProductGrid({ initialCategory, eyebrow = 'Our Edit', title }: ProductGridProps) {
+// Curated Editorial Fallback Pieces (to avoid any dead empty void)
+const CURATED_RECOMMENDATIONS = [
+  {
+    _id: 'rec-1',
+    sku: 'ZEV-REC-01',
+    name: 'Architectural Silk Trench Coat',
+    slug: 'architectural-silk-trench-coat',
+    category: 'western-wear',
+    price: 1890000,
+    originalPrice: 2450000,
+    images: [
+      'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&q=80',
+      'https://images.unsplash.com/photo-1539008835657-9e8e9680c956?w=800&q=80',
+    ],
+    isFeatured: true,
+  },
+  {
+    _id: 'rec-2',
+    sku: 'ZEV-REC-02',
+    name: 'Chanderi Zari Embroidered Anarkali',
+    slug: 'chanderi-zari-embroidered-anarkali',
+    category: 'ethnic-wear',
+    price: 2650000,
+    originalPrice: 3200000,
+    images: [
+      'https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=800&q=80',
+      'https://images.unsplash.com/photo-1583391733958-d69818b2c451?w=800&q=80',
+    ],
+    isFeatured: true,
+  },
+  {
+    _id: 'rec-3',
+    sku: 'ZEV-REC-03',
+    name: 'Draped Asymmetric Fusion Cape Set',
+    slug: 'draped-asymmetric-fusion-cape-set',
+    category: 'indo-western',
+    price: 1580000,
+    originalPrice: 1980000,
+    images: [
+      'https://images.unsplash.com/photo-1509631179647-0c739ba73a16?w=800&q=80',
+      'https://images.unsplash.com/photo-1621084288075-80252119eb49?w=800&q=80',
+    ],
+    isFeatured: true,
+  },
+  {
+    _id: 'rec-4',
+    sku: 'ZEV-REC-04',
+    name: 'Heritage Kundan & Pearl Drops',
+    slug: 'handcrafted-kundan-choker-pearl-drops',
+    category: 'accessories',
+    price: 890000,
+    originalPrice: 1150000,
+    images: [
+      'https://images.unsplash.com/photo-1599643478524-fb66f70362f6?w=800&q=80',
+      'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=800&q=80',
+    ],
+    isFeatured: true,
+  },
+];
+
+export default function ProductGrid({ initialCategory, eyebrow, title }: ProductGridProps) {
   const searchParams = useSearchParams();
   const queryCategory = searchParams ? searchParams.get('category') : null;
   const querySub = searchParams ? searchParams.get('sub') : null;
@@ -23,7 +82,7 @@ export default function ProductGrid({ initialCategory, eyebrow = 'Our Edit', tit
   const { config } = useConfigStore();
   const batchSize = config?.catalogBatchSize || 16;
 
-  const { category, minPrice, maxPrice, sizes, colors, sortBy, setFilter } = useFilterStore();
+  const { category, minPrice, maxPrice, sizes, colors, fabric, occasion, sortBy, setFilter, clearFiltersOnly } = useFilterStore();
   const [products, setProducts] = useState<any[]>([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
@@ -41,7 +100,7 @@ export default function ProductGrid({ initialCategory, eyebrow = 'Our Edit', tit
     } else if (queryCategory) {
       setFilter('category', queryCategory);
     }
-  }, [initialCategory, queryCategory]);
+  }, [initialCategory, queryCategory, setFilter]);
 
   // Primary fetch when filters or sort change (resets to page 1)
   useEffect(() => {
@@ -54,9 +113,11 @@ export default function ProductGrid({ initialCategory, eyebrow = 'Our Edit', tit
     if (querySub) params.set('sub', querySub);
     if (sortBy) params.set('sort', sortBy);
     if (minPrice !== undefined && minPrice > 0) params.set('minPrice', minPrice.toString());
-    if (maxPrice !== undefined && maxPrice < 50000) params.set('maxPrice', maxPrice.toString());
+    if (maxPrice !== undefined && maxPrice > 0 && maxPrice < 50000) params.set('maxPrice', maxPrice.toString());
     if (sizes && sizes.length > 0) params.set('sizes', sizes.join(','));
     if (colors && colors.length > 0) params.set('colors', colors.join(','));
+    if (fabric && fabric.length > 0) params.set('fabrics', fabric.join(','));
+    if (occasion && occasion.length > 0) params.set('occasions', occasion.join(','));
     params.set('page', '1');
     params.set('limit', batchSize.toString());
 
@@ -84,7 +145,7 @@ export default function ProductGrid({ initialCategory, eyebrow = 'Our Edit', tit
     return () => {
       isCancelled = true;
     };
-  }, [category, querySub, minPrice, maxPrice, sizes, colors, sortBy, batchSize]);
+  }, [category, querySub, minPrice, maxPrice, sizes, colors, fabric, occasion, sortBy, batchSize]);
 
   // Load More function for Infinite Scroll
   const loadMore = useCallback(() => {
@@ -98,9 +159,11 @@ export default function ProductGrid({ initialCategory, eyebrow = 'Our Edit', tit
     if (querySub) params.set('sub', querySub);
     if (sortBy) params.set('sort', sortBy);
     if (minPrice !== undefined && minPrice > 0) params.set('minPrice', minPrice.toString());
-    if (maxPrice !== undefined && maxPrice < 50000) params.set('maxPrice', maxPrice.toString());
+    if (maxPrice !== undefined && maxPrice > 0 && maxPrice < 50000) params.set('maxPrice', maxPrice.toString());
     if (sizes && sizes.length > 0) params.set('sizes', sizes.join(','));
     if (colors && colors.length > 0) params.set('colors', colors.join(','));
+    if (fabric && fabric.length > 0) params.set('fabrics', fabric.join(','));
+    if (occasion && occasion.length > 0) params.set('occasions', occasion.join(','));
     params.set('page', nextPage.toString());
     params.set('limit', batchSize.toString());
 
@@ -108,24 +171,21 @@ export default function ProductGrid({ initialCategory, eyebrow = 'Our Edit', tit
       .then(res => res.json())
       .then(data => {
         const nextItems = Array.isArray(data) ? data : (data.products || []);
-        const more = typeof data.hasMore === 'boolean' ? data.hasMore : (products.length + nextItems.length < (data.total || 0));
-
-        setProducts(prev => {
-          // Avoid duplicate IDs
-          const existingIds = new Set(prev.map(p => p._id?.toString() || p.slug));
-          const uniqueNew = nextItems.filter((p: any) => !existingIds.has(p._id?.toString() || p.slug));
-          return [...prev, ...uniqueNew];
-        });
+        const total = typeof data.total === 'number' ? data.total : totalCount;
+        const newProducts = [...products, ...nextItems];
+        
+        setProducts(newProducts);
         setPage(nextPage);
-        setHasMore(more);
+        setTotalCount(total);
+        setHasMore(typeof data.hasMore === 'boolean' ? data.hasMore : newProducts.length < total);
         setLoadingMore(false);
       })
       .catch(() => {
         setLoadingMore(false);
       });
-  }, [page, hasMore, loadingMore, initialLoading, category, querySub, sortBy, minPrice, maxPrice, sizes, colors, products.length]);
+  }, [category, querySub, sortBy, minPrice, maxPrice, sizes, colors, fabric, occasion, page, batchSize, hasMore, loadingMore, initialLoading, products, totalCount]);
 
-  // IntersectionObserver for automated infinite scroll trigger
+  // Infinite Scroll Intersection Observer
   useEffect(() => {
     const target = observerTarget.current;
     if (!target) return;
@@ -147,55 +207,167 @@ export default function ProductGrid({ initialCategory, eyebrow = 'Our Edit', tit
   if (initialLoading) {
     return (
       <div className="pgrid-skeleton">
-        {Array(8).fill(0).map((_, i) => (
+        {Array(6).fill(0).map((_, i) => (
           <div key={i} className="pgrid-skeleton-card" />
         ))}
         <style dangerouslySetInnerHTML={{__html: `
           .pgrid-skeleton {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(270px, 320px));
-            gap: 28px;
+            grid-template-columns: repeat(3, 1fr);
+            gap: clamp(16px, 2.5vw, 28px);
             width: 100%;
           }
           .pgrid-skeleton-card {
             aspect-ratio: 3/4;
-            background: var(--color-surface, #F5F1E8);
-            border-radius: 4px;
-            animation: shimmer 1.4s infinite;
-            background: linear-gradient(90deg, #F5F1E8 25%, #EBE5DA 50%, #F5F1E8 75%);
+            background: linear-gradient(90deg, #F3ECE1 25%, #E8E0D2 50%, #F3ECE1 75%);
             background-size: 200% 100%;
+            border-radius: 3px;
+            animation: pgridShimmer 1.4s infinite;
           }
-          @keyframes shimmer {
+          @keyframes pgridShimmer {
             0% { background-position: 200% 0; }
             100% { background-position: -200% 0; }
           }
-          @media (max-width: 768px) {
+          @media (max-width: 1100px) {
             .pgrid-skeleton { grid-template-columns: repeat(2, 1fr); gap: 16px; }
           }
-          @media (max-width: 480px) {
-            .pgrid-skeleton { grid-template-columns: 1fr; gap: 16px; }
+          @media (max-width: 600px) {
+            .pgrid-skeleton { grid-template-columns: repeat(2, 1fr); gap: 12px; }
           }
         `}} />
       </div>
     );
   }
 
-  // Empty State
+  // Refined Empty State (No Dead White Space)
   if (products.length === 0) {
     return (
-      <div className="pgrid-empty">
-        <p className="display-serif" style={{ fontSize: 'var(--text-lg, 20px)', color: 'var(--color-ink-muted)', marginBottom: 'var(--space-6, 24px)' }}>
-          No garments found matching your selected criteria.
-        </p>
-        <button 
-          onClick={() => useFilterStore.getState().clearAll()} 
-          className="btn-ghost"
-          style={{ padding: '10px 24px', cursor: 'pointer', border: '1px solid var(--color-ink)', background: 'transparent', fontSize: '12px', letterSpacing: '0.1em', textTransform: 'uppercase' }}
-        >
-          Clear Filters
-        </button>
+      <div className="pgrid-empty-wrap">
+        <div className="pgrid-empty-box">
+          <span className="empty-star">✦</span>
+          <h3 className="empty-title">NO GARMENTS MATCH THIS EXACT CRITERIA</h3>
+          <p className="empty-desc">
+            We curate limited artisanal batches. Clear active filters or discover our signature recommendations below.
+          </p>
+          <button 
+            onClick={clearFiltersOnly} 
+            className="empty-clear-btn"
+          >
+            RESET FILTERS
+          </button>
+        </div>
+
+        {/* Curated Recommendations to fill the view beautifully */}
+        <div className="empty-recommendations">
+          <div className="rec-header">
+            <span className="rec-tag">RECOMMENDED EDIT</span>
+            <h4 className="rec-title">THE ATELIER SIGNATURE SELECTION</h4>
+            <div className="rec-line" />
+          </div>
+
+          <div className="pgrid">
+            {CURATED_RECOMMENDATIONS.map((p, i) => (
+              <ProductCard key={p.sku || i} product={p} index={i} />
+            ))}
+          </div>
+        </div>
+
         <style dangerouslySetInnerHTML={{__html: `
-          .pgrid-empty { text-align: center; padding: 60px 20px; }
+          .pgrid-empty-wrap {
+            width: 100%;
+            padding: 24px 0;
+          }
+          .pgrid-empty-box {
+            text-align: center;
+            padding: clamp(32px, 5vw, 48px) 24px;
+            background: var(--color-surface);
+            border: 1px solid var(--color-stone);
+            border-radius: 4px;
+            margin-bottom: 48px;
+          }
+          .empty-star {
+            color: var(--color-accent);
+            font-size: 16px;
+            display: block;
+            margin-bottom: 12px;
+          }
+          .empty-title {
+            font-family: var(--font-display);
+            font-size: clamp(18px, 2.4vw, 24px);
+            color: var(--color-ink);
+            font-weight: 400;
+            margin: 0 0 10px 0;
+            letter-spacing: 0.02em;
+          }
+          .empty-desc {
+            font-family: var(--font-body);
+            font-size: 13px;
+            color: var(--color-ink-muted);
+            max-width: 480px;
+            margin: 0 auto 20px;
+            line-height: 1.6;
+          }
+          .empty-clear-btn {
+            display: inline-flex;
+            align-items: center;
+            background: #141412;
+            color: #FAF7F2;
+            border: none;
+            padding: 11px 24px;
+            border-radius: 20px;
+            font-family: var(--font-ui);
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.16em;
+            cursor: pointer;
+            transition: background 0.3s ease;
+          }
+          .empty-clear-btn:hover {
+            background: #C5A869;
+            color: #141412;
+          }
+          .empty-recommendations {
+            width: 100%;
+          }
+          .rec-header {
+            text-align: center;
+            margin-bottom: 28px;
+          }
+          .rec-tag {
+            font-family: var(--font-ui);
+            font-size: 10px;
+            letter-spacing: 0.22em;
+            text-transform: uppercase;
+            color: var(--color-accent);
+            font-weight: 600;
+            display: block;
+            margin-bottom: 6px;
+          }
+          .rec-title {
+            font-family: var(--font-display);
+            font-size: clamp(20px, 2.8vw, 28px);
+            color: var(--color-ink);
+            font-weight: 400;
+            margin: 0;
+          }
+          .rec-line {
+            width: 36px;
+            height: 1px;
+            background: var(--color-accent);
+            margin: 10px auto 0;
+          }
+          .pgrid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: clamp(16px, 2.5vw, 28px);
+            width: 100%;
+          }
+          @media (max-width: 1100px) {
+            .pgrid { grid-template-columns: repeat(2, 1fr); gap: 16px; }
+          }
+          @media (max-width: 600px) {
+            .pgrid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+          }
         `}} />
       </div>
     );
@@ -205,7 +377,6 @@ export default function ProductGrid({ initialCategory, eyebrow = 'Our Edit', tit
 
   return (
     <div className="pgrid-wrapper">
-      
       {/* Optional Editorial Header */}
       {(eyebrow || title) && (
         <div className="pgrid-header">
@@ -234,7 +405,7 @@ export default function ProductGrid({ initialCategory, eyebrow = 'Our Edit', tit
         </div>
       )}
 
-      {/* Main Grid */}
+      {/* Main Responsive Grid (Fills full width evenly) */}
       <div className="pgrid">
         {products.map((p, i) => (
           <ProductCard key={p.sku || p._id || i} product={p} index={i} />
@@ -249,7 +420,7 @@ export default function ProductGrid({ initialCategory, eyebrow = 'Our Edit', tit
         {totalCount > 0 && (
           <div className="pgrid-progress-wrap">
             <p className="pgrid-progress-text">
-              Showing <strong>{products.length}</strong> of <strong>{totalCount}</strong> couture garments
+              Displaying <strong>{products.length}</strong> of <strong>{totalCount}</strong> atelier pieces
             </p>
             <div className="pgrid-progress-bar-bg">
               <div 
@@ -269,18 +440,18 @@ export default function ProductGrid({ initialCategory, eyebrow = 'Our Edit', tit
           >
             {loadingMore ? (
               <>
-                <Loader2 size={16} className="spin-icon" />
-                <span>REVEALING MORE PIECES...</span>
+                <Loader2 size={15} className="spin-icon" />
+                <span>REVEALING FURTHER PIECES...</span>
               </>
             ) : (
               <>
-                <span>LOAD MORE GARMENTS</span>
-                <ArrowDown size={14} />
+                <span>DISCOVER MORE CREATIONS</span>
+                <ArrowDown size={13} />
               </>
             )}
           </button>
         ) : (
-          totalCount > 16 && (
+          totalCount > 8 && (
             <p className="pgrid-all-loaded-text">
               — You have viewed the entire collection —
             </p>
@@ -295,117 +466,111 @@ export default function ProductGrid({ initialCategory, eyebrow = 'Our Edit', tit
         }
         .pgrid-header {
           text-align: center;
-          margin-bottom: var(--space-8, 32px);
-          padding-top: var(--space-12, 48px);
+          margin-bottom: 24px;
         }
         .pgrid-title {
-          font-size: var(--text-xl, 24px);
-          color: var(--color-ink, #0F172A);
+          font-size: clamp(20px, 3vw, 28px);
+          color: var(--color-ink);
           text-transform: uppercase;
-          letter-spacing: var(--tracking-wider, 0.08em);
+          letter-spacing: 0.08em;
+          margin-top: 6px;
         }
         .pgrid {
           display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(270px, 320px));
-          gap: 28px;
-          background-color: transparent;
+          grid-template-columns: repeat(3, 1fr);
+          gap: clamp(16px, 2.5vw, 28px);
           width: 100%;
         }
         .pgrid > * {
-          background-color: transparent;
+          width: 100%;
         }
-
         .pgrid-pagination-footer {
-          margin-top: 56px;
+          margin-top: clamp(36px, 5vw, 56px);
           display: flex;
           flex-direction: column;
           align-items: center;
-          gap: 18px;
+          gap: 16px;
           text-align: center;
         }
-
         .pgrid-progress-wrap {
           display: flex;
           flex-direction: column;
           align-items: center;
-          gap: 8px;
-          margin-bottom: 8px;
+          gap: 6px;
         }
         .pgrid-progress-text {
-          font-family: var(--font-body, sans-serif);
+          font-family: var(--font-body);
           font-size: 13px;
-          color: #64748B;
+          color: var(--color-ink-muted);
           margin: 0;
         }
         .pgrid-progress-bar-bg {
-          width: 180px;
-          height: 3px;
-          background-color: #E2E8F0;
-          border-radius: 2px;
+          width: 160px;
+          height: 2px;
+          background-color: var(--color-stone);
           overflow: hidden;
         }
         .pgrid-progress-bar-fill {
           height: 100%;
-          background-color: #0F172A;
+          background-color: var(--color-ink);
           transition: width 0.3s ease;
         }
-
         .pgrid-load-more-btn {
           display: inline-flex;
           align-items: center;
-          gap: 10px;
-          padding: 14px 36px;
-          background-color: #0F172A;
-          color: #FAF8F5;
-          border: 1px solid #C5A880;
-          border-radius: 4px;
-          font-family: var(--font-ui, sans-serif);
+          gap: 8px;
+          padding: 12px 32px;
+          background-color: #141412;
+          color: #FAF7F2;
+          border: 1px solid var(--color-accent);
+          border-radius: 2px;
+          font-family: var(--font-ui);
           font-size: 11px;
-          font-weight: 700;
-          letter-spacing: 0.14em;
+          font-weight: 600;
+          letter-spacing: 0.16em;
           text-transform: uppercase;
           cursor: pointer;
-          transition: all 0.25s ease;
-          box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08);
+          transition: all 0.3s ease;
         }
         .pgrid-load-more-btn:hover:not(:disabled) {
-          background-color: #1E293B;
-          border-color: #DFCAA5;
-          transform: translateY(-1px);
-          box-shadow: 0 8px 24px rgba(15, 23, 42, 0.15);
+          background-color: #C5A869;
+          color: #141412;
+          transform: translateY(-2px);
         }
         .pgrid-load-more-btn:disabled {
           opacity: 0.7;
           cursor: not-allowed;
         }
-
         .pgrid-all-loaded-text {
-          font-family: var(--font-display, serif);
+          font-family: var(--font-display);
           font-style: italic;
           font-size: 13px;
-          color: #94A3B8;
+          color: var(--color-ink-muted);
           margin: 0;
-          letter-spacing: 0.06em;
+          letter-spacing: 0.04em;
         }
-
         .spin-icon {
           animation: spin 1s linear infinite;
         }
-
         @keyframes spin {
           from { transform: rotate(0deg); }
           to { transform: rotate(360deg); }
         }
-
-        @media (max-width: 1200px) {
-          .pgrid { grid-template-columns: repeat(auto-fill, minmax(240px, 300px)); gap: 20px; }
+        @media (max-width: 1100px) {
+          .pgrid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+          }
         }
-        @media (max-width: 768px) {
-          .pgrid { grid-template-columns: repeat(2, 1fr); gap: 16px; }
-          .pgrid-load-more-btn { width: 100%; max-width: 320px; justify-content: center; }
-        }
-        @media (max-width: 480px) {
-          .pgrid { grid-template-columns: 1fr; gap: 16px; }
+        @media (max-width: 600px) {
+          .pgrid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+          }
+          .pgrid-load-more-btn {
+            width: 100%;
+            justify-content: center;
+          }
         }
       `}} />
     </div>

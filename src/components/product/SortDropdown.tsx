@@ -2,36 +2,93 @@
 
 import React from 'react';
 import { useFilterStore } from '../../store/filterStore';
+import { ChevronDown, ArrowUpDown } from 'lucide-react';
 
-export default function SortDropdown() {
+interface SortDropdownProps {
+  className?: string;
+  hideLabel?: boolean;
+}
+
+export default function SortDropdown({ className = '', hideLabel = false }: SortDropdownProps) {
   const { sortBy, setFilter } = useFilterStore();
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-      <span style={{ fontSize: '12px', color: 'var(--warm-grey)' }}>SORT BY:</span>
-      <select 
-        value={sortBy} 
-        onChange={(e) => setFilter('sortBy', e.target.value)}
-        style={{
-          padding: '8px 32px 8px 16px',
-          border: '1px solid var(--linen)',
-          backgroundColor: 'transparent',
-          fontFamily: 'var(--font-body)',
-          fontSize: '13px',
-          outline: 'none',
-          cursor: 'pointer',
-          appearance: 'none',
-          backgroundImage: 'url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23050505%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E")',
-          backgroundRepeat: 'no-repeat',
-          backgroundPosition: 'right 12px center',
-          backgroundSize: '8px auto'
-        }}
-      >
-        <option value="newest">Newest Arrivals</option>
-        <option value="price_asc">Price: Low to High</option>
-        <option value="price_desc">Price: High to Low</option>
-        <option value="bestselling">Bestselling</option>
-      </select>
+    <div className={`sort-dropdown-container ${className}`}>
+      {!hideLabel && (
+        <label htmlFor="sort-select" className="sort-label">
+          <ArrowUpDown size={12} className="sort-icon" />
+          <span>SORT</span>
+        </label>
+      )}
+      <div className="sort-select-wrapper">
+        <select 
+          id="sort-select"
+          value={sortBy} 
+          onChange={(e) => setFilter('sortBy', e.target.value)}
+          className="sort-native-select"
+          aria-label="Sort products"
+        >
+          <option value="newest">New Arrivals</option>
+          <option value="price_asc">Price: Low to High</option>
+          <option value="price_desc">Price: High to Low</option>
+          <option value="bestselling">Bestselling</option>
+        </select>
+        <ChevronDown size={13} className="sort-arrow" />
+      </div>
+
+      <style dangerouslySetInnerHTML={{ __html: `
+        .sort-dropdown-container {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+        }
+        .sort-label {
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          font-family: var(--font-ui);
+          font-size: 10px;
+          letter-spacing: 0.16em;
+          color: var(--color-ink-muted);
+          font-weight: 700;
+          text-transform: uppercase;
+        }
+        .sort-icon {
+          color: var(--color-accent);
+        }
+        .sort-select-wrapper {
+          position: relative;
+          display: inline-flex;
+          align-items: center;
+        }
+        .sort-native-select {
+          appearance: none;
+          -webkit-appearance: none;
+          background: var(--color-surface);
+          border: 1px solid var(--color-stone);
+          border-radius: 20px;
+          padding: 6px 30px 6px 14px;
+          font-family: var(--font-ui);
+          font-size: 11px;
+          font-weight: 600;
+          color: var(--color-ink);
+          letter-spacing: 0.04em;
+          cursor: pointer;
+          transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .sort-native-select:hover,
+        .sort-native-select:focus {
+          border-color: var(--color-accent);
+          outline: none;
+          box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-accent) 20%, transparent);
+        }
+        .sort-arrow {
+          position: absolute;
+          right: 11px;
+          pointer-events: none;
+          color: var(--color-ink-muted);
+        }
+      `}} />
     </div>
   );
 }

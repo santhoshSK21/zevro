@@ -36,10 +36,55 @@
 .success-circle { stroke-dasharray: 196; stroke-dashoffset: 196; animation: drawCircle 0.6s ease forwards; }
 .success-check  { stroke-dasharray: 70;  stroke-dashoffset: 70;  animation: drawCheck 0.4s ease 0.5s forwards; }
 
-/* Marquee */
+/* Marquee Continuous Ribbon */
 @keyframes marquee {
-  from { transform: translateX(0); }
-  to { transform: translateX(-50%); }
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+
+@keyframes marqueeReverse {
+  0% { transform: translateX(-50%); }
+  100% { transform: translateX(0%); }
+}
+
+.animate-marquee {
+  display: flex;
+  width: max-content;
+  animation: marquee 32s linear infinite;
+}
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
+/* Subtle Floating Badge */
+@keyframes subtleFloat {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-5px); }
+}
+.animate-float {
+  animation: subtleFloat 4s ease-in-out infinite;
+}
+
+/* Ambient Gold Breathing Glow */
+@keyframes goldPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(197, 168, 105, 0); }
+  50% { box-shadow: 0 0 20px 2px rgba(197, 168, 105, 0.22); }
+}
+.animate-gold-glow {
+  animation: goldPulse 3.5s ease-in-out infinite;
+}
+
+/* Metallic Shimmer Sweep */
+@keyframes shimmerSweep {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.shimmer-text {
+  background: linear-gradient(90deg, #141412 0%, #C5A869 50%, #141412 100%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmerSweep 6s infinite linear;
 }
 
 /* Scale in (hero image) */

@@ -4,6 +4,7 @@ import dbConnect from '@/lib/mongodb';
 import { Order } from '@/models/Order';
 import { Seller } from '@/models/Seller';
 import { ReturnRequest } from '@/models/ReturnRequest';
+import { Notification } from '@/models/Notification';
 
 // 1. GET: Fetch user's return requests
 export async function GET(request: Request) {
@@ -16,9 +17,11 @@ export async function GET(request: Request) {
     await dbConnect();
     const { searchParams } = new URL(request.url);
     const orderId = searchParams.get('orderId');
+    const returnId = searchParams.get('returnId');
 
     const query: any = { userId: session.user.id };
     if (orderId) query.orderId = orderId;
+    if (returnId) query._id = returnId;
 
     const returns = await ReturnRequest.find(query).sort({ createdAt: -1 }).lean();
     return NextResponse.json({ returns });
@@ -43,6 +46,7 @@ export async function POST(request: Request) {
       itemSku,
       productId,
       type = 'RETURN',
+      resolutionType,
       reason,
       details = '',
       exchangePreference,
@@ -83,7 +87,7 @@ export async function POST(request: Request) {
 
     if (existing) {
       return NextResponse.json(
-        { error: 'A return or exchange request is already active for this item' },
+        { error: 'A return or replacement request is already active for this item' },
         { status: 400 }
       );
     }
@@ -102,6 +106,9 @@ export async function POST(request: Request) {
         sellerStoreName = defaultSeller.storeName;
       }
     }
+
+    const calculatedResolution = resolutionType || (type === 'EXCHANGE' ? 'REPLACEMENT' : 'REFUND');
+    const itemTotalPaise = (orderItem.priceAtPurchase || 0) * (orderItem.quantity || 1);
 
     const returnRequest = new ReturnRequest({
       orderId: order._id,
@@ -123,16 +130,32 @@ export async function POST(request: Request) {
         sku: orderItem.sku,
       },
       type: type === 'EXCHANGE' ? 'EXCHANGE' : 'RETURN',
+      resolutionType: calculatedResolution,
       reason,
       details,
-      photos,
-      exchangePreference,
+      photos: Array.isArray(photos) ? photos : [],
+      exchangePreference: exchangePreference || (calculatedResolution === 'REPLACEMENT' ? { size: orderItem.size } : undefined),
       refund: {
-        amount: (orderItem.priceAtPurchase || 0) * (orderItem.quantity || 1),
+        amount: itemTotalPaise,
         status: 'pending',
+        method: order.payment?.method === 'cod' ? 'bank_transfer' : 'original_source',
       },
+      replacement: calculatedResolution === 'REPLACEMENT' ? {
+        size: exchangePreference?.size || orderItem.size,
+        color: exchangePreference?.color || orderItem.color,
+        status: 'PENDING',
+      } : undefined,
       status: 'REQUESTED',
       slaDeadline: new Date(Date.now() + 48 * 60 * 60 * 1000), // 48h SLA
+      auditLog: [
+        {
+          status: 'REQUESTED',
+          action: 'CUSTOMER_INITIATED',
+          performedBy: session.user.name || 'Customer',
+          notes: `Return requested for reason: ${reason}. Customer notes: ${details || 'None'}`,
+          timestamp: new Date(),
+        },
+      ],
     });
 
     await returnRequest.save();
@@ -140,15 +163,28 @@ export async function POST(request: Request) {
     // Update order timeline
     order.timeline.push({
       status: type === 'EXCHANGE' ? 'exchange-requested' : 'return-requested',
-      message: `Customer initiated a ${type.toLowerCase()} request for ${orderItem.name} (${reason})`,
+      message: `Customer initiated a ${calculatedResolution.toLowerCase()} request for ${orderItem.name} (${reason})`,
       timestamp: new Date(),
     } as any);
 
     await order.save();
 
+    // Create Customer Notification
+    try {
+      await Notification.create({
+        userId: session.user.id,
+        type: 'RETURN_REQUESTED',
+        title: 'Return Request Received',
+        message: `Your return request for ${orderItem.name} (Order #${order.orderId || order._id.toString().slice(-6).toUpperCase()}) has been submitted for atelier review.`,
+        link: `/account/orders/${order._id}`,
+      });
+    } catch (notifErr) {
+      console.warn('Notification create warning:', notifErr);
+    }
+
     return NextResponse.json({
       success: true,
-      message: `${type === 'EXCHANGE' ? 'Exchange' : 'Return'} request submitted successfully. The merchant will review within 48 hours.`,
+      message: `${calculatedResolution === 'REPLACEMENT' ? 'Replacement' : 'Return'} request submitted successfully. The merchant will review within 48 hours.`,
       returnRequest,
     });
   } catch (error) {

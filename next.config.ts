@@ -53,6 +53,9 @@ const nextConfig: NextConfig = {
       { source: '/accessories', destination: '/category/accessories' }
     ];
   },
+  turbopack: {
+    root: __dirname
+  },
   typedRoutes: false
 };
 

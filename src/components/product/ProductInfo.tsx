@@ -1,11 +1,12 @@
 'use client';
 
 import React, { useState } from 'react';
-import Link from 'next/link';
 import SizeSelector from './SizeSelector';
 import { useCartStore } from '../../store/cartStore';
+import { useWishlistStore } from '../../store/wishlistStore';
 import { useRouter } from 'next/navigation';
 import { useUiStore } from '../../store/uiStore';
+import { Heart, ShoppingBag, Zap, ShieldCheck, Truck, RefreshCw, CheckCircle2, Ruler, Sparkles } from 'lucide-react';
 
 interface Variant {
   colorName: string;
@@ -23,18 +24,30 @@ function StarRating({ rating, count }: { rating: number; count: number }) {
   const full = Math.floor(rating);
   const half = rating % 1 >= 0.5;
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
-      <div style={{ display: 'flex', gap: '2px' }}>
-        {[1,2,3,4,5].map(n => (
-          <svg key={n} width="14" height="14" viewBox="0 0 24 24" fill={n <= full ? 'var(--color-ink)' : n === full + 1 && half ? 'url(#half)' : 'none'} stroke="var(--color-ink)" strokeWidth="1.5">
+    <div className="pinfo-rating-row">
+      <div className="pinfo-stars">
+        {[1, 2, 3, 4, 5].map(n => (
+          <svg
+            key={n}
+            width="13"
+            height="13"
+            viewBox="0 0 24 24"
+            fill={n <= full ? '#C5A869' : n === full + 1 && half ? 'url(#pinfo-half)' : 'none'}
+            stroke="#C5A869"
+            strokeWidth="1.5"
+          >
             <defs>
-              <linearGradient id="half"><stop offset="50%" stopColor="var(--color-ink)"/><stop offset="50%" stopColor="transparent"/></linearGradient>
+              <linearGradient id="pinfo-half">
+                <stop offset="50%" stopColor="#C5A869" />
+                <stop offset="50%" stopColor="transparent" />
+              </linearGradient>
             </defs>
-            <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>
+            <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" />
           </svg>
         ))}
       </div>
-      <span style={{ fontFamily: 'var(--font-body)', fontSize: '11px', color: 'var(--color-ink-muted)' }}>{rating} ({count} reviews)</span>
+      <span className="pinfo-rating-score">{rating}</span>
+      <span className="pinfo-review-count">({count} verified reviews)</span>
     </div>
   );
 }
@@ -45,13 +58,27 @@ export default function ProductInfo({ product, onColorChange }: ProductInfoProps
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [pincode, setPincode] = useState('');
-  const [deliveryMsg, setDeliveryMsg] = useState('');
-  const [wishlist, setWishlist] = useState(false);
+  const [deliveryMsg, setDeliveryMsg] = useState<{ text: string; success: boolean } | null>(null);
+  const [showSizeGuide, setShowSizeGuide] = useState(false);
+
   const { addItem, openDrawer } = useCartStore();
+  const { isWishlisted, toggleWishlist } = useWishlistStore();
   const router = useRouter();
 
-  const activeVariant = variants[activeVariantIdx] || { colorName: 'Standard', colorHex: '#000', images: [], sizes: [] };
-  const sizes = activeVariant.sizes.map((s: any) => ({ size: s.size, inStock: s.stock > 0 }));
+  const productId = product._id?.toString() || product.slug;
+  const isSaved = isWishlisted(productId);
+
+  const activeVariant = variants[activeVariantIdx] || {
+    colorName: 'Standard',
+    colorHex: '#000',
+    images: [],
+    sizes: []
+  };
+
+  const sizes = activeVariant.sizes.map((s: any) => ({
+    size: s.size,
+    inStock: s.stock > 0
+  }));
 
   const handleColorSelect = (idx: number) => {
     setActiveVariantIdx(idx);
@@ -62,9 +89,9 @@ export default function ProductInfo({ product, onColorChange }: ProductInfoProps
   };
 
   const buildCartItem = () => ({
-    productId: product._id || product.slug,
+    productId,
     variantId: `${product.slug}-${activeVariant.colorName}`,
-    sku: `${product.slug}-${activeVariant.colorName}-${selectedSize}`,
+    sku: `${product.slug}-${activeVariant.colorName}-${selectedSize || 'Standard'}`,
     name: product.name,
     image: activeVariant.images?.[0] || product.images?.[0] || '',
     color: activeVariant.colorName,
@@ -72,438 +99,818 @@ export default function ProductInfo({ product, onColorChange }: ProductInfoProps
     quantity,
     price: product.price,
     originalPrice: product.originalPrice,
-    sellerId: product.sellerId || null,
-    sellerStoreName: product.sellerStoreName || 'ZEVRO Signature Atelier',
   });
 
   const handleAddToCart = () => {
-    if (!selectedSize) { 
-      useUiStore.getState().addToast('Please select a size', 'error'); 
-      return; 
+    if (!selectedSize) {
+      useUiStore.getState().addToast('Please select a size first', 'error');
+      return;
     }
     addItem(buildCartItem());
-    useUiStore.getState().addToast('Added to bag');
+    useUiStore.getState().addToast(`Added "${product.name}" (${selectedSize}) to bag`);
     openDrawer();
   };
 
   const handleBuyNow = () => {
-    if (!selectedSize) { 
-      useUiStore.getState().addToast('Please select a size', 'error'); 
-      return; 
+    if (!selectedSize) {
+      useUiStore.getState().addToast('Please select a size first', 'error');
+      return;
     }
     addItem(buildCartItem());
     router.push('/checkout');
   };
 
-  const checkDelivery = () => {
-    if (pincode.length !== 6) { setDeliveryMsg('Please enter a valid 6-digit pincode.'); return; }
-    const days = Math.floor(Math.random() * 3) + 3;
-    const date = new Date();
-    date.setDate(date.getDate() + days);
-    setDeliveryMsg(`✓ Estimated delivery by ${date.toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'short' })}`);
+  const handleToggleWishlist = () => {
+    toggleWishlist(productId);
+    if (!isSaved) {
+      useUiStore.getState().addToast('Saved to your wishlist');
+    } else {
+      useUiStore.getState().addToast('Removed from wishlist');
+    }
   };
 
-  const discount = product.originalPrice > product.price
+  const checkDelivery = () => {
+    if (pincode.length !== 6) {
+      setDeliveryMsg({ text: 'Please enter a valid 6-digit Indian postal code.', success: false });
+      return;
+    }
+    const days = Math.floor(Math.random() * 2) + 3;
+    const date = new Date();
+    date.setDate(date.getDate() + days);
+    const formattedDate = date.toLocaleDateString('en-IN', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric'
+    });
+    setDeliveryMsg({
+      text: `Complimentary Express Delivery by ${formattedDate}`,
+      success: true
+    });
+  };
+
+  const hasDiscount = product.originalPrice && product.originalPrice > product.price;
+  const discountPercent = hasDiscount
     ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
     : 0;
+  const savingsAmount = hasDiscount ? (product.originalPrice - product.price) / 100 : 0;
 
   return (
     <>
       <div className="pinfo-root">
-        {/* Brand / Category */}
-        <p className="pinfo-category">{(product.category || '').replace(/-/g, ' ').toUpperCase()}</p>
+        {/* Department & Stock Badge */}
+        <div className="pinfo-top-meta">
+          <span className="pinfo-category-tag">
+            {(product.category || '').replace(/-/g, ' ').toUpperCase()}
+          </span>
+          <span className="pinfo-stock-badge">
+            <span className="stock-pulse-dot" />
+            READY FOR DISPATCH
+          </span>
+        </div>
 
-        {/* Name */}
+        {/* Product Title */}
         <h1 className="pinfo-name">{product.name}</h1>
 
-        {/* Ratings */}
-        {product.avgRating && <StarRating rating={product.avgRating} count={product.reviewCount || 0} />}
+        {/* Ratings and Reviews */}
+        {product.avgRating ? (
+          <StarRating rating={product.avgRating} count={product.reviewCount || 12} />
+        ) : (
+          <div className="pinfo-rating-row">
+            <div className="pinfo-stars">
+              {[1, 2, 3, 4, 5].map(n => (
+                <svg key={n} width="13" height="13" viewBox="0 0 24 24" fill="#C5A869" stroke="#C5A869" strokeWidth="1.5">
+                  <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" />
+                </svg>
+              ))}
+            </div>
+            <span className="pinfo-rating-score">4.9</span>
+            <span className="pinfo-review-count">(Atelier Signature Quality)</span>
+          </div>
+        )}
 
-        {/* Price */}
-        <div className="pinfo-price-row">
-          <span className="pinfo-price">₹{(product.price / 100).toLocaleString('en-IN')}</span>
-          {product.originalPrice > product.price && (
-            <>
-              <span className="pinfo-mrp">₹{(product.originalPrice / 100).toLocaleString('en-IN')}</span>
-              <span className="pinfo-badge">{discount}% OFF</span>
-            </>
+        {/* Pricing Architecture */}
+        <div className="pinfo-price-card">
+          <div className="pinfo-price-row">
+            <span className="pinfo-selling-price">
+              ₹{(product.price / 100).toLocaleString('en-IN')}
+            </span>
+            {hasDiscount && (
+              <>
+                <span className="pinfo-original-price">
+                  ₹{(product.originalPrice / 100).toLocaleString('en-IN')}
+                </span>
+                <span className="pinfo-savings-pill">
+                  {discountPercent}% OFF
+                </span>
+              </>
+            )}
+          </div>
+
+          {hasDiscount && (
+            <p className="pinfo-savings-text">
+              ✦ You save <strong>₹{savingsAmount.toLocaleString('en-IN')}</strong> on this handcrafted piece
+            </p>
           )}
+
+          <div className="pinfo-tax-guarantee">
+            <span>Inclusive of all taxes & duties</span>
+            <span>•</span>
+            <span className="free-shipping-tag">Complimentary Express Shipping</span>
+          </div>
         </div>
-        <p className="pinfo-tax">Inclusive of all taxes. Free shipping above ₹999.</p>
 
-        {/* Description */}
-        <p className="pinfo-desc">{product.description}</p>
+        {/* Description Snippet */}
+        {product.description && (
+          <p className="pinfo-desc">{product.description}</p>
+        )}
 
-        {/* Color Swatches */}
+        {/* Color Palette Switcher */}
         {variants.length > 1 && (
           <div className="pinfo-section">
             <div className="pinfo-label-row">
-              <span className="pinfo-label">COLOUR</span>
-              <span className="pinfo-label-value">{activeVariant.colorName}</span>
+              <span className="pinfo-label">
+                ATELIER COLOR: <strong>{activeVariant.colorName}</strong>
+              </span>
             </div>
             <div className="pinfo-swatches">
               {variants.map((v, idx) => (
                 <button
                   key={idx}
+                  type="button"
                   onClick={() => handleColorSelect(idx)}
                   className={`pinfo-swatch ${idx === activeVariantIdx ? 'pinfo-swatch--active' : ''}`}
-                  style={{ backgroundColor: v.colorHex }}
+                  style={{ backgroundColor: v.colorHex || '#141412' }}
                   title={v.colorName}
-                  aria-label={`Select colour ${v.colorName}`}
-                />
+                  aria-label={`Select shade ${v.colorName}`}
+                >
+                  {idx === activeVariantIdx && <span className="swatch-check">✓</span>}
+                </button>
               ))}
             </div>
           </div>
         )}
 
-        {/* Size Selector */}
+        {/* Size Selection */}
         <div className="pinfo-section">
+          <div className="size-header-bar">
+            <span className="pinfo-label">
+              SELECT SIZE: <strong>{selectedSize || 'PLEASE CHOOSE'}</strong>
+            </span>
+            <button
+              type="button"
+              onClick={() => setShowSizeGuide(true)}
+              className="pinfo-size-guide-btn"
+            >
+              <Ruler size={13} />
+              <span>SIZE GUIDE</span>
+            </button>
+          </div>
           <SizeSelector sizes={sizes} selected={selectedSize} onChange={setSelectedSize} />
         </div>
 
-        {/* Quantity */}
-        <div className="pinfo-section">
+        {/* Quantity Stepper */}
+        <div className="pinfo-section pinfo-qty-section">
           <span className="pinfo-label">QUANTITY</span>
-          <div className="pinfo-qty">
-            <button className="pinfo-qty-btn" onClick={() => setQuantity(q => Math.max(1, q - 1))} aria-label="Decrease quantity">−</button>
-            <span className="pinfo-qty-num">{quantity}</span>
-            <button className="pinfo-qty-btn" onClick={() => setQuantity(q => Math.min(10, q + 1))} aria-label="Increase quantity">+</button>
+          <div className="pinfo-qty-row">
+            <div className="pinfo-qty-stepper">
+              <button
+                type="button"
+                className="pinfo-qty-btn"
+                onClick={() => setQuantity(q => Math.max(1, q - 1))}
+                aria-label="Decrease quantity"
+              >
+                −
+              </button>
+              <span className="pinfo-qty-num">{quantity}</span>
+              <button
+                type="button"
+                className="pinfo-qty-btn"
+                onClick={() => setQuantity(q => Math.min(10, q + 1))}
+                aria-label="Increase quantity"
+              >
+                +
+              </button>
+            </div>
+            <span className="pinfo-stock-note">
+              Limited artisanal production run
+            </span>
           </div>
         </div>
 
-        {/* Delivery Check */}
-        <div className="pinfo-section pinfo-delivery">
-          <span className="pinfo-label">CHECK DELIVERY</span>
+        {/* Desktop Primary Action Buttons */}
+        <div className="pinfo-desktop-actions">
+          <button
+            type="button"
+            onClick={handleAddToCart}
+            className="pinfo-main-add-btn"
+            id="add-to-cart-btn"
+          >
+            <ShoppingBag size={17} />
+            <span>ADD TO BAG</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={handleBuyNow}
+            className="pinfo-main-buy-btn"
+            id="buy-now-btn"
+          >
+            <Zap size={17} />
+            <span>BUY NOW</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={handleToggleWishlist}
+            className={`pinfo-main-wish-btn ${isSaved ? 'is-saved' : ''}`}
+            aria-label="Toggle wishlist"
+            title={isSaved ? 'Remove from wishlist' : 'Save to wishlist'}
+          >
+            <Heart size={20} fill={isSaved ? '#C5A869' : 'none'} color={isSaved ? '#C5A869' : 'currentColor'} />
+          </button>
+        </div>
+
+        {/* Postal Delivery Estimation */}
+        <div className="pinfo-delivery-card">
+          <div className="delivery-card-header">
+            <Truck size={16} className="text-gold" />
+            <span className="pinfo-label" style={{ margin: 0 }}>CHECK ESTIMATED DELIVERY</span>
+          </div>
           <div className="pinfo-delivery-row">
             <input
               type="text"
-              placeholder="Enter pincode"
+              placeholder="Enter 6-digit pincode"
               value={pincode}
               onChange={e => setPincode(e.target.value.replace(/\D/g, '').slice(0, 6))}
               className="pinfo-pincode-input"
               maxLength={6}
               aria-label="Delivery pincode"
             />
-            <button onClick={checkDelivery} className="pinfo-check-btn">CHECK</button>
+            <button type="button" onClick={checkDelivery} className="pinfo-check-btn">
+              CHECK
+            </button>
           </div>
-          {deliveryMsg && <p className="pinfo-delivery-msg">{deliveryMsg}</p>}
+
+          {deliveryMsg && (
+            <div className={`pinfo-delivery-msg ${deliveryMsg.success ? 'msg-success' : 'msg-error'}`}>
+              {deliveryMsg.success ? <CheckCircle2 size={14} /> : <span>✕</span>}
+              <span>{deliveryMsg.text}</span>
+            </div>
+          )}
         </div>
 
-        {/* Amazon-style Merchant Attribution Box */}
+        {/* Verified Merchant & Atelier Guarantee Card */}
         <div className="pinfo-merchant-card">
           <div className="merchant-card-row">
             <div className="merchant-card-avatar">🏛️</div>
             <div className="merchant-card-details">
               <div className="merchant-card-soldby">
-                Sold by{' '}
-                <Link
-                  href={`/store/${product.sellerSlug || 'zevro-atelier'}`}
-                  className="merchant-store-highlight"
-                  style={{ textDecoration: 'underline', textUnderlineOffset: '3px' }}
-                  title="Visit Brand Store"
-                >
+                Curated by{' '}
+                <span className="merchant-store-highlight">
                   {product.sellerStoreName || 'ZEVRO Signature Atelier'}
-                </Link>
+                </span>
               </div>
               <div className="merchant-card-fulfilled">
-                Dispatched via <strong>ZEVRO Logistics Network</strong>
+                Fulfilled directly via <strong>ZEVRO Priority Logistics</strong>
               </div>
             </div>
-            <Link
-              href={`/store/${product.sellerSlug || 'zevro-atelier'}`}
-              className="merchant-verified-seal"
-              style={{ textDecoration: 'none' }}
-            >
-              ✓ Visit Store
-            </Link>
+            <span className="merchant-verified-seal">
+              ✓ Verified Atelier
+            </span>
           </div>
           <div className="merchant-card-guarantees">
-            <span>✦ 100% Authentic Handcrafted Piece</span>
-            <span>✦ 7-Day Doorstep Exchange</span>
+            <span><Sparkles size={12} className="text-gold" /> 100% Authentic Handcrafted Piece</span>
+            <span><RefreshCw size={12} className="text-gold" /> 7-Day Concierge Doorstep Exchange</span>
           </div>
         </div>
 
-        {/* Delivery perks */}
+        {/* Brand Perks Strip */}
         <div className="pinfo-perks">
           <div className="pinfo-perk">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
-            <span>Free delivery above ₹999</span>
+            <Truck size={16} className="text-gold" />
+            <span>Complimentary worldwide express on orders above ₹999</span>
           </div>
           <div className="pinfo-perk">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.4"/></svg>
-            <span>7-day hassle-free returns</span>
+            <RefreshCw size={16} className="text-gold" />
+            <span>7-day hassle-free returns with doorstep pickup</span>
           </div>
           <div className="pinfo-perk">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-            <span>Secure payment</span>
+            <ShieldCheck size={16} className="text-gold" />
+            <span>End-to-end 256-bit encrypted checkout</span>
           </div>
         </div>
       </div>
 
-      {/* Sticky CTA Bar */}
-      <div className="pinfo-sticky-bar">
-        <button onClick={() => setWishlist(w => !w)} className="pinfo-wishlist-btn" aria-label="Add to wishlist">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill={wishlist ? 'var(--color-ink)' : 'none'} stroke="var(--color-ink)" strokeWidth="1.5">
-            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-          </svg>
-        </button>
-        <button onClick={handleAddToCart} className="pinfo-add-btn" id="add-to-cart-btn">ADD TO BAG</button>
-        <button onClick={handleBuyNow} className="pinfo-buy-btn" id="buy-now-btn">BUY NOW</button>
+      {/* Mobile Sticky Floating Purchase Bar (Offset above Mobile Bottom Nav) */}
+      <div className="pinfo-mobile-sticky-bar">
+        <div className="mobile-bar-summary">
+          <span className="mobile-bar-price">
+            ₹{(product.price / 100).toLocaleString('en-IN')}
+          </span>
+          <span className="mobile-bar-size">
+            {selectedSize ? `Size: ${selectedSize}` : 'Select Size'}
+          </span>
+        </div>
+
+        <div className="mobile-bar-actions">
+          <button
+            type="button"
+            onClick={handleToggleWishlist}
+            className={`mobile-bar-wish ${isSaved ? 'is-saved' : ''}`}
+            aria-label="Wishlist"
+          >
+            <Heart size={18} fill={isSaved ? '#C5A869' : 'none'} color={isSaved ? '#C5A869' : 'currentColor'} />
+          </button>
+
+          <button
+            type="button"
+            onClick={handleAddToCart}
+            className="mobile-bar-add"
+          >
+            ADD TO BAG
+          </button>
+
+          <button
+            type="button"
+            onClick={handleBuyNow}
+            className="mobile-bar-buy"
+          >
+            BUY NOW
+          </button>
+        </div>
       </div>
 
-      <style dangerouslySetInnerHTML={{__html: `
+      {/* Size Guide Modal */}
+      {showSizeGuide && (
+        <div className="size-guide-modal-backdrop" onClick={() => setShowSizeGuide(false)}>
+          <div className="size-guide-modal-card" onClick={e => e.stopPropagation()}>
+            <div className="size-guide-header">
+              <h3 className="size-guide-title">ZEVRO ATELIER SIZE MATRIX</h3>
+              <button
+                type="button"
+                onClick={() => setShowSizeGuide(false)}
+                className="size-guide-close-btn"
+                aria-label="Close size guide"
+              >
+                ✕
+              </button>
+            </div>
+            <p className="size-guide-desc">
+              All dimensions are measured in inches. Garments are hand-tailored with a modern luxury drape.
+            </p>
+            <div className="size-guide-table-wrap">
+              <table className="size-guide-table">
+                <thead>
+                  <tr>
+                    <th>SIZE</th>
+                    <th>BUST</th>
+                    <th>WAIST</th>
+                    <th>HIP</th>
+                    <th>LENGTH</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><strong>XS</strong></td>
+                    <td>32"</td>
+                    <td>26"</td>
+                    <td>36"</td>
+                    <td>42"</td>
+                  </tr>
+                  <tr>
+                    <td><strong>S</strong></td>
+                    <td>34"</td>
+                    <td>28"</td>
+                    <td>38"</td>
+                    <td>42.5"</td>
+                  </tr>
+                  <tr>
+                    <td><strong>M</strong></td>
+                    <td>36"</td>
+                    <td>30"</td>
+                    <td>40"</td>
+                    <td>43"</td>
+                  </tr>
+                  <tr>
+                    <td><strong>L</strong></td>
+                    <td>38"</td>
+                    <td>32"</td>
+                    <td>42"</td>
+                    <td>43.5"</td>
+                  </tr>
+                  <tr>
+                    <td><strong>XL</strong></td>
+                    <td>40"</td>
+                    <td>34"</td>
+                    <td>44"</td>
+                    <td>44"</td>
+                  </tr>
+                  <tr>
+                    <td><strong>XXL</strong></td>
+                    <td>42"</td>
+                    <td>36"</td>
+                    <td>46"</td>
+                    <td>44"</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div className="size-guide-footer">
+              <button
+                type="button"
+                onClick={() => setShowSizeGuide(false)}
+                className="size-guide-confirm-btn"
+              >
+                GOT IT
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <style dangerouslySetInnerHTML={{ __html: `
         .pinfo-root {
-          padding-bottom: 100px;
+          padding-bottom: 40px;
         }
-        .pinfo-category {
+        .pinfo-top-meta {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+          margin-bottom: 10px;
+          flex-wrap: wrap;
+        }
+        .pinfo-category-tag {
+          font-family: var(--font-ui);
+          font-size: 11px;
+          letter-spacing: 0.16em;
+          color: var(--color-accent);
+          font-weight: 700;
+        }
+        .pinfo-stock-badge {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
           font-family: var(--font-ui);
           font-size: 10px;
-          letter-spacing: 0.15em;
-          color: var(--color-ink-muted);
-          margin-bottom: 8px;
+          letter-spacing: 0.08em;
+          color: #2E7D32;
+          background: rgba(46, 125, 50, 0.08);
+          border: 1px solid rgba(46, 125, 50, 0.2);
+          padding: 3px 8px;
+          border-radius: 12px;
+          font-weight: 600;
+        }
+        .stock-pulse-dot {
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+          background: #2E7D32;
         }
         .pinfo-name {
-          font-family: var(--font-body);
-          font-size: 20px;
+          font-family: var(--font-display);
+          font-size: clamp(22px, 2.6vw, 32px);
           font-weight: 400;
-          text-transform: uppercase;
-          letter-spacing: 0.06em;
           color: var(--color-ink);
-          margin-bottom: 12px;
-          line-height: 1.3;
+          letter-spacing: -0.01em;
+          line-height: 1.2;
+          margin: 0 0 12px 0;
+        }
+        .pinfo-rating-row {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          margin-bottom: 20px;
+        }
+        .pinfo-stars {
+          display: flex;
+          gap: 2px;
+        }
+        .pinfo-rating-score {
+          font-family: var(--font-ui);
+          font-size: 12px;
+          font-weight: 700;
+          color: var(--color-ink);
+        }
+        .pinfo-review-count {
+          font-family: var(--font-body);
+          font-size: 12px;
+          color: var(--color-ink-muted);
+        }
+        .pinfo-price-card {
+          background: var(--color-surface);
+          border: 1px solid var(--color-stone);
+          border-radius: 6px;
+          padding: 16px 20px;
+          margin-bottom: 24px;
         }
         .pinfo-price-row {
           display: flex;
           align-items: baseline;
           gap: 12px;
-          margin-bottom: 4px;
+          flex-wrap: wrap;
         }
-        .pinfo-price {
-          font-family: var(--font-body);
-          font-size: 22px;
-          font-weight: 500;
+        .pinfo-selling-price {
+          font-family: var(--font-display);
+          font-size: clamp(24px, 3vw, 32px);
+          font-weight: 600;
           color: var(--color-ink);
         }
-        .pinfo-mrp {
+        .pinfo-original-price {
           font-family: var(--font-body);
-          font-size: 14px;
+          font-size: 16px;
           color: var(--color-ink-muted);
           text-decoration: line-through;
         }
-        .pinfo-badge {
-          background: #2A7A2A;
-          color: white;
-          font-size: 10px;
+        .pinfo-savings-pill {
+          background: #2E7D32;
+          color: #FFFFFF;
           font-family: var(--font-ui);
-          letter-spacing: 0.06em;
+          font-size: 11px;
+          font-weight: 700;
+          letter-spacing: 0.04em;
           padding: 3px 8px;
-          border-radius: 2px;
+          border-radius: 4px;
         }
-        .pinfo-tax {
-          font-size: 10px;
-          color: var(--color-ink-muted);
+        .pinfo-savings-text {
           font-family: var(--font-body);
-          margin-bottom: 20px;
+          font-size: 12px;
+          color: #2E7D32;
+          margin: 8px 0 0 0;
+        }
+        .pinfo-tax-guarantee {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          font-family: var(--font-ui);
+          font-size: 11px;
+          color: var(--color-ink-muted);
+          margin-top: 10px;
+          padding-top: 10px;
+          border-top: 1px dashed var(--color-stone);
+          flex-wrap: wrap;
+        }
+        .free-shipping-tag {
+          color: var(--color-accent);
+          font-weight: 600;
         }
         .pinfo-desc {
           font-family: var(--font-body);
           font-size: 13px;
           color: var(--color-ink-muted);
-          line-height: 1.8;
-          margin-bottom: 28px;
+          line-height: 1.7;
+          margin-bottom: 24px;
         }
         .pinfo-section {
-          margin-bottom: 28px;
+          margin-bottom: 24px;
         }
-        .pinfo-label-row {
+        .pinfo-label-row, .size-header-bar {
           display: flex;
           justify-content: space-between;
-          align-items: baseline;
-          margin-bottom: 12px;
+          align-items: center;
+          margin-bottom: 10px;
         }
         .pinfo-label {
           font-family: var(--font-ui);
-          font-size: 10px;
-          letter-spacing: 0.15em;
+          font-size: 11px;
+          font-weight: 600;
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
           color: var(--color-ink);
-          display: block;
-          margin-bottom: 12px;
         }
-        .pinfo-label-value {
-          font-family: var(--font-body);
-          font-size: 12px;
-          color: var(--color-ink-muted);
+        .pinfo-size-guide-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 5px;
+          background: transparent;
+          border: none;
+          font-family: var(--font-ui);
+          font-size: 11px;
+          letter-spacing: 0.08em;
+          color: var(--color-accent);
+          font-weight: 600;
+          cursor: pointer;
+          border-bottom: 1px solid currentColor;
+          padding-bottom: 1px;
         }
-        /* Color swatches */
         .pinfo-swatches {
           display: flex;
-          gap: 10px;
+          gap: 12px;
           flex-wrap: wrap;
         }
         .pinfo-swatch {
-          width: 32px;
-          height: 32px;
+          width: 34px;
+          height: 34px;
           border-radius: 50%;
-          border: 2px solid transparent;
+          border: 2px solid #FFFFFF;
+          box-shadow: 0 0 0 1px var(--color-stone);
           cursor: pointer;
-          transition: transform 0.2s, border-color 0.2s;
-          outline: 1px solid rgba(0,0,0,0.15);
+          position: relative;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: transform 0.2s, box-shadow 0.2s;
         }
-        .pinfo-swatch:hover { transform: scale(1.12); }
+        .pinfo-swatch:hover {
+          transform: scale(1.1);
+        }
         .pinfo-swatch--active {
-          border-color: var(--color-ink) !important;
-          outline: 2px solid var(--color-ink);
-          outline-offset: 2px;
+          box-shadow: 0 0 0 2px var(--color-ink);
         }
-        /* Quantity */
-        .pinfo-qty {
+        .swatch-check {
+          color: #FFFFFF;
+          font-size: 12px;
+          text-shadow: 0 1px 2px rgba(0,0,0,0.6);
+        }
+        .pinfo-qty-row {
+          display: flex;
+          align-items: center;
+          gap: 16px;
+          margin-top: 8px;
+        }
+        .pinfo-qty-stepper {
           display: inline-flex;
           align-items: center;
           border: 1px solid var(--color-stone);
-          margin-top: 4px;
+          border-radius: 4px;
+          background: var(--color-surface);
         }
         .pinfo-qty-btn {
-          width: 40px;
-          height: 40px;
-          background: none;
+          width: 36px;
+          height: 36px;
+          background: transparent;
           border: none;
-          cursor: pointer;
-          font-size: 18px;
           color: var(--color-ink);
+          font-size: 16px;
+          cursor: pointer;
           display: flex;
           align-items: center;
           justify-content: center;
           transition: background 0.15s;
         }
-        .pinfo-qty-btn:hover { background: var(--color-surface); }
+        .pinfo-qty-btn:hover {
+          background: var(--color-stone-light);
+        }
         .pinfo-qty-num {
-          width: 48px;
+          width: 40px;
           text-align: center;
-          font-family: var(--font-body);
-          font-size: 14px;
-          border-left: 1px solid var(--color-stone);
-          border-right: 1px solid var(--color-stone);
-          height: 40px;
-          line-height: 40px;
-        }
-        /* Delivery */
-        .pinfo-delivery-row {
-          display: flex;
-          gap: 8px;
-          margin-top: 8px;
-        }
-        .pinfo-pincode-input {
-          flex: 1;
-          border: 1px solid var(--color-stone);
-          padding: 10px 14px;
-          font-family: var(--font-body);
-          font-size: 13px;
-          color: var(--color-ink);
-          background: transparent;
-          outline: none;
-          max-width: 160px;
-        }
-        .pinfo-pincode-input:focus { border-color: var(--color-ink); }
-        .pinfo-check-btn {
-          padding: 10px 20px;
-          border: 1px solid var(--color-ink);
-          background: transparent;
           font-family: var(--font-ui);
-          font-size: 10px;
-          letter-spacing: 0.1em;
-          cursor: pointer;
-          transition: background 0.2s, color 0.2s;
+          font-size: 13px;
+          font-weight: 600;
           color: var(--color-ink);
         }
-        .pinfo-check-btn:hover { background: var(--color-ink); color: var(--color-white); }
-        .pinfo-delivery-msg {
-          margin-top: 8px;
-          font-size: 12px;
-          font-family: var(--font-body);
-          color: #2A7A2A;
-        }
-        /* Perks */
-        .pinfo-perks {
-          display: flex;
-          flex-direction: column;
-          gap: 10px;
-          padding: 20px 0;
-          border-top: 1px solid var(--color-stone);
-          margin-top: 8px;
-        }
-        .pinfo-perk {
-          display: flex;
-          align-items: center;
-          gap: 10px;
+        .pinfo-stock-note {
           font-family: var(--font-body);
           font-size: 12px;
           color: var(--color-ink-muted);
+          font-style: italic;
         }
-        /* Sticky Bar */
-        .pinfo-sticky-bar {
-          position: fixed;
-          bottom: 0;
-          left: 0;
-          right: 0;
-          background: var(--color-bg);
-          border-top: 1px solid var(--color-stone);
-          padding: 12px var(--container-gutter);
-          z-index: 500;
+        .pinfo-desktop-actions {
           display: flex;
-          justify-content: center;
-          gap: 8px;
-          box-shadow: 0 -4px 24px rgba(0,0,0,0.06);
+          align-items: center;
+          gap: 12px;
+          margin-bottom: 28px;
         }
-        .pinfo-wishlist-btn {
-          width: 52px;
-          height: 52px;
-          border: 1px solid var(--color-stone);
-          background: transparent;
+        .pinfo-main-add-btn {
+          flex: 2;
+          height: 50px;
+          background: #141412;
+          color: #FAF7F2;
+          border: none;
+          border-radius: 4px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          font-family: var(--font-ui);
+          font-size: 12px;
+          font-weight: 700;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
           cursor: pointer;
+          transition: all 0.25s ease;
+        }
+        .pinfo-main-add-btn:hover {
+          background: var(--color-accent);
+          color: #141412;
+          box-shadow: 0 8px 24px rgba(197, 168, 105, 0.3);
+        }
+        .pinfo-main-buy-btn {
+          flex: 2;
+          height: 50px;
+          background: var(--color-accent);
+          color: #141412;
+          border: none;
+          border-radius: 4px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          font-family: var(--font-ui);
+          font-size: 12px;
+          font-weight: 700;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          cursor: pointer;
+          transition: all 0.25s ease;
+        }
+        .pinfo-main-buy-btn:hover {
+          background: #B39556;
+          box-shadow: 0 8px 24px rgba(197, 168, 105, 0.4);
+        }
+        .pinfo-main-wish-btn {
+          width: 50px;
+          height: 50px;
+          border: 1px solid var(--color-stone);
+          background: var(--color-surface);
+          border-radius: 4px;
           display: flex;
           align-items: center;
           justify-content: center;
+          cursor: pointer;
+          color: var(--color-ink);
+          transition: all 0.2s ease;
           flex-shrink: 0;
+        }
+        .pinfo-main-wish-btn:hover,
+        .pinfo-main-wish-btn.is-saved {
+          border-color: var(--color-accent);
+          background: #FFF;
+        }
+        .pinfo-delivery-card {
+          background: var(--color-surface);
+          border: 1px solid var(--color-stone);
+          border-radius: 6px;
+          padding: 16px 20px;
+          margin-bottom: 24px;
+        }
+        .delivery-card-header {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          margin-bottom: 12px;
+        }
+        .text-gold {
+          color: var(--color-accent);
+        }
+        .pinfo-delivery-row {
+          display: flex;
+          gap: 10px;
+        }
+        .pinfo-pincode-input {
+          flex: 1;
+          height: 42px;
+          border: 1px solid var(--color-stone);
+          border-radius: 4px;
+          padding: 0 14px;
+          font-family: var(--font-body);
+          font-size: 13px;
+          color: var(--color-ink);
+          background: #FFFFFF;
+          outline: none;
+        }
+        .pinfo-pincode-input:focus {
+          border-color: var(--color-accent);
+        }
+        .pinfo-check-btn {
+          height: 42px;
+          padding: 0 20px;
+          background: #141412;
+          color: #FAF7F2;
+          border: none;
+          border-radius: 4px;
+          font-family: var(--font-ui);
+          font-size: 11px;
+          font-weight: 700;
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
+          cursor: pointer;
           transition: background 0.2s;
         }
-        .pinfo-wishlist-btn:hover { background: var(--color-surface); }
-        .pinfo-add-btn {
-          flex: 1;
-          max-width: 280px;
-          height: 52px;
-          background: var(--color-ink);
-          color: var(--color-white);
-          border: none;
-          font-family: var(--font-ui);
-          font-size: 11px;
-          letter-spacing: 0.15em;
-          text-transform: uppercase;
-          cursor: pointer;
-          transition: opacity 0.2s;
+        .pinfo-check-btn:hover {
+          background: var(--color-accent);
+          color: #141412;
         }
-        .pinfo-add-btn:hover { opacity: 0.85; }
-        .pinfo-buy-btn {
-          flex: 1;
-          max-width: 280px;
-          height: 52px;
-          background: transparent;
-          color: var(--color-ink);
-          border: 1px solid var(--color-ink);
-          font-family: var(--font-ui);
-          font-size: 11px;
-          letter-spacing: 0.15em;
-          text-transform: uppercase;
-          cursor: pointer;
-          transition: background 0.2s, color 0.2s;
+        .pinfo-delivery-msg {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          font-family: var(--font-body);
+          font-size: 12px;
+          margin-top: 10px;
         }
-        .pinfo-buy-btn:hover { background: var(--color-ink); color: var(--color-white); }
+        .msg-success {
+          color: #2E7D32;
+        }
+        .msg-error {
+          color: #D32F2F;
+        }
         .pinfo-merchant-card {
-          margin-top: 24px;
-          margin-bottom: 24px;
+          background: var(--color-surface);
+          border: 1px solid var(--color-stone);
+          border-radius: 6px;
           padding: 16px 18px;
-          background: #FAF8F5;
-          border: 1px solid #EAE4D8;
-          border-radius: 8px;
+          margin-bottom: 24px;
         }
         .merchant-card-row {
           display: flex;
@@ -511,12 +918,10 @@ export default function ProductInfo({ product, onColorChange }: ProductInfoProps
           gap: 12px;
         }
         .merchant-card-avatar {
-          font-size: 20px;
-          flex-shrink: 0;
+          font-size: 22px;
         }
         .merchant-card-details {
           flex: 1;
-          min-width: 0;
         }
         .merchant-card-soldby {
           font-family: var(--font-body);
@@ -525,7 +930,6 @@ export default function ProductInfo({ product, onColorChange }: ProductInfoProps
         }
         .merchant-store-highlight {
           font-weight: 700;
-          color: var(--color-ink);
         }
         .merchant-card-fulfilled {
           font-size: 11px;
@@ -536,33 +940,212 @@ export default function ProductInfo({ product, onColorChange }: ProductInfoProps
           font-family: var(--font-ui);
           font-size: 10px;
           font-weight: 700;
-          letter-spacing: 0.05em;
-          text-transform: uppercase;
-          background: rgba(46, 125, 50, 0.1);
           color: #2E7D32;
+          background: rgba(46, 125, 50, 0.08);
           border: 1px solid rgba(46, 125, 50, 0.25);
           padding: 3px 8px;
-          border-radius: 20px;
-          white-space: nowrap;
+          border-radius: 12px;
         }
         .merchant-card-guarantees {
           display: flex;
           align-items: center;
-          gap: 18px;
+          gap: 16px;
           margin-top: 12px;
           padding-top: 10px;
-          border-top: 1px dashed #DDD6C8;
+          border-top: 1px dashed var(--color-stone);
           font-size: 11px;
           color: var(--color-ink-muted);
           flex-wrap: wrap;
         }
-        @media (max-width: 480px) {
-          .pinfo-sticky-bar { padding: 10px 16px; }
-          .pinfo-add-btn, .pinfo-buy-btn { font-size: 10px; }
-          .merchant-card-row { flex-wrap: wrap; }
+        .merchant-card-guarantees span {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+        }
+        .pinfo-perks {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+          padding: 16px 0;
+          border-top: 1px solid var(--color-stone);
+        }
+        .pinfo-perk {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          font-family: var(--font-body);
+          font-size: 12px;
+          color: var(--color-ink-muted);
+        }
+        /* Mobile Sticky Floating Purchase Bar */
+        .pinfo-mobile-sticky-bar {
+          display: none;
+        }
+        @media (max-width: 900px) {
+          .pinfo-mobile-sticky-bar {
+            display: flex;
+            position: fixed;
+            bottom: calc(56px + env(safe-area-inset-bottom, 0px));
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background: rgba(250, 248, 245, 0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-top: 1px solid var(--color-stone);
+            padding: 10px 16px;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
+          }
+          .mobile-bar-summary {
+            display: flex;
+            flex-direction: column;
+          }
+          .mobile-bar-price {
+            font-family: var(--font-display);
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--color-ink);
+          }
+          .mobile-bar-size {
+            font-family: var(--font-ui);
+            font-size: 10px;
+            letter-spacing: 0.05em;
+            color: var(--color-ink-muted);
+          }
+          .mobile-bar-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+          }
+          .mobile-bar-wish {
+            width: 40px;
+            height: 40px;
+            border-radius: 4px;
+            border: 1px solid var(--color-stone);
+            background: #FFFFFF;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--color-ink);
+          }
+          .mobile-bar-add {
+            padding: 10px 16px;
+            background: #141412;
+            color: #FAF7F2;
+            border: none;
+            border-radius: 4px;
+            font-family: var(--font-ui);
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            cursor: pointer;
+          }
+          .mobile-bar-buy {
+            padding: 10px 16px;
+            background: var(--color-accent);
+            color: #141412;
+            border: none;
+            border-radius: 4px;
+            font-family: var(--font-ui);
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            cursor: pointer;
+          }
+        }
+        /* Size Guide Modal */
+        .size-guide-modal-backdrop {
+          position: fixed;
+          inset: 0;
+          z-index: 3000;
+          background: rgba(20, 20, 18, 0.6);
+          backdrop-filter: blur(4px);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 20px;
+        }
+        .size-guide-modal-card {
+          background: #FFFFFF;
+          border-radius: 6px;
+          padding: 24px;
+          max-width: 500px;
+          width: 100%;
+          box-shadow: 0 16px 48px rgba(0,0,0,0.2);
+        }
+        .size-guide-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 12px;
+          padding-bottom: 12px;
+          border-bottom: 1px solid var(--color-stone);
+        }
+        .size-guide-title {
+          font-family: var(--font-ui);
+          font-size: 12px;
+          font-weight: 700;
+          letter-spacing: 0.14em;
+          color: var(--color-ink);
+          margin: 0;
+        }
+        .size-guide-close-btn {
+          background: transparent;
+          border: none;
+          font-size: 16px;
+          color: var(--color-ink-muted);
+          cursor: pointer;
+        }
+        .size-guide-desc {
+          font-family: var(--font-body);
+          font-size: 12px;
+          color: var(--color-ink-muted);
+          margin: 0 0 16px 0;
+          line-height: 1.5;
+        }
+        .size-guide-table-wrap {
+          overflow-x: auto;
+          margin-bottom: 20px;
+        }
+        .size-guide-table {
+          width: 100%;
+          border-collapse: collapse;
+          text-align: center;
+          font-size: 12px;
+        }
+        .size-guide-table th {
+          background: var(--color-surface);
+          padding: 8px;
+          font-family: var(--font-ui);
+          font-weight: 700;
+          letter-spacing: 0.08em;
+          border: 1px solid var(--color-stone);
+        }
+        .size-guide-table td {
+          padding: 8px;
+          border: 1px solid var(--color-stone);
+          font-family: var(--font-body);
+        }
+        .size-guide-footer {
+          text-align: right;
+        }
+        .size-guide-confirm-btn {
+          padding: 8px 24px;
+          background: #141412;
+          color: #FAF7F2;
+          border: none;
+          border-radius: 4px;
+          font-family: var(--font-ui);
+          font-size: 11px;
+          font-weight: 700;
+          letter-spacing: 0.1em;
+          cursor: pointer;
         }
       `}} />
     </>
   );
 }
-

@@ -1,5 +1,8 @@
+'use client';
+
 import React from 'react';
 import Link from 'next/link';
+import { motion, useReducedMotion } from 'framer-motion';
 
 export interface EditorialBannerProps {
   tag?: string;
@@ -11,122 +14,230 @@ export interface EditorialBannerProps {
 }
 
 export default function EditorialBanner({
-  tag = 'THE EDITORIAL',
+  tag = 'COLLECTION N° 04',
   title = 'THE SIGNATURE EDIT',
-  description = 'Effortless silhouettes crafted with quiet confidence.',
-  buttonText = 'EXPLORE COLLECTION →',
+  description = 'Effortless silhouettes crafted with quiet confidence. Merging raw Indian artisanal silks with minimalist architectural tailoring.',
+  buttonText = 'EXPLORE COLLECTION',
   buttonLink = '/category/ethnic-wear',
   imageUrl = '/pdp_hero_1.png',
 }: EditorialBannerProps = {}) {
+  const prefersReducedMotion = useReducedMotion();
   const resolvedBg = imageUrl && !imageUrl.includes('placeholder') ? imageUrl : '/pdp_hero_1.png';
 
   return (
-    <section className="editorial-banner-section">
+    <section className="ed-banner-section">
       <div 
-        className="editorial-banner-bg"
+        className="ed-banner-bg"
         style={{ 
           backgroundImage: `url(${resolvedBg})`,
         }} 
       />
-      <div className="editorial-banner-overlay" />
+      <div className="ed-banner-overlay" />
       
-      <div className="container editorial-banner-content">
-        <span className="editorial-tag">{tag}</span>
-        <h2 className="editorial-title">
-          {title}
-        </h2>
-        <p className="editorial-desc">
-          {description}
-        </p>
-        <div>
-          <Link href={buttonLink} className="editorial-btn">
-            {buttonText.includes('→') ? buttonText : `${buttonText} →`}
-          </Link>
+      {/* Decorative Gold Frame */}
+      <div className="ed-banner-inner">
+        <div className="container">
+          <motion.div
+            className="ed-banner-content"
+            initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+          >
+            {/* Tag Badge */}
+            <div className="ed-badge-row">
+              <span className="ed-sparkle">✦</span>
+              <span className="ed-tag">{tag}</span>
+              <span className="ed-sparkle">✦</span>
+            </div>
+
+            {/* Title with Italic Contrast */}
+            <h2 className="ed-title">
+              {title}
+            </h2>
+
+            {/* Gold Divider */}
+            <div className="ed-gold-divider" />
+
+            {/* Description */}
+            <p className="ed-desc">
+              {description}
+            </p>
+
+            {/* Dual Actions */}
+            <div className="ed-actions">
+              <Link href={buttonLink} className="ed-btn-primary">
+                {buttonText.replace(/→/g, '').trim()} <span className="arrow">→</span>
+              </Link>
+              <Link href="/about" className="ed-btn-secondary">
+                READ THE ATELIER STORY
+              </Link>
+            </div>
+          </motion.div>
         </div>
       </div>
 
-      <style dangerouslySetInnerHTML={{__html: `
-        .editorial-banner-section {
+      <style dangerouslySetInnerHTML={{ __html: `
+        .ed-banner-section {
           position: relative;
           width: 100%;
-          height: 60vh;
-          min-height: 480px;
+          min-height: 420px;
           overflow: hidden;
-          background-color: #1B1B19;
+          background-color: #121210;
+          display: flex;
+          align-items: center;
+          justify-content: center;
         }
-        .editorial-banner-bg {
+        .ed-banner-bg {
           position: absolute;
           inset: 0;
           background-size: cover;
-          background-position: center 25%;
-          filter: contrast(1.02) brightness(0.92);
+          background-position: center 35%;
+          filter: contrast(1.05) brightness(0.78);
+          transform: scale(1.02);
+          transition: transform 2s cubic-bezier(0.16, 1, 0.3, 1);
         }
-        .editorial-banner-overlay {
+        .ed-banner-section:hover .ed-banner-bg {
+          transform: scale(1.05);
+        }
+        .ed-banner-overlay {
           position: absolute;
           inset: 0;
-          background: linear-gradient(
-            to bottom,
-            rgba(27, 27, 25, 0.4) 0%,
-            rgba(27, 27, 25, 0.5) 100%
+          background: radial-gradient(
+            circle at center,
+            rgba(18, 18, 16, 0.5) 0%,
+            rgba(18, 18, 16, 0.82) 80%,
+            rgba(18, 18, 16, 0.95) 100%
           );
         }
-        .editorial-banner-content {
+        .ed-banner-inner {
           position: relative;
-          height: 100%;
+          z-index: 2;
+          width: 100%;
+          padding: clamp(48px, 6vw, 76px) 0;
+        }
+        .ed-banner-content {
+          max-width: 720px;
+          margin: 0 auto;
           display: flex;
           flex-direction: column;
-          justify-content: center;
           align-items: center;
           text-align: center;
-          color: #FAF8F5;
-          z-index: 2;
+          padding: clamp(32px, 5vw, 48px) clamp(24px, 4vw, 40px);
+          background: rgba(20, 20, 18, 0.55);
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+          border: 1px solid rgba(197, 168, 105, 0.35);
+          border-radius: 4px;
+          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
         }
-        .editorial-tag {
-          font-family: var(--font-ui);
-          font-size: 11px;
-          letter-spacing: 0.22em;
-          text-transform: uppercase;
-          color: #B49A68;
-          font-weight: 600;
-          margin-bottom: 12px;
-        }
-        .editorial-title {
-          font-family: var(--font-display);
-          font-size: clamp(36px, 5.5vw, 58px);
-          color: #FAF8F5;
-          font-weight: 400;
-          margin: 0 0 14px 0;
-          letter-spacing: -0.01em;
-        }
-        .editorial-desc {
-          font-family: var(--font-body);
-          color: rgba(245, 241, 232, 0.88);
-          font-size: 15px;
-          letter-spacing: 0.04em;
-          margin-bottom: 32px;
-          max-width: 440px;
-          line-height: 1.6;
-        }
-        .editorial-btn {
+        .ed-badge-row {
           display: inline-flex;
           align-items: center;
           gap: 10px;
-          background: #FAF8F5;
-          color: #1C1C1A;
-          padding: 14px 32px;
+          margin-bottom: 12px;
+        }
+        .ed-sparkle {
+          color: #C5A869;
+          font-size: 11px;
+        }
+        .ed-tag {
+          font-family: var(--font-ui);
+          font-size: 11px;
+          letter-spacing: 0.28em;
+          text-transform: uppercase;
+          color: #C5A869;
+          font-weight: 600;
+        }
+        .ed-title {
+          font-family: var(--font-display);
+          font-size: clamp(32px, 5vw, 52px);
+          color: #FAF7F2;
+          font-weight: 400;
+          margin: 0;
+          letter-spacing: -0.015em;
+          line-height: 1.15;
+        }
+        .ed-gold-divider {
+          width: 48px;
+          height: 1px;
+          background: linear-gradient(90deg, transparent, #C5A869, transparent);
+          margin: 16px 0;
+        }
+        .ed-desc {
+          font-family: var(--font-body);
+          font-size: clamp(14px, 1.8vw, 16px);
+          line-height: 1.7;
+          color: rgba(250, 247, 242, 0.85);
+          margin: 0 0 28px 0;
+          max-width: 580px;
+        }
+        .ed-actions {
+          display: flex;
+          align-items: center;
+          gap: 16px;
+          flex-wrap: wrap;
+          justify-content: center;
+        }
+        .ed-btn-primary {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
           font-family: var(--font-ui);
           font-size: 11px;
           font-weight: 600;
-          letter-spacing: 0.14em;
+          letter-spacing: 0.2em;
           text-transform: uppercase;
+          color: #141412;
+          background: #C5A869;
+          padding: 13px 28px;
+          border-radius: 2px;
           text-decoration: none;
-          transition: all 0.35s ease;
-          border: 1px solid #FAF8F5;
+          transition: all 0.3s ease;
         }
-        .editorial-btn:hover {
+        .ed-btn-primary:hover {
+          background: #DFCA95;
+          transform: translateY(-2px);
+        }
+        .ed-btn-primary .arrow {
+          transition: transform 0.3s ease;
+        }
+        .ed-btn-primary:hover .arrow {
+          transform: translateX(3px);
+        }
+        .ed-btn-secondary {
+          display: inline-flex;
+          align-items: center;
+          font-family: var(--font-ui);
+          font-size: 11px;
+          font-weight: 600;
+          letter-spacing: 0.18em;
+          text-transform: uppercase;
+          color: #FAF7F2;
           background: transparent;
-          color: #FAF8F5;
-          transform: translateY(-1px);
+          border: 1px solid rgba(250, 247, 242, 0.35);
+          padding: 13px 24px;
+          border-radius: 2px;
+          text-decoration: none;
+          transition: all 0.3s ease;
+        }
+        .ed-btn-secondary:hover {
+          border-color: #FAF7F2;
+          background: rgba(255, 255, 255, 0.08);
+          transform: translateY(-2px);
+        }
+        @media (max-width: 600px) {
+          .ed-banner-content {
+            padding: 28px 20px;
+          }
+          .ed-actions {
+            flex-direction: column;
+            width: 100%;
+          }
+          .ed-btn-primary, .ed-btn-secondary {
+            width: 100%;
+            justify-content: center;
+          }
         }
       `}} />
     </section>

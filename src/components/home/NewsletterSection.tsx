@@ -1,8 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import Link from 'next/link';
-import Image from 'next/image';
 
 export interface NewsletterSectionProps {
   headline?: string;
@@ -11,9 +9,9 @@ export interface NewsletterSectionProps {
 }
 
 export default function NewsletterSection({
-  headline = 'SIGN UP & GET 10% OFF',
-  subheadline = 'Be the first to know about new collections, exclusive offers and more.',
-  buttonText = 'SUBSCRIBE',
+  headline = 'JOIN THE ATELIER CIRCLE',
+  subheadline = 'Receive private invitations to seasonal edits, bespoke appointments, and 10% honorarium on your inaugural acquisition.',
+  buttonText = 'REQUEST INVITATION',
 }: NewsletterSectionProps = {}) {
   const [email, setEmail] = useState('');
   const [submitted, setSubmitted] = useState(false);
@@ -22,104 +20,260 @@ export default function NewsletterSection({
     e.preventDefault();
     if (email) {
       setSubmitted(true);
-      // Mock API call
     }
   };
 
   return (
-    <section style={{ width: '100%', display: 'flex', flexDirection: 'row', flexWrap: 'wrap' }}>
-      
-      {/* Left Column: New Arrivals */}
-      <div className="newsletter-panel" style={{ flex: '1 1 300px', backgroundColor: 'var(--black)', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-        <p style={{ fontSize: '10px', fontWeight: 500, letterSpacing: '0.2em', color: 'var(--gold)', textTransform: 'uppercase', marginBottom: '16px' }}>NEW ARRIVALS</p>
-        <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(28px, 3vw, 36px)', color: 'var(--ivory)', marginBottom: '16px', fontWeight: 400 }}>
-          JUST FOR YOU
-        </h2>
-        <p style={{ color: 'var(--warm-grey)', fontSize: '13px', marginBottom: '32px', maxWidth: '240px', lineHeight: 1.6 }}>
-          Be the first to own the latest designs.
-        </p>
-        <Link href="/products?category=new-in" style={{ 
-          fontFamily: 'var(--font-body)', fontSize: '11px', letterSpacing: '0.2em', 
-          fontWeight: 600, color: 'var(--ivory)', borderBottom: '1px solid var(--ivory)', 
-          alignSelf: 'flex-start', paddingBottom: '4px', transition: 'all 0.3s'
-        }} className="hover-gold">
-          SHOP NEW IN →
-        </Link>
-      </div>
+    <section className="atelier-newsletter-section">
+      <div className="container">
+        <div className="newsletter-luxury-card">
+          {/* Subtle Ambient Vignette */}
+          <div className="card-ambient-glow" />
 
-      {/* Middle Column: Logo Plate */}
-      <div className="newsletter-panel logo-panel" style={{ flex: '1 1 300px', backgroundColor: '#0a0a0a', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', borderLeft: '1px solid rgba(255,255,255,0.05)', borderRight: '1px solid rgba(255,255,255,0.05)' }}>
-        <h1 style={{ 
-          fontFamily: 'var(--font-display)', 
-          fontSize: 'clamp(40px, 4vw, 56px)', 
-          color: 'var(--gold)', 
-          letterSpacing: '0.2em',
-          fontWeight: 300,
-          textShadow: '2px 2px 4px rgba(0,0,0,0.5)',
-          marginBottom: '8px'
-        }}>
-          ZEVRO
-        </h1>
-        <p style={{ fontSize: '11px', letterSpacing: '0.4em', color: 'var(--warm-grey)', textTransform: 'uppercase' }}>
-          WEAR TO INSPIRE
-        </p>
-      </div>
+          <div className="newsletter-content">
+            <div className="nl-tag-row">
+              <span className="nl-star">✦</span>
+              <span className="nl-tag">PRIVATE ACCESS</span>
+              <span className="nl-star">✦</span>
+            </div>
 
-      {/* Right Column: Newsletter */}
-      <div className="newsletter-panel" style={{ flex: '1.2 1 350px', backgroundColor: 'var(--beige)', display: 'flex', flexDirection: 'column', justifyContent: 'center', position: 'relative', overflow: 'hidden' }}>
-        <p style={{ fontSize: '10px', fontWeight: 500, letterSpacing: '0.2em', color: 'var(--warm-grey)', textTransform: 'uppercase', marginBottom: '16px' }}>STAY INSPIRED</p>
-        <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(28px, 3vw, 32px)', color: 'var(--espresso)', marginBottom: '16px', fontWeight: 400 }}>
-          {headline}
-        </h2>
-        <p style={{ color: 'var(--espresso)', fontSize: '13px', marginBottom: '32px', maxWidth: '320px', lineHeight: 1.6, opacity: 0.8 }}>
-          {subheadline}
-        </p>
-        
-        {!submitted ? (
-          <form onSubmit={handleSubmit} className="nl-form" style={{ display: 'flex', width: '100%', maxWidth: '400px', position: 'relative', zIndex: 2 }}>
-            <input 
-              type="email" 
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter your email"
-              required
-              style={{
-                flex: 1,
-                padding: '14px 20px',
-                border: 'none',
-                backgroundColor: 'rgba(255,255,255,0.6)',
-                fontFamily: 'var(--font-body)',
-                fontSize: '13px',
-                outline: 'none',
-              }}
-            />
-            <button type="submit" style={{ 
-              backgroundColor: 'var(--black)', color: 'var(--ivory)', 
-              border: 'none', padding: '0 24px', 
-              fontFamily: 'var(--font-body)', fontSize: '11px', letterSpacing: '0.1em', fontWeight: 600,
-              cursor: 'pointer', transition: 'background 0.3s'
-            }} className="btn-hover-gold">
-              SUBSCRIBE
-            </button>
-          </form>
-        ) : (
-          <div style={{ animation: 'fadeUp 0.5s ease', position: 'relative', zIndex: 2 }}>
-            <p style={{ fontSize: '18px', color: 'var(--espresso)', marginBottom: '4px' }}>Welcome! 🎉</p>
-            <p style={{ color: 'var(--espresso)' }}>Your code is: <strong style={{ color: 'var(--black)' }}>FIRST10</strong></p>
+            <h2 className="nl-headline">
+              {headline}
+            </h2>
+
+            <p className="nl-subheadline">
+              {subheadline}
+            </p>
+
+            <div className="nl-benefits-row">
+              <div className="benefit-item">
+                <span className="benefit-dot">✦</span>
+                <span>Runway Previews</span>
+              </div>
+              <div className="benefit-item">
+                <span className="benefit-dot">✦</span>
+                <span>Bespoke Styling Concierge</span>
+              </div>
+              <div className="benefit-item">
+                <span className="benefit-dot">✦</span>
+                <span>10% Welcome Honorarium</span>
+              </div>
+            </div>
+
+            {!submitted ? (
+              <form onSubmit={handleSubmit} className="nl-luxury-form">
+                <div className="nl-input-wrap">
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Enter your privileged email address"
+                    required
+                    className="nl-input"
+                  />
+                  <button type="submit" className="nl-submit-btn">
+                    {buttonText} →
+                  </button>
+                </div>
+                <p className="nl-privacy">
+                  We honor your privacy with utmost discretion. Unsubscribe at any time.
+                </p>
+              </form>
+            ) : (
+              <div className="nl-success-box">
+                <span className="success-icon">✦</span>
+                <p className="success-title">Welcome to the ZEVRO Atelier Circle</p>
+                <p className="success-desc">
+                  Your invitation and inaugural 10% code have been dispatched to <strong>{email}</strong>.
+                </p>
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
 
-      <style dangerouslySetInnerHTML={{__html: `
-        .newsletter-panel { padding: 64px 48px; }
-        .hover-gold:hover { color: var(--gold) !important; border-color: var(--gold) !important; }
-        .btn-hover-gold:hover { background-color: var(--gold) !important; color: var(--black) !important; }
-        @media (max-width: 768px) {
-          .newsletter-panel { padding: 48px 24px; text-align: center; align-items: center; }
-          .logo-panel { padding: 32px 16px; border: none !important; border-top: 1px solid rgba(255,255,255,0.05) !important; border-bottom: 1px solid rgba(255,255,255,0.05) !important; }
-          .nl-form { flex-direction: column; gap: 12px; }
-          .nl-form input { padding: 16px 20px !important; text-align: center; }
-          .nl-form button { padding: 16px 24px !important; width: 100%; }
+      <style dangerouslySetInnerHTML={{ __html: `
+        .atelier-newsletter-section {
+          padding: clamp(48px, 6vw, 76px) 0;
+          background-color: var(--color-bg);
+          position: relative;
+        }
+        .newsletter-luxury-card {
+          position: relative;
+          background: #141412;
+          color: #FAF7F2;
+          border-radius: 4px;
+          border: 1px solid rgba(197, 168, 105, 0.4);
+          overflow: hidden;
+          padding: clamp(40px, 6vw, 68px) clamp(24px, 4vw, 48px);
+          text-align: center;
+          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+        }
+        .card-ambient-glow {
+          position: absolute;
+          inset: 0;
+          background: radial-gradient(
+            circle at 50% 0%,
+            rgba(197, 168, 105, 0.15) 0%,
+            rgba(20, 20, 18, 0.8) 60%,
+            #141412 100%
+          );
+          pointer-events: none;
+        }
+        .newsletter-content {
+          position: relative;
+          z-index: 2;
+          max-width: 680px;
+          margin: 0 auto;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+        }
+        .nl-tag-row {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          margin-bottom: 10px;
+        }
+        .nl-star {
+          color: #C5A869;
+          font-size: 11px;
+        }
+        .nl-tag {
+          font-family: var(--font-ui);
+          font-size: 11px;
+          letter-spacing: 0.28em;
+          text-transform: uppercase;
+          color: #C5A869;
+          font-weight: 600;
+        }
+        .nl-headline {
+          font-family: var(--font-display);
+          font-size: clamp(28px, 4vw, 42px);
+          font-weight: 400;
+          letter-spacing: -0.01em;
+          color: #FAF7F2;
+          margin: 0 0 14px 0;
+          line-height: 1.15;
+        }
+        .nl-subheadline {
+          font-family: var(--font-body);
+          font-size: 14px;
+          line-height: 1.65;
+          color: rgba(250, 247, 242, 0.8);
+          margin-bottom: 24px;
+        }
+        .nl-benefits-row {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 24px;
+          flex-wrap: wrap;
+          margin-bottom: 32px;
+        }
+        .benefit-item {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          font-family: var(--font-ui);
+          font-size: 11px;
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
+          color: #C5A869;
+        }
+        .benefit-dot {
+          font-size: 9px;
+        }
+        .nl-luxury-form {
+          width: 100%;
+          max-width: 540px;
+        }
+        .nl-input-wrap {
+          display: flex;
+          align-items: stretch;
+          background: rgba(255, 255, 255, 0.06);
+          border: 1px solid rgba(197, 168, 105, 0.45);
+          border-radius: 3px;
+          overflow: hidden;
+          transition: border-color 0.3s ease;
+        }
+        .nl-input-wrap:focus-within {
+          border-color: #C5A869;
+          box-shadow: 0 0 16px rgba(197, 168, 105, 0.2);
+        }
+        .nl-input {
+          flex: 1;
+          padding: 16px 20px;
+          background: transparent;
+          border: none;
+          color: #FAF7F2;
+          font-family: var(--font-body);
+          font-size: 13px;
+          outline: none;
+        }
+        .nl-input::placeholder {
+          color: rgba(250, 247, 242, 0.45);
+        }
+        .nl-submit-btn {
+          background: #C5A869;
+          color: #141412;
+          border: none;
+          padding: 0 24px;
+          font-family: var(--font-ui);
+          font-size: 11px;
+          font-weight: 700;
+          letter-spacing: 0.18em;
+          text-transform: uppercase;
+          cursor: pointer;
+          white-space: nowrap;
+          transition: background 0.3s ease;
+        }
+        .nl-submit-btn:hover {
+          background: #DFCA95;
+        }
+        .nl-privacy {
+          font-family: var(--font-body);
+          font-size: 11px;
+          color: rgba(250, 247, 242, 0.5);
+          margin-top: 12px;
+        }
+        .nl-success-box {
+          background: rgba(197, 168, 105, 0.12);
+          border: 1px solid #C5A869;
+          padding: 24px 32px;
+          border-radius: 4px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 6px;
+        }
+        .success-icon {
+          color: #C5A869;
+          font-size: 20px;
+        }
+        .success-title {
+          font-family: var(--font-display);
+          font-size: 20px;
+          color: #FAF7F2;
+          margin: 0;
+        }
+        .success-desc {
+          font-family: var(--font-body);
+          font-size: 13px;
+          color: rgba(250, 247, 242, 0.85);
+          margin: 0;
+        }
+        @media (max-width: 640px) {
+          .nl-input-wrap {
+            flex-direction: column;
+          }
+          .nl-submit-btn {
+            padding: 14px 20px;
+          }
+          .nl-benefits-row {
+            gap: 12px;
+            flex-direction: column;
+          }
         }
       `}} />
     </section>

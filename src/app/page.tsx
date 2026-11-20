@@ -1,7 +1,12 @@
 import React from 'react';
 import HeroSection from '../components/home/HeroSection';
+import CategoryIconsStrip from '../components/home/CategoryIconsStrip';
+import FlashDealsTicker from '../components/home/FlashDealsTicker';
+import EditorialMarquee from '../components/home/EditorialMarquee';
 import TrustBar from '../components/home/TrustBar';
 import CategoryGrid from '../components/home/CategoryGrid';
+import FabricShowcase from '../components/home/FabricShowcase';
+import PromoSpotlight from '../components/home/PromoSpotlight';
 import FeaturedProducts from '../components/home/FeaturedProducts';
 import EditorialBanner from '../components/home/EditorialBanner';
 import BestsellerSlider from '../components/home/BestsellerSlider';
@@ -34,6 +39,20 @@ const DynamicBlock = ({ block }: { block: any }) => {
         />
       );
 
+    case 'marquee':
+      return <EditorialMarquee />;
+
+    case 'category-icons':
+    case 'category-strip':
+      return <CategoryIconsStrip />;
+
+    case 'flash-ticker':
+    case 'flash-deals':
+      return <FlashDealsTicker />;
+
+    case 'promo-spotlight':
+      return <PromoSpotlight />;
+
     case 'category-grid':
       return (
         <CategoryGrid
@@ -41,6 +60,10 @@ const DynamicBlock = ({ block }: { block: any }) => {
           subtitle={props.subtitle}
         />
       );
+
+    case 'fabric-showcase':
+    case 'craft':
+      return <FabricShowcase />;
 
     case 'trust-bar':
       return (
@@ -99,11 +122,11 @@ const DynamicBlock = ({ block }: { block: any }) => {
       return (
         <section
           style={{
-            padding: '64px 24px',
-            backgroundColor: 'var(--color-bg, #F5F1E8)',
+            padding: '48px 24px',
+            backgroundColor: 'var(--color-bg, #FAF7F2)',
             textAlign: props.align || 'center',
-            borderTop: '1px solid var(--color-stone, #E8E2D6)',
-            borderBottom: '1px solid var(--color-stone, #E8E2D6)',
+            borderTop: '1px solid var(--color-stone, #DFD8CC)',
+            borderBottom: '1px solid var(--color-stone, #DFD8CC)',
           }}
         >
           <div style={{ maxWidth: '840px', margin: '0 auto' }}>
@@ -111,7 +134,7 @@ const DynamicBlock = ({ block }: { block: any }) => {
               style={{
                 fontFamily: 'var(--font-display, serif)',
                 fontSize: props.fontSize || '22px',
-                color: 'var(--color-ink, #1C1C1A)',
+                color: 'var(--color-ink, #141412)',
                 lineHeight: 1.65,
                 fontStyle: 'italic',
                 letterSpacing: '0.02em',
@@ -125,7 +148,7 @@ const DynamicBlock = ({ block }: { block: any }) => {
       );
 
     case 'spacer':
-      return <div style={{ height: `${props.height || 50}px` }} />;
+      return <div style={{ height: `${props.height || 40}px` }} />;
 
     default:
       return null;
@@ -152,15 +175,23 @@ export default async function Home() {
     );
   }
 
-  // Fallback to the signature luxury static layout if no dynamic layout exists
+  // Signature luxury high-fashion editorial flow — seamless, zero dead white space
   return (
-    <>
+    <div className="storefront-page" style={{ width: '100%', overflowX: 'hidden' }}>
       <HeroSection />
+      <CategoryIconsStrip />
+      <FlashDealsTicker />
       <CategoryGrid />
       <FeaturedProducts />
+      <PromoSpotlight />
+      <BestsellerSlider />
+      <FabricShowcase />
       <EditorialBanner />
+      <LookbookStrip />
       <BrandStory />
+      <Testimonials />
+      <NewsletterSection />
       <TrustBar />
-    </>
+    </div>
   );
 }

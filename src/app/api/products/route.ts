@@ -19,64 +19,103 @@ export async function GET(request: Request) {
     const maxPrice = searchParams.get('maxPrice');
     const sizes = searchParams.get('sizes');
     const colors = searchParams.get('colors');
+    const fabrics = searchParams.get('fabrics') || searchParams.get('fabric');
+    const occasions = searchParams.get('occasions') || searchParams.get('occasion');
     const paginateParam = searchParams.get('paginate');
     
     const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
     const limit = Math.max(1, Math.min(100, parseInt(searchParams.get('limit') || '16', 10)));
     const skip = (page - 1) * limit;
     
-    const query: any = {};
+    const conditions: any[] = [];
 
     if (!admin) {
-      query.isActive = true;
-      query.status = { $ne: 'ARCHIVED' };
+      conditions.push({ isActive: true, status: { $ne: 'ARCHIVED' } });
     } else if (status) {
-      query.status = status;
+      conditions.push({ status });
     }
 
     if (category && category !== 'all') {
       if (category === 'new-in') {
-        query.$or = [{ isNewArrival: true }, { category: 'new-in' }];
+        conditions.push({ $or: [{ isNewArrival: true }, { category: 'new-in' }] });
       } else {
-        query.category = category;
+        conditions.push({ category });
       }
     }
     
     if (subcategory) {
-      query.subcategory = { $regex: new RegExp(`^${subcategory}$`, 'i') };
+      conditions.push({ subcategory: { $regex: new RegExp(`^${subcategory}$`, 'i') } });
     }
 
     if (collection) {
-      query.collections = collection;
+      conditions.push({ collections: collection });
     }
     
-    if (minPrice || maxPrice) {
-      query.price = {};
-      if (minPrice && Number(minPrice) > 0) query.price.$gte = Number(minPrice) * 100;
-      if (maxPrice && Number(maxPrice) < 50000) query.price.$lte = Number(maxPrice) * 100;
+    // Price range filtering (in INR paise: 1 INR = 100 paise)
+    const priceFilter: any = {};
+    if (minPrice && !isNaN(Number(minPrice)) && Number(minPrice) > 0) {
+      priceFilter.$gte = Number(minPrice) * 100;
+    }
+    if (maxPrice && !isNaN(Number(maxPrice)) && Number(maxPrice) > 0 && Number(maxPrice) < 100000) {
+      priceFilter.$lte = Number(maxPrice) * 100;
+    }
+    if (Object.keys(priceFilter).length > 0) {
+      conditions.push({ price: priceFilter });
     }
 
     if (sizes) {
       const sizeArr = sizes.split(',').map(s => s.trim()).filter(Boolean);
       if (sizeArr.length > 0) {
-        query['variants.sizes.size'] = { $in: sizeArr };
+        conditions.push({
+          'variants.sizes.size': { $in: sizeArr.map(s => new RegExp(`^${s}$`, 'i')) }
+        });
       }
     }
 
     if (colors) {
       const colorArr = colors.split(',').map(c => c.trim()).filter(Boolean);
       if (colorArr.length > 0) {
-        query['variants.colorName'] = { $in: colorArr };
+        const colorPatterns: RegExp[] = [];
+        colorArr.forEach(c => {
+          const lower = c.toLowerCase();
+          if (lower === 'black') colorPatterns.push(/black|onyx|noir/i);
+          else if (lower === 'blue') colorPatterns.push(/blue|navy|indigo|sapphire|midnight/i);
+          else if (lower === 'green') colorPatterns.push(/green|emerald|olive|sage|mint/i);
+          else if (lower === 'red') colorPatterns.push(/red|crimson|maroon|ruby|burgundy/i);
+          else if (lower === 'pink') colorPatterns.push(/pink|rose|blush|magenta|fuchsia|dust/i);
+          else if (lower === 'gold') colorPatterns.push(/gold|zari|metallic|brass/i);
+          else if (lower === 'ivory' || lower === 'white') colorPatterns.push(/ivory|white|pearl|cream|champagne/i);
+          else colorPatterns.push(new RegExp(c, 'i'));
+        });
+        conditions.push({ 'variants.colorName': { $in: colorPatterns } });
+      }
+    }
+
+    if (fabrics) {
+      const fabricArr = fabrics.split(',').map(f => f.trim()).filter(Boolean);
+      if (fabricArr.length > 0) {
+        conditions.push({ fabric: { $in: fabricArr.map(f => new RegExp(f, 'i')) } });
+      }
+    }
+
+    if (occasions) {
+      const occasionArr = occasions.split(',').map(o => o.trim()).filter(Boolean);
+      if (occasionArr.length > 0) {
+        conditions.push({ occasion: { $in: occasionArr.map(o => new RegExp(o, 'i')) } });
       }
     }
     
     if (q) {
-      query.$or = [
-        { name: { $regex: q, $options: 'i' } },
-        { description: { $regex: q, $options: 'i' } },
-        { slug: { $regex: q, $options: 'i' } }
-      ];
+      conditions.push({
+        $or: [
+          { name: { $regex: q, $options: 'i' } },
+          { description: { $regex: q, $options: 'i' } },
+          { slug: { $regex: q, $options: 'i' } }
+        ]
+      });
     }
+    
+    const query = conditions.length > 0 ? { $and: conditions } : {};
     
     let sortQuery: any = { createdAt: -1 };
     if (sort === 'price_asc') sortQuery = { price: 1 };

@@ -80,21 +80,9 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Col 5: Partner With Us (Amazon Seller Model) */}
-          <div className="footer-col">
-            <h4 className="footer-col-header newsletter-gold">PARTNER WITH US</h4>
-            <ul className="footer-links">
-              <li>
-                <Link href="/seller/register" style={{ color: '#B49A68', fontWeight: 600 }}>
-                  Sell on Zevro ↗
-                </Link>
-              </li>
-              <li><Link href="/seller/login">Seller Central Login</Link></li>
-              <li><Link href="/seller">Seller Dashboard</Link></li>
-            </ul>
-          </div>
+          {/* Col 5: Partner With Us (Hidden for single-brand deployment - code preserved) */}
 
-          {/* Col 6: Newsletter & Follow (Fills right side) */}
+          {/* Col 5: Newsletter & Follow (Fills right side) */}
           <div className="footer-col footer-col-newsletter">
             <h4 className="footer-col-header newsletter-gold">JOIN OUR WORLD</h4>
             <p className="footer-newsletter-sub">
@@ -164,7 +152,7 @@ export default function Footer() {
         }
         .footer-grid {
           display: grid;
-          grid-template-columns: 1.2fr 0.9fr 1fr 0.9fr 1.1fr 1.5fr;
+          grid-template-columns: 1.4fr 1fr 1.1fr 1fr 1.6fr;
           gap: 32px;
           margin-bottom: 36px;
           width: 100%;

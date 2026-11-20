@@ -220,7 +220,6 @@ export default function MobileMenu() {
           <Link href="/faq" onClick={close}>FAQ & Help</Link>
           <Link href="/size-guide" onClick={close}>Size Guide</Link>
           <Link href="/returns" onClick={close}>Returns & Exchange</Link>
-          <Link href="/seller" onClick={close} style={{ color: '#B49A68', fontWeight: 600 }}>Seller Hub ↗</Link>
           <Link href="/contact" onClick={close}>Contact Us</Link>
           <Link href="/about" onClick={close}>Our Story</Link>
         </div>

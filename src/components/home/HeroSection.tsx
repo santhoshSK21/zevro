@@ -125,42 +125,44 @@ export default function HeroSection({
           <motion.div
             className="hero-actions"
             variants={{
-              hidden: { opacity: 0, y: 20 },
+              hidden: { opacity: 0, y: 16 },
               visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } }
             }}
           >
             <Link href={buttonLink} className="hero-btn-primary">
-              {buttonText}
+              <span>{buttonText}</span>
+              <span className="btn-arrow">→</span>
             </Link>
-            <Link href="/category/ethnic-wear" className="hero-btn-secondary">
-              EXPLORE EDITORIAL
+            <Link href="/category/new-in" className="hero-btn-secondary">
+              <span>NEW IN DROP</span>
             </Link>
+          </motion.div>
+
+          {/* Quick Category Discovery Chips directly in Hero */}
+          <motion.div
+            className="hero-quick-chips hide-mobile"
+            variants={{
+              hidden: { opacity: 0, y: 10 },
+              visible: { opacity: 1, y: 0, transition: { duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] } }
+            }}
+          >
+            <span className="chips-label">DEPARTMENTS:</span>
+            <div className="chips-list">
+              <Link href="/category/western-wear" className="hero-chip">Western Wear</Link>
+              <Link href="/category/ethnic-wear" className="hero-chip">Ethnic Wear</Link>
+              <Link href="/category/indo-western" className="hero-chip">Indo-Western</Link>
+              <Link href="/category/accessories" className="hero-chip">Accessories</Link>
+            </div>
           </motion.div>
         </motion.div>
       </div>
-
-      {/* Centered Jumping Scroll Indicator */}
-      <motion.div
-        className="scroll-indicator-center"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.9, duration: 1 }}
-        onClick={() => {
-          window.scrollTo({ top: window.innerHeight - 80, behavior: 'smooth' });
-        }}
-      >
-        <div className="scroll-pill">
-          <div className="scroll-dot"></div>
-        </div>
-        <span className="scroll-text">EXPLORE</span>
-      </motion.div>
 
       <style dangerouslySetInnerHTML={{
         __html: `
         .hero-editorial {
           position: relative;
-          height: 100svh;
-          min-height: 720px;
+          height: clamp(480px, 60vh, 580px);
+          min-height: 440px;
           width: 100%;
           background-color: #121210;
           overflow: hidden;
@@ -340,6 +342,47 @@ export default function HeroSection({
           box-shadow: 0 10px 30px rgba(0,0,0,0.3);
         }
 
+        .hero-quick-chips {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          margin-top: 24px;
+        }
+
+        .chips-label {
+          font-family: var(--font-ui);
+          font-size: 10px;
+          font-weight: 700;
+          letter-spacing: 0.14em;
+          color: rgba(250, 248, 245, 0.6);
+        }
+
+        .chips-list {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          flex-wrap: wrap;
+        }
+
+        .hero-chip {
+          background: rgba(255, 255, 255, 0.12);
+          backdrop-filter: blur(8px);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          border-radius: var(--radius-full);
+          padding: 5px 14px;
+          font-size: 11px;
+          font-weight: 600;
+          color: #FAF8F5;
+          text-decoration: none;
+          transition: all 0.2s ease;
+        }
+
+        .hero-chip:hover {
+          background: #FFFFFF;
+          color: #121210;
+          transform: translateY(-1px);
+        }
+
         /* Centered Jumping Scroll Indicator */
         .scroll-indicator-center {
           position: absolute;
@@ -401,9 +444,13 @@ export default function HeroSection({
         }
 
         @media (max-width: 768px) {
+          .hero-editorial {
+            min-height: 560px;
+            height: 100svh;
+          }
           .hero-center-container {
             padding: 0 16px;
-            margin-top: 0;
+            margin-top: -10px;
           }
           .hero-pill-badge {
             padding: 6px 14px;
@@ -411,27 +458,31 @@ export default function HeroSection({
             letter-spacing: 0.2em;
           }
           .headline-top {
-            font-size: 2rem;
-            letter-spacing: 0.18em;
+            font-size: clamp(1.8rem, 6vw, 2.4rem);
+            letter-spacing: 0.16em;
           }
           .headline-accent {
-            font-size: 3rem;
+            font-size: clamp(2.6rem, 9vw, 3.8rem);
           }
           .hero-body {
-            font-size: 0.9rem;
-            margin-bottom: 28px;
+            font-size: 0.88rem;
+            margin-bottom: 24px;
+            line-height: 1.5;
+            padding: 0 8px;
           }
           .hero-actions {
             flex-direction: column;
             width: 100%;
-            gap: 12px;
+            max-width: 340px;
+            gap: 10px;
           }
           .hero-btn-primary, .hero-btn-secondary {
             width: 100%;
-            padding: 14px 20px;
+            padding: 13px 20px;
+            font-size: 10px;
           }
           .scroll-indicator-center {
-            bottom: 16px;
+            bottom: 12px;
           }
         }
       `}} />

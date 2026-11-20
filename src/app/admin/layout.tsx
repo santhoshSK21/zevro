@@ -19,7 +19,9 @@ import {
   X, 
   Shield, 
   Sparkles,
-  ChevronRight
+  ChevronRight,
+  RotateCcw,
+  Boxes
 } from 'lucide-react';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -276,10 +278,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const navItems = [
     { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
     { href: '/admin/orders', label: 'Orders', icon: ShoppingBag },
+    { href: '/admin/returns', label: 'Return Management', icon: RotateCcw },
+    { href: '/admin/inventory', label: 'Inventory Intelligence', icon: Boxes },
     { href: '/admin/products', label: 'Products', icon: Shirt },
     { href: '/admin/categories', label: 'Categories', icon: FolderTree },
     { href: '/admin/customers', label: 'Customers', icon: Users },
-    { href: '/admin/sellers', label: 'Sellers & Brands', icon: Store },
+    // { href: '/admin/sellers', label: 'Sellers & Brands', icon: Store }, // Hidden for single-brand client deployment
     { href: '/admin/reports', label: 'Financial Reports', icon: TrendingUp },
     { href: '/admin/theme', label: 'Theme & Styling', icon: Palette },
     { href: '/admin/builder', label: 'Store Builder', icon: Layers },

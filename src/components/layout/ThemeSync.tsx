@@ -52,12 +52,19 @@ export function applyThemeToDocument(theme: any) {
   if (colors.bg && (colors.bg.toLowerCase().startsWith('#1') || colors.bg.toLowerCase().startsWith('#0'))) {
     root.style.setProperty('--color-white', '#1E1E1C');
   } else {
-    root.style.setProperty('--color-white', '#FAF8F5');
+    root.style.setProperty('--color-white', '#FFFFFF');
   }
 
-  // Font Display
+  // Typography Dynamic Sync
   if (theme.fontDisplay) {
     root.style.setProperty('--font-display', theme.fontDisplay);
+    root.style.setProperty('--theme-font-display', theme.fontDisplay);
+  }
+  if (theme.fontBody) {
+    root.style.setProperty('--font-body', theme.fontBody);
+    root.style.setProperty('--font-ui', theme.fontBody);
+    root.style.setProperty('--theme-font-body', theme.fontBody);
+    root.style.setProperty('--theme-font-ui', theme.fontBody);
   }
 }
 

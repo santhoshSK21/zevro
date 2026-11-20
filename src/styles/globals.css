@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&family=Cinzel:wght@400;600;700;800&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
 @import './variables.css';
 
 /* ============================================================
@@ -45,13 +46,77 @@ input, textarea, select { font-family: inherit; }
   padding-inline: var(--container-gutter);
 }
 
-.section { padding: var(--space-20) 0; }
-.section-sm { padding: var(--space-12) 0; }
-.section-lg { padding: var(--space-24) 0; }
+.section { padding: clamp(20px, 3vw, 36px) 0; }
+.section-sm { padding: clamp(14px, 2vw, 24px) 0; }
+.section-lg { padding: clamp(32px, 4vw, 48px) 0; }
 
 .bg-primary { background-color: var(--color-bg); }
 .bg-surface { background-color: var(--color-surface); }
 .bg-dark { background-color: var(--color-dark); color: var(--color-bg); }
+
+/* ─── MODERN E-COMMERCE UTILITIES ─── */
+.badge-gold {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(197, 168, 105, 0.15);
+  color: #8A6E32;
+  border: 1px solid rgba(197, 168, 105, 0.35);
+  padding: 3px 8px;
+  border-radius: var(--radius-xs);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.badge-discount-tag {
+  display: inline-flex;
+  align-items: center;
+  background: #166534;
+  color: #FFFFFF;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  padding: 2px 7px;
+  border-radius: var(--radius-xs);
+  text-transform: uppercase;
+}
+
+.badge-rating-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  background: #1C1C1A;
+  color: #FFFFFF;
+  padding: 2px 6px;
+  border-radius: var(--radius-xs);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.price-selling {
+  font-family: var(--font-body);
+  font-weight: 700;
+  color: var(--color-ink);
+  letter-spacing: -0.01em;
+}
+
+.price-original {
+  text-decoration: line-through;
+  color: var(--color-ink-muted);
+  font-size: 0.85em;
+  font-weight: 400;
+}
+
+.stock-tag-low {
+  font-size: 11px;
+  color: #B45309;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
 
 /* ─── TYPOGRAPHY UTILITIES ─── */
 .label-caps {
@@ -61,6 +126,12 @@ input, textarea, select { font-family: inherit; }
   letter-spacing: var(--tracking-widest);
   text-transform: uppercase;
   color: var(--color-ink-muted);
+}
+
+.serif-italic {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 400;
 }
 
 h1, h2, h3, h4, h5, h6, .display-serif, .font-display, .heading-serif {
@@ -76,27 +147,47 @@ h1, h2, h3, h4, h5, h6, .display-serif, .font-display, .heading-serif {
 
 .section-title {
   font-family: var(--font-display);
-  font-size: clamp(2rem, 3.5vw, 3.2rem);
+  font-size: clamp(2.2rem, 4vw, 3.4rem);
   font-weight: 400;
-  line-height: 1.15;
-  letter-spacing: -0.01em;
+  line-height: 1.12;
+  letter-spacing: -0.015em;
   color: var(--color-ink);
 }
 
 .section-subtitle {
   font-family: var(--font-body);
-  font-size: 13px;
+  font-size: 14px;
   color: var(--color-ink-muted);
-  letter-spacing: 0.04em;
-  margin-top: 6px;
+  letter-spacing: 0.03em;
+  margin-top: 8px;
+  line-height: 1.6;
+}
+
+.editorial-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-accent, var(--font-ui));
+  font-size: 10px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--color-accent);
+  margin-bottom: 8px;
+}
+
+.font-accent {
+  font-family: var(--font-accent);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
 }
 
 /* ─── SUBTLE LUXURY ACCENTS & RULES ─── */
 .gold-rule {
-  width: 32px;
+  width: 36px;
   height: 1px;
   background-color: var(--color-accent);
-  margin-top: 10px;
+  margin-top: 12px;
 }
 
 .divider {

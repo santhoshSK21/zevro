@@ -1,5 +1,28 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
+export type ReturnStatus =
+  | 'REQUESTED'
+  | 'APPROVED'
+  | 'REJECTED'
+  | 'PICKUP_SCHEDULED'
+  | 'IN_TRANSIT'
+  | 'RECEIVED'
+  | 'INSPECTION_PENDING'
+  | 'REFUND_PENDING'
+  | 'REFUNDED'
+  | 'REPLACEMENT_PROCESSING'
+  | 'COMPLETED';
+
+export type ReturnCondition = 'SELLABLE' | 'DAMAGED' | 'DEFECTIVE' | 'QUARANTINE';
+
+export interface IReturnAudit {
+  status: ReturnStatus;
+  action: string;
+  performedBy: string;
+  notes?: string;
+  timestamp: Date;
+}
+
 export interface IReturnRequest extends Document {
   orderId: mongoose.Types.ObjectId;
   orderNumber: string;
@@ -22,6 +45,7 @@ export interface IReturnRequest extends Document {
   };
 
   type: 'RETURN' | 'EXCHANGE';
+  resolutionType: 'REFUND' | 'REPLACEMENT';
   reason: string;
   details?: string;
   photos: string[];
@@ -31,17 +55,7 @@ export interface IReturnRequest extends Document {
     color?: string;
   };
 
-  status:
-    | 'REQUESTED'
-    | 'APPROVED'
-    | 'REJECTED'
-    | 'PICKUP_SCHEDULED'
-    | 'IN_TRANSIT'
-    | 'RECEIVED'
-    | 'REFUNDED'
-    | 'EXCHANGE_SHIPPED'
-    | 'COMPLETED';
-
+  status: ReturnStatus;
   rejectionReason?: string;
 
   reverseCourier?: {
@@ -49,6 +63,16 @@ export interface IReturnRequest extends Document {
     trackingNumber?: string;
     trackingUrl?: string;
     scheduledPickupDate?: Date;
+    actualPickupDate?: Date;
+    receivedDate?: Date;
+  };
+
+  inspection?: {
+    condition?: ReturnCondition;
+    inspectedBy?: string;
+    inspectedAt?: Date;
+    notes?: string;
+    inventoryAction?: 'RESTOCKED_TO_SELLABLE' | 'SCRAPPED_DAMAGED' | 'HELD_IN_QUARANTINE' | 'NONE';
   };
 
   inventoryRestocked: boolean;
@@ -56,11 +80,24 @@ export interface IReturnRequest extends Document {
 
   refund?: {
     amount: number; // in paise
-    status: 'pending' | 'processed';
+    status: 'pending' | 'processed' | 'failed';
+    method?: string; // 'razorpay' | 'original_source' | 'store_credit' | 'bank_transfer'
     transactionId?: string;
     refundedAt?: Date;
   };
 
+  replacement?: {
+    size?: string;
+    color?: string;
+    courierName?: string;
+    trackingNumber?: string;
+    trackingUrl?: string;
+    status?: 'PENDING' | 'DISPATCHED' | 'DELIVERED';
+    dispatchedAt?: Date;
+    deliveredAt?: Date;
+  };
+
+  auditLog?: IReturnAudit[];
   slaDeadline: Date;
   createdAt: Date;
   updatedAt: Date;
@@ -89,6 +126,7 @@ const ReturnRequestSchema = new Schema<IReturnRequest>(
     },
 
     type: { type: String, enum: ['RETURN', 'EXCHANGE'], default: 'RETURN' },
+    resolutionType: { type: String, enum: ['REFUND', 'REPLACEMENT'], default: 'REFUND' },
     reason: { type: String, required: true },
     details: { type: String, default: '' },
     photos: [{ type: String }],
@@ -107,8 +145,10 @@ const ReturnRequestSchema = new Schema<IReturnRequest>(
         'PICKUP_SCHEDULED',
         'IN_TRANSIT',
         'RECEIVED',
+        'INSPECTION_PENDING',
+        'REFUND_PENDING',
         'REFUNDED',
-        'EXCHANGE_SHIPPED',
+        'REPLACEMENT_PROCESSING',
         'COMPLETED',
       ],
       default: 'REQUESTED',
@@ -122,6 +162,22 @@ const ReturnRequestSchema = new Schema<IReturnRequest>(
       trackingNumber: String,
       trackingUrl: String,
       scheduledPickupDate: Date,
+      actualPickupDate: Date,
+      receivedDate: Date,
+    },
+
+    inspection: {
+      condition: {
+        type: String,
+        enum: ['SELLABLE', 'DAMAGED', 'DEFECTIVE', 'QUARANTINE'],
+      },
+      inspectedBy: String,
+      inspectedAt: Date,
+      notes: String,
+      inventoryAction: {
+        type: String,
+        enum: ['RESTOCKED_TO_SELLABLE', 'SCRAPPED_DAMAGED', 'HELD_IN_QUARANTINE', 'NONE'],
+      },
     },
 
     inventoryRestocked: { type: Boolean, default: false },
@@ -129,10 +185,32 @@ const ReturnRequestSchema = new Schema<IReturnRequest>(
 
     refund: {
       amount: { type: Number, default: 0 },
-      status: { type: String, enum: ['pending', 'processed'], default: 'pending' },
+      status: { type: String, enum: ['pending', 'processed', 'failed'], default: 'pending' },
+      method: { type: String, default: 'original_source' },
       transactionId: String,
       refundedAt: Date,
     },
+
+    replacement: {
+      size: String,
+      color: String,
+      courierName: String,
+      trackingNumber: String,
+      trackingUrl: String,
+      status: { type: String, enum: ['PENDING', 'DISPATCHED', 'DELIVERED'], default: 'PENDING' },
+      dispatchedAt: Date,
+      deliveredAt: Date,
+    },
+
+    auditLog: [
+      {
+        status: { type: String, required: true },
+        action: { type: String, required: true },
+        performedBy: { type: String, default: 'System' },
+        notes: String,
+        timestamp: { type: Date, default: Date.now },
+      },
+    ],
 
     slaDeadline: {
       type: Date,
@@ -144,10 +222,14 @@ const ReturnRequestSchema = new Schema<IReturnRequest>(
 
 ReturnRequestSchema.index({ sellerId: 1, status: 1 });
 ReturnRequestSchema.index({ userId: 1, orderId: 1 });
+ReturnRequestSchema.index({ createdAt: -1 });
 
-const ReturnRequest =
-  mongoose.models.ReturnRequest ||
-  mongoose.model<IReturnRequest>('ReturnRequest', ReturnRequestSchema);
+// Avoid schema caching in hot reloads
+if (mongoose.models.ReturnRequest) {
+  delete mongoose.models.ReturnRequest;
+}
+
+const ReturnRequest = mongoose.model<IReturnRequest>('ReturnRequest', ReturnRequestSchema);
 
 export { ReturnRequest };
 export default ReturnRequest;

@@ -4,23 +4,28 @@
    ============================================================ */
 
 :root {
-  /* LUXURY COLOR PALETTE */
-  --color-bg:          #F5F1E8; /* Primary Background: Warm Ivory */
-  --color-surface:     #EAE4D8; /* Secondary Background: Soft Sand/Cream */
-  --color-ink:         #1C1C1A; /* Main Text: Deep Charcoal */
-  --color-ink-muted:   #68645C; /* Secondary Text: Soft Taupe Charcoal */
-  --color-stone:       #DDD6C8; /* Subtle Hairline Border */
-  --color-stone-light: #E8E2D5;
-  --color-accent:      #B49A68; /* Luxury Accent: Muted Champagne / Antique Gold */
-  --color-dark:        #1B1B19; /* Dark Luxury Background */
-  --color-dark-surface:#262622;
-  --color-white:       #FAF8F5; /* Soft Off-White for High Contrast */
-  --color-error:       #9E2A2B;
+  /* LUXURY COLOR PALETTE - CRISP, HIGH-CONTRAST, MODERN E-COMMERCE */
+  --color-bg:          #FFFFFF; /* Primary Background: Crisp High-Contrast Pure White */
+  --color-surface:     #F8F9FA; /* Secondary Surface: Sophisticated Ultra-Clean Porcelain */
+  --color-surface-hover: #F1F3F5;
+  --color-ink:         #111827; /* Main Text: Deep Obsidian Charcoal */
+  --color-ink-muted:   #595F69; /* Secondary Text: Refined Neutral Slate */
+  --color-stone:       #E5E7EB; /* Subtle Hairline Border: Razor-Clean Silver Hairline */
+  --color-stone-light: #F3F4F6;
+  --color-accent:      #C5A869; /* Luxury Accent: Burnished Champagne Gold */
+  --color-accent-hover:#A88B4E;
+  --color-accent-light:#FAF5EA;
+  --color-accent-glow: rgba(197, 168, 105, 0.16);
+  --color-dark:        #111827; /* Dark Luxury Contrast */
+  --color-dark-surface:#1F2937;
+  --color-white:       #FFFFFF; /* Pure White */
+  --color-error:       #DC2626;
 
-  /* TYPOGRAPHY */
-  --font-display:      var(--font-display), 'Playfair Display', Georgia, serif;
-  --font-body:         var(--font-body), 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-ui:           var(--font-body), 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  /* TYPOGRAPHY - HAUTE COUTURE LUXURY SYSTEM */
+  --font-display:      var(--theme-font-display, 'Cormorant Garamond'), 'Bodoni Moda', 'Playfair Display', Didot, 'Cinzel', Georgia, serif;
+  --font-body:         var(--theme-font-body, 'Plus Jakarta Sans'), 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-ui:           var(--theme-font-ui, 'Plus Jakarta Sans'), 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-accent:       'Cinzel', 'Cormorant Garamond', Georgia, serif;
 
   --text-xs:    0.6875rem;   /* 11px */
   --text-sm:    0.8125rem;   /* 13px */
@@ -33,46 +38,59 @@
   --text-4xl:   4.5rem;      /* 72px */
   --text-hero:  clamp(3.5rem, 8vw, 6.5rem);
 
-  --leading-tight:   1.1;
-  --leading-normal:  1.6;
-  --leading-loose:   1.8;
-  --tracking-tight:  -0.02em;
+  --leading-tight:   1.08;
+  --leading-normal:  1.55;
+  --leading-loose:   1.75;
+  --tracking-tight:  -0.025em;
   --tracking-normal: 0em;
   --tracking-wide:   0.05em;
   --tracking-wider:  0.08em;
-  --tracking-widest: 0.15em;
+  --tracking-widest: 0.22em;
 
-  /* SPACING */
+  /* SPACING - OPTIMIZED FOR MARKETPLACE DENSITY WITHOUT DEAD WHITE SPACE */
   --space-1:   0.25rem;
   --space-2:   0.5rem;
   --space-3:   0.75rem;
   --space-4:   1rem;
+  --space-5:   1.25rem;
   --space-6:   1.5rem;
   --space-8:   2rem;
-  --space-12:  3rem;
-  --space-16:  4rem;
-  --space-20:  5rem;
-  --space-24:  6rem;
-  --space-32:  8rem;
+  --space-10:  2.25rem;
+  --space-12:  2.5rem;
+  --space-16:  2.5rem;
+  --space-20:  clamp(1.75rem, 3vw, 2.5rem);
+  --space-24:  clamp(2.25rem, 3.5vw, 3rem);
+  --space-32:  clamp(2.75rem, 4vw, 3.75rem);
 
-  /* LAYOUT */
-  --container-max:   1480px;
-  --container-gutter: clamp(1.25rem, 4vw, 3.5rem);
-  --grid-gap:        24px;
+  /* LAYOUT - EFFICIENT SCREEN UTILIZATION */
+  --container-max:   1400px;
+  --container-gutter: clamp(1rem, 2.5vw, 2rem);
+  --grid-gap:        20px;
 
   /* MOTION */
   --ease-luxury:     cubic-bezier(0.16, 1, 0.3, 1);
   --ease-smooth:     cubic-bezier(0.25, 0.1, 0.25, 1);
-  --duration-fast:   0.25s;
-  --duration-base:   0.45s;
-  --duration-slow:   0.75s;
+  --duration-fast:   0.18s;
+  --duration-base:   0.3s;
+  --duration-slow:   0.5s;
 
-  /* BORDERS */
+  /* BORDERS & MODERN RADII */
   --border-hairline: 1px solid var(--color-stone);
   --border-ink:      1px solid var(--color-ink);
-  --radius:          0px;
-  --radius-sm:       2px;
-  --radius-md:       4px;
+  --radius-xs:       4px;
+  --radius-sm:       6px;
+  --radius-md:       8px;
+  --radius-lg:       12px;
+  --radius-xl:       16px;
+  --radius-full:     9999px;
+  --radius:          var(--radius-sm);
+
+  /* MODERN SUBTLE ELEVATIONS */
+  --shadow-xs:       0 1px 2px rgba(20, 20, 18, 0.04);
+  --shadow-sm:       0 2px 6px rgba(20, 20, 18, 0.06);
+  --shadow-md:       0 4px 16px rgba(20, 20, 18, 0.08);
+  --shadow-lg:       0 12px 28px rgba(20, 20, 18, 0.12);
+  --shadow-hover:    0 8px 24px -4px rgba(20, 20, 18, 0.12);
 
   /* ─── LEGACY ALIASES (backward compat for un-migrated components) ─── */
   --black:          var(--color-ink);
@@ -104,7 +122,4 @@
   --max-width:      var(--container-max);
   --section-pad:    var(--space-20);
   --section-pad-sm: var(--space-12);
-  --shadow-sm:      none;
-  --shadow-md:      none;
-  --shadow-lg:      none;
 }

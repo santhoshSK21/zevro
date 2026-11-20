@@ -2,9 +2,11 @@ import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import dbConnect from '@/lib/mongodb';
 import { Seller } from '@/models/Seller';
-import { ReturnRequest } from '@/models/ReturnRequest';
+import { ReturnRequest, ReturnCondition } from '@/models/ReturnRequest';
 import { Product } from '@/models/Product';
 import { Order } from '@/models/Order';
+import { InventoryTransaction } from '@/models/InventoryTransaction';
+import { Notification } from '@/models/Notification';
 
 // 1. GET: Fetch all returns assigned to this seller
 export async function GET(request: Request) {
@@ -21,13 +23,13 @@ export async function GET(request: Request) {
     }
 
     const { searchParams } = new URL(request.url);
-    const statusFilter = searchParams.get('status'); // 'REQUESTED' | 'PICKUP_SCHEDULED' | 'REFUNDED' etc.
+    const statusFilter = searchParams.get('status');
 
     const query: any = {
       $or: [
         { sellerId: seller._id },
-        { sellerStoreName: seller.storeName }
-      ]
+        { sellerStoreName: seller.storeName },
+      ],
     };
 
     if (statusFilter && statusFilter !== 'ALL') {
@@ -35,8 +37,10 @@ export async function GET(request: Request) {
         query.status = 'REQUESTED';
       } else if (statusFilter === 'ACTIVE_PICKUP') {
         query.status = { $in: ['APPROVED', 'PICKUP_SCHEDULED', 'IN_TRANSIT'] };
+      } else if (statusFilter === 'INSPECTION') {
+        query.status = { $in: ['RECEIVED', 'INSPECTION_PENDING'] };
       } else if (statusFilter === 'COMPLETED') {
-        query.status = { $in: ['RECEIVED', 'REFUNDED', 'EXCHANGE_SHIPPED', 'COMPLETED'] };
+        query.status = { $in: ['REFUNDED', 'COMPLETED'] };
       } else if (statusFilter === 'REJECTED') {
         query.status = 'REJECTED';
       } else {
@@ -46,28 +50,27 @@ export async function GET(request: Request) {
 
     const returns = await ReturnRequest.find(query).sort({ createdAt: -1 }).lean();
 
-    // Summary counts
     const allReturns = await ReturnRequest.find({
       $or: [
         { sellerId: seller._id },
-        { sellerStoreName: seller.storeName }
-      ]
+        { sellerStoreName: seller.storeName },
+      ],
     }).lean();
 
-    const actionRequiredCount = allReturns.filter((r: any) => r.status === 'REQUESTED').length;
-    const activePickupCount = allReturns.filter((r: any) => ['APPROVED', 'PICKUP_SCHEDULED', 'IN_TRANSIT'].includes(r.status)).length;
-    const completedCount = allReturns.filter((r: any) => ['RECEIVED', 'REFUNDED', 'EXCHANGE_SHIPPED', 'COMPLETED'].includes(r.status)).length;
-    const rejectedCount = allReturns.filter((r: any) => r.status === 'REJECTED').length;
+    const counts = {
+      total: allReturns.length,
+      actionRequired: allReturns.filter((r: any) => r.status === 'REQUESTED').length,
+      activePickup: allReturns.filter((r: any) => ['APPROVED', 'PICKUP_SCHEDULED', 'IN_TRANSIT'].includes(r.status)).length,
+      inspectionPending: allReturns.filter((r: any) => ['RECEIVED', 'INSPECTION_PENDING'].includes(r.status)).length,
+      refundPending: allReturns.filter((r: any) => r.status === 'REFUND_PENDING').length,
+      replacementProcessing: allReturns.filter((r: any) => r.status === 'REPLACEMENT_PROCESSING').length,
+      completed: allReturns.filter((r: any) => ['REFUNDED', 'COMPLETED'].includes(r.status)).length,
+      rejected: allReturns.filter((r: any) => r.status === 'REJECTED').length,
+    };
 
     return NextResponse.json({
       returns,
-      counts: {
-        total: allReturns.length,
-        actionRequired: actionRequiredCount,
-        activePickup: activePickupCount,
-        completed: completedCount,
-        rejected: rejectedCount,
-      },
+      counts,
     });
   } catch (error) {
     console.error('Fetch seller returns error:', error);
@@ -75,7 +78,7 @@ export async function GET(request: Request) {
   }
 }
 
-// 2. PATCH: Seller action (Approve, Reject, or Inspect & Restock inventory)
+// 2. PATCH: Seller action (Approve, Reject, Mark Received, Inspect, Restock, Refund, Exchange)
 export async function PATCH(request: Request) {
   try {
     const session = await auth();
@@ -92,10 +95,17 @@ export async function PATCH(request: Request) {
     const body = await request.json();
     const {
       returnId,
-      action, // 'APPROVE' | 'REJECT' | 'INSPECT_AND_RESTOCK' | 'COMPLETE_EXCHANGE'
+      action,
       courierName = 'Delhivery Reverse Logistics',
       customAwb,
+      scheduledDate,
       rejectionReason,
+      condition, // 'SELLABLE' | 'DAMAGED' | 'DEFECTIVE' | 'QUARANTINE'
+      inspectionNotes,
+      refundAmount,
+      refundMethod = 'original_source',
+      replacementCourier,
+      replacementAwb,
     } = body;
 
     if (!returnId || !action) {
@@ -107,19 +117,30 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: 'Return request not found' }, { status: 404 });
     }
 
+    const order = await Order.findById(returnReq.orderId);
+
     // ACTION: APPROVE
     if (action === 'APPROVE') {
       const reverseAwb = customAwb || `REV-${Date.now().toString().slice(-6)}`;
+      const pickupDate = scheduledDate ? new Date(scheduledDate) : new Date(Date.now() + 24 * 60 * 60 * 1000);
+
       returnReq.status = 'PICKUP_SCHEDULED';
       returnReq.reverseCourier = {
         courierName,
         trackingNumber: reverseAwb,
         trackingUrl: `https://track.delhivery.com/p/${reverseAwb}`,
-        scheduledPickupDate: new Date(Date.now() + 24 * 60 * 60 * 1000), // Next-day doorstep pickup
+        scheduledPickupDate: pickupDate,
       };
 
-      // Add to Order timeline
-      const order = await Order.findById(returnReq.orderId);
+      returnReq.auditLog = returnReq.auditLog || [];
+      returnReq.auditLog.push({
+        status: 'PICKUP_SCHEDULED',
+        action: 'APPROVED',
+        performedBy: seller.storeName,
+        notes: `Doorstep reverse pickup scheduled via ${courierName} (AWB: ${reverseAwb}).`,
+        timestamp: new Date(),
+      });
+
       if (order) {
         order.timeline.push({
           status: 'return-pickup-scheduled',
@@ -130,6 +151,19 @@ export async function PATCH(request: Request) {
       }
 
       await returnReq.save();
+
+      if (returnReq.userId) {
+        try {
+          await Notification.create({
+            userId: returnReq.userId,
+            type: 'RETURN_APPROVED',
+            title: 'Return Request Approved',
+            message: `Your return request for ${returnReq.item.name} has been approved by ${seller.storeName}. Reverse pickup assigned via ${courierName} (AWB: ${reverseAwb}).`,
+            link: `/account/orders/${returnReq.orderId}`,
+          });
+        } catch (e) {}
+      }
+
       return NextResponse.json({
         success: true,
         message: 'Return approved! Doorstep reverse pickup has been scheduled.',
@@ -146,7 +180,15 @@ export async function PATCH(request: Request) {
       returnReq.status = 'REJECTED';
       returnReq.rejectionReason = rejectionReason;
 
-      const order = await Order.findById(returnReq.orderId);
+      returnReq.auditLog = returnReq.auditLog || [];
+      returnReq.auditLog.push({
+        status: 'REJECTED',
+        action: 'REJECTED',
+        performedBy: seller.storeName,
+        notes: `Return declined. Reason: ${rejectionReason}`,
+        timestamp: new Date(),
+      });
+
       if (order) {
         order.timeline.push({
           status: 'return-rejected',
@@ -157,6 +199,19 @@ export async function PATCH(request: Request) {
       }
 
       await returnReq.save();
+
+      if (returnReq.userId) {
+        try {
+          await Notification.create({
+            userId: returnReq.userId,
+            type: 'RETURN_REJECTED',
+            title: 'Return Request Declined',
+            message: `Your return request for ${returnReq.item.name} could not be approved. Reason: ${rejectionReason}`,
+            link: `/account/orders/${returnReq.orderId}`,
+          });
+        } catch (e) {}
+      }
+
       return NextResponse.json({
         success: true,
         message: 'Return request rejected.',
@@ -164,65 +219,25 @@ export async function PATCH(request: Request) {
       });
     }
 
-    // ACTION: INSPECT & RESTOCK (Automatic Inventory Stock Update)
-    if (action === 'INSPECT_AND_RESTOCK') {
-      returnReq.status = 'REFUNDED';
-      returnReq.inventoryRestocked = true;
-      returnReq.restockedAt = new Date();
+    // ACTION: MARK RECEIVED AT FACILITY
+    if (action === 'MARK_RECEIVED') {
+      returnReq.status = 'INSPECTION_PENDING';
+      if (!returnReq.reverseCourier) returnReq.reverseCourier = {};
+      returnReq.reverseCourier.receivedDate = new Date();
 
-      const refundTxn = `RFND-${Date.now().toString().slice(-8)}`;
-      returnReq.refund = {
-        amount: returnReq.item.price * returnReq.item.quantity,
-        status: 'processed',
-        transactionId: refundTxn,
-        refundedAt: new Date(),
-      };
+      returnReq.auditLog = returnReq.auditLog || [];
+      returnReq.auditLog.push({
+        status: 'INSPECTION_PENDING',
+        action: 'RECEIVED_AT_FACILITY',
+        performedBy: seller.storeName,
+        notes: `Returned item received at seller depot. Under inspection.`,
+        timestamp: new Date(),
+      });
 
-      // PRIORITY REQUIREMENT: Automatically RESTOCK item inventory in MongoDB
-      let restockSuccess = false;
-      let newStockLevel = 0;
-
-      if (returnReq.item.productId) {
-        const product = await Product.findById(returnReq.item.productId);
-        if (product && Array.isArray(product.variants) && product.variants.length > 0) {
-          // Find matching variant or default to first variant
-          let targetVariant = product.variants[0];
-          if (returnReq.item.color) {
-            const foundVariant = product.variants.find(
-              (v: any) => v.colorName?.toLowerCase() === returnReq.item.color?.toLowerCase()
-            );
-            if (foundVariant) targetVariant = foundVariant;
-          }
-
-          if (targetVariant.sizes && Array.isArray(targetVariant.sizes)) {
-            const targetSize = targetVariant.sizes.find(
-              (s: any) => s.size === returnReq.item.size
-            );
-
-            if (targetSize) {
-              targetSize.stock = (targetSize.stock || 0) + (returnReq.item.quantity || 1);
-              newStockLevel = targetSize.stock;
-            } else {
-              targetVariant.sizes.push({
-                size: returnReq.item.size || 'M',
-                stock: returnReq.item.quantity || 1,
-                sku: returnReq.item.sku,
-              });
-              newStockLevel = returnReq.item.quantity || 1;
-            }
-
-            await product.save();
-            restockSuccess = true;
-          }
-        }
-      }
-
-      // Add to Order timeline
-      const order = await Order.findById(returnReq.orderId);
       if (order) {
         order.timeline.push({
-          status: 'returned-and-refunded',
-          message: `Returned piece inspected and accepted by ${seller.storeName}. Inventory restocked (+${returnReq.item.quantity}) and ₹${(returnReq.refund.amount / 100).toLocaleString('en-IN')} refund initiated (Ref: ${refundTxn}).`,
+          status: 'return-received',
+          message: `Returned package received at ${seller.storeName} facility. Quality inspection initiated.`,
           timestamp: new Date(),
         } as any);
         await order.save();
@@ -231,28 +246,279 @@ export async function PATCH(request: Request) {
       await returnReq.save();
       return NextResponse.json({
         success: true,
-        message: `Warehouse inspection complete! ${returnReq.item.name} (Size: ${returnReq.item.size}) has been restocked (+${returnReq.item.quantity} units, new stock: ${newStockLevel}) and buyer refund issued.`,
-        restockSuccess,
-        newStockLevel,
+        message: 'Item marked as received. Status updated to INSPECTION_PENDING.',
         returnRequest: returnReq,
       });
     }
 
-    // ACTION: COMPLETE EXCHANGE
-    if (action === 'COMPLETE_EXCHANGE') {
-      returnReq.status = 'COMPLETED';
+    // ACTION: INSPECT & CLASSIFY INVENTORY
+    if (action === 'INSPECT' || action === 'INSPECT_AND_RESTOCK') {
+      const resolvedCondition = (condition || 'SELLABLE') as ReturnCondition;
+      let inventoryAction: 'RESTOCKED_TO_SELLABLE' | 'SCRAPPED_DAMAGED' | 'HELD_IN_QUARANTINE' | 'NONE' = 'NONE';
+      let restockSuccess = false;
+      let newStockLevel = 0;
 
-      const order = await Order.findById(returnReq.orderId);
+      // 1. SELLABLE: Restock inventory & record transaction
+      if (resolvedCondition === 'SELLABLE') {
+        inventoryAction = 'RESTOCKED_TO_SELLABLE';
+
+        if (!returnReq.inventoryRestocked && returnReq.item.productId) {
+          const product = await Product.findById(returnReq.item.productId);
+          if (product && Array.isArray(product.variants) && product.variants.length > 0) {
+            let targetVariant = product.variants[0];
+            if (returnReq.item.color) {
+              const foundVariant = product.variants.find(
+                (v: any) => v.colorName?.toLowerCase() === returnReq.item.color?.toLowerCase()
+              );
+              if (foundVariant) targetVariant = foundVariant;
+            }
+
+            if (targetVariant.sizes && Array.isArray(targetVariant.sizes)) {
+              const targetSize = targetVariant.sizes.find(
+                (s: any) => s.size?.toUpperCase() === returnReq.item.size?.toUpperCase()
+              );
+
+              if (targetSize) {
+                targetSize.stock = (targetSize.stock || 0) + (returnReq.item.quantity || 1);
+                newStockLevel = targetSize.stock;
+              } else {
+                targetVariant.sizes.push({
+                  size: returnReq.item.size || 'M',
+                  stock: returnReq.item.quantity || 1,
+                  sku: returnReq.item.sku,
+                });
+                newStockLevel = returnReq.item.quantity || 1;
+              }
+
+              await product.save();
+              restockSuccess = true;
+              returnReq.inventoryRestocked = true;
+              returnReq.restockedAt = new Date();
+
+              await InventoryTransaction.create({
+                productId: product._id,
+                variantId: targetVariant._id ? targetVariant._id.toString() : targetVariant.colorName || 'default',
+                size: returnReq.item.size || 'M',
+                sku: returnReq.item.sku,
+                quantityChange: returnReq.item.quantity || 1,
+                type: 'STOCK_RETURNED',
+                reason: `Seller return inspection approved (Sellable condition). Return Ref #${returnReq._id}`,
+                referenceType: 'Return',
+                referenceId: returnReq._id.toString(),
+              });
+            }
+          }
+        }
+      } 
+      // 2. DAMAGED / DEFECTIVE: Unsellable
+      else if (resolvedCondition === 'DAMAGED' || resolvedCondition === 'DEFECTIVE') {
+        inventoryAction = 'SCRAPPED_DAMAGED';
+        returnReq.inventoryRestocked = false;
+
+        await InventoryTransaction.create({
+          productId: returnReq.item.productId,
+          variantId: returnReq.item.color || 'damaged-salvage',
+          size: returnReq.item.size || 'N/A',
+          sku: returnReq.item.sku,
+          quantityChange: 0,
+          type: 'STOCK_DAMAGED',
+          reason: `Seller return inspection: ${resolvedCondition}. Non-sellable salvage. Return Ref #${returnReq._id}`,
+          referenceType: 'Return',
+          referenceId: returnReq._id.toString(),
+        });
+      }
+      // 3. QUARANTINE
+      else if (resolvedCondition === 'QUARANTINE') {
+        inventoryAction = 'HELD_IN_QUARANTINE';
+        returnReq.inventoryRestocked = false;
+
+        await InventoryTransaction.create({
+          productId: returnReq.item.productId,
+          variantId: returnReq.item.color || 'quarantine-bay',
+          size: returnReq.item.size || 'N/A',
+          sku: returnReq.item.sku,
+          quantityChange: 0,
+          type: 'STOCK_ADJUSTMENT',
+          reason: `Seller return inspection: HELD IN QUARANTINE. Return Ref #${returnReq._id}`,
+          referenceType: 'Return',
+          referenceId: returnReq._id.toString(),
+        });
+      }
+
+      returnReq.inspection = {
+        condition: resolvedCondition,
+        inspectedBy: seller.storeName,
+        inspectedAt: new Date(),
+        notes: inspectionNotes || `Quality condition verified as ${resolvedCondition}.`,
+        inventoryAction,
+      };
+
+      const isReplacement = returnReq.resolutionType === 'REPLACEMENT' || returnReq.type === 'EXCHANGE';
+      returnReq.status = isReplacement ? 'REPLACEMENT_PROCESSING' : 'REFUND_PENDING';
+
+      returnReq.auditLog = returnReq.auditLog || [];
+      returnReq.auditLog.push({
+        status: returnReq.status,
+        action: 'INSPECTION_RECORDED',
+        performedBy: seller.storeName,
+        notes: `Condition: ${resolvedCondition}. Inventory: ${inventoryAction}. Next: ${returnReq.status}. Notes: ${inspectionNotes || 'None'}`,
+        timestamp: new Date(),
+      });
+
       if (order) {
         order.timeline.push({
-          status: 'exchange-completed',
-          message: `Exchanged garment dispatched and delivered to customer by ${seller.storeName}.`,
+          status: 'return-inspected',
+          message: `Item inspection completed by ${seller.storeName}: ${resolvedCondition}. Next stage: ${isReplacement ? 'replacement' : 'refund'}.`,
           timestamp: new Date(),
         } as any);
         await order.save();
       }
 
       await returnReq.save();
+
+      return NextResponse.json({
+        success: true,
+        message: `Inspection recorded. Condition: ${resolvedCondition}. Sellable restocked: ${restockSuccess ? `YES (+${returnReq.item.quantity})` : 'NO'}. Status: ${returnReq.status}.`,
+        restockSuccess,
+        newStockLevel,
+        returnRequest: returnReq,
+      });
+    }
+
+    // ACTION: PROCESS REFUND
+    if (action === 'PROCESS_REFUND') {
+      const refundPaise = refundAmount !== undefined ? Number(refundAmount) : (returnReq.item.price * returnReq.item.quantity);
+      const refundTxn = `RFND-${Date.now().toString().slice(-8)}`;
+
+      returnReq.status = 'REFUNDED';
+      returnReq.refund = {
+        amount: refundPaise,
+        status: 'processed',
+        method: refundMethod,
+        transactionId: refundTxn,
+        refundedAt: new Date(),
+      };
+
+      returnReq.auditLog = returnReq.auditLog || [];
+      returnReq.auditLog.push({
+        status: 'REFUNDED',
+        action: 'REFUND_ISSUED',
+        performedBy: seller.storeName,
+        notes: `Refund of ₹${(refundPaise / 100).toLocaleString('en-IN')} approved via ${refundMethod}. Ref: ${refundTxn}`,
+        timestamp: new Date(),
+      });
+
+      if (order) {
+        order.timeline.push({
+          status: 'returned-and-refunded',
+          message: `Refund of ₹${(refundPaise / 100).toLocaleString('en-IN')} issued by ${seller.storeName} (Ref: ${refundTxn}).`,
+          timestamp: new Date(),
+        } as any);
+        await order.save();
+      }
+
+      await returnReq.save();
+
+      if (returnReq.userId) {
+        try {
+          await Notification.create({
+            userId: returnReq.userId,
+            type: 'REFUND_PROCESSED',
+            title: 'Refund Successfully Disbursed',
+            message: `Your refund of ₹${(refundPaise / 100).toLocaleString('en-IN')} for ${returnReq.item.name} has been processed (Ref: ${refundTxn}).`,
+            link: `/account/orders/${returnReq.orderId}`,
+          });
+        } catch (e) {}
+      }
+
+      return NextResponse.json({
+        success: true,
+        message: `Refund processed (₹${(refundPaise / 100).toLocaleString('en-IN')}).`,
+        returnRequest: returnReq,
+      });
+    }
+
+    // ACTION: DISPATCH REPLACEMENT
+    if (action === 'DISPATCH_REPLACEMENT') {
+      const awb = replacementAwb || `RPL-${Date.now().toString().slice(-6)}`;
+      const courier = replacementCourier || 'Delhivery Express';
+
+      returnReq.status = 'REPLACEMENT_PROCESSING';
+      returnReq.replacement = {
+        ...returnReq.replacement,
+        courierName: courier,
+        trackingNumber: awb,
+        status: 'DISPATCHED',
+        dispatchedAt: new Date(),
+      };
+
+      returnReq.auditLog = returnReq.auditLog || [];
+      returnReq.auditLog.push({
+        status: 'REPLACEMENT_PROCESSING',
+        action: 'REPLACEMENT_DISPATCHED',
+        performedBy: seller.storeName,
+        notes: `Replacement piece dispatched via ${courier} (AWB: ${awb}).`,
+        timestamp: new Date(),
+      });
+
+      if (order) {
+        order.timeline.push({
+          status: 'replacement-dispatched',
+          message: `Replacement garment dispatched via ${courier} (AWB: ${awb}) by ${seller.storeName}.`,
+          timestamp: new Date(),
+        } as any);
+        await order.save();
+      }
+
+      await returnReq.save();
+
+      if (returnReq.userId) {
+        try {
+          await Notification.create({
+            userId: returnReq.userId,
+            type: 'REPLACEMENT_DISPATCHED',
+            title: 'Replacement Dispatched',
+            message: `Your replacement for ${returnReq.item.name} has been dispatched via ${courier} (AWB: ${awb}).`,
+            link: `/account/orders/${returnReq.orderId}`,
+          });
+        } catch (e) {}
+      }
+
+      return NextResponse.json({
+        success: true,
+        message: `Replacement dispatched via ${courier} (AWB: ${awb}).`,
+        returnRequest: returnReq,
+      });
+    }
+
+    // ACTION: COMPLETE
+    if (action === 'COMPLETE_EXCHANGE' || action === 'COMPLETE') {
+      returnReq.status = 'COMPLETED';
+      if (returnReq.replacement) {
+        returnReq.replacement.status = 'DELIVERED';
+        returnReq.replacement.deliveredAt = new Date();
+      }
+
+      returnReq.auditLog = returnReq.auditLog || [];
+      returnReq.auditLog.push({
+        status: 'COMPLETED',
+        action: 'CYCLE_COMPLETED',
+        performedBy: seller.storeName,
+        notes: `Exchange/return cycle completed.`,
+        timestamp: new Date(),
+      });
+
+      if (order) {
+        order.timeline.push({
+          status: 'exchange-completed',
+          message: `Exchange garment confirmed delivered by ${seller.storeName}.`,
+          timestamp: new Date(),
+        } as any);
+        await order.save();
+      }
+
+      await returnReq.save();
+
       return NextResponse.json({
         success: true,
         message: 'Exchange cycle completed.',

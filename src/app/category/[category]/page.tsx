@@ -8,9 +8,7 @@ export default async function CategoryPage({ params }: { params: Promise<{ categ
   return (
     <ProductListLayout 
       initialCategory={category}
-      eyebrow="Shop By Category"
       title={categoryTitle}
-      description="Tradition in a modern light. Explore our curated signature selection."
     />
   );
 }

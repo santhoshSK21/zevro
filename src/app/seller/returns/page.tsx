@@ -93,6 +93,8 @@ export default function SellerReturnsPage() {
 
   // Decision Modal State
   const [inspectModalItem, setInspectModalItem] = useState<ReturnRequestItem | null>(null);
+  const [sellerCondition, setSellerCondition] = useState<'SELLABLE' | 'DAMAGED' | 'DEFECTIVE' | 'QUARANTINE'>('SELLABLE');
+  const [sellerInspectionNotes, setSellerInspectionNotes] = useState('');
   const [rejectModalItem, setRejectModalItem] = useState<ReturnRequestItem | null>(null);
   const [rejectReasonInput, setRejectReasonInput] = useState('');
   const [actionProcessing, setActionProcessing] = useState(false);
@@ -157,7 +159,9 @@ export default function SellerReturnsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           returnId: inspectModalItem._id,
-          action: 'INSPECT_AND_RESTOCK',
+          action: 'INSPECT',
+          condition: sellerCondition,
+          inspectionNotes: sellerInspectionNotes,
         }),
       });
 
@@ -738,26 +742,68 @@ export default function SellerReturnsPage() {
                 margin: '0 0 8px',
               }}
             >
-              Confirm Warehouse Inspection & Restock
+              Warehouse Inspection & Inventory Classification
             </h3>
 
-            <p style={{ fontSize: '13px', color: '#68645C', textAlign: 'center', lineHeight: 1.5, margin: '0 0 20px' }}>
-              Have you received the returned piece in satisfactory condition? Confirming this action will automatically perform two critical marketplace steps:
+            <p style={{ fontSize: '13px', color: '#68645C', textAlign: 'center', lineHeight: 1.5, margin: '0 0 16px' }}>
+              Inspect returned piece <strong>{inspectModalItem.item.name}</strong> (Size: {inspectModalItem.item.size}). Stock is only increased if verified as Sellable.
             </p>
 
-            <div style={{ backgroundColor: '#F8F6F0', padding: '16px', borderRadius: '10px', border: '1px solid #E8E2D6', display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '24px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '13px', color: '#1C1C1A' }}>
-                <span style={{ color: '#2E7D32', fontWeight: 700 }}>1.</span>
-                <span>
-                  <strong>Inventory Restock:</strong> Increases active stock of <strong>{inspectModalItem.item.name}</strong> (Size: {inspectModalItem.item.size}) by <strong>+{inspectModalItem.item.quantity} units</strong> in your catalog.
-                </span>
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#374151', textTransform: 'uppercase', marginBottom: '8px' }}>
+                Classification Condition *
+              </label>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                {[
+                  { id: 'SELLABLE', label: 'Sellable (Restock Stock)', desc: 'Unworn, tags intact. Restocks active catalog.', color: '#166534', bg: '#DCFCE7' },
+                  { id: 'DAMAGED', label: 'Damaged (No Restock)', desc: 'Soiled, torn, or washed. Scrapped to salvage.', color: '#991B1B', bg: '#FEE2E2' },
+                  { id: 'DEFECTIVE', label: 'Defective (No Restock)', desc: 'Fabric flaw. Vendor defect report.', color: '#B45309', bg: '#FEF3C7' },
+                  { id: 'QUARANTINE', label: 'Quarantine (Hold)', desc: 'Held for dry cleaning / repair.', color: '#4338CA', bg: '#E0E7FF' },
+                ].map((c) => {
+                  const isSel = sellerCondition === c.id;
+                  return (
+                    <div
+                      key={c.id}
+                      onClick={() => setSellerCondition(c.id as any)}
+                      style={{
+                        padding: '8px 10px',
+                        borderRadius: '6px',
+                        border: `2px solid ${isSel ? c.color : '#E5E7EB'}`,
+                        backgroundColor: isSel ? c.bg : '#FFFFFF',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      <div style={{ fontSize: '11px', fontWeight: 700, color: c.color, marginBottom: '2px' }}>
+                        {c.label}
+                      </div>
+                      <div style={{ fontSize: '10px', color: '#6B7280', lineHeight: 1.3 }}>
+                        {c.desc}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '13px', color: '#1C1C1A' }}>
-                <span style={{ color: '#2E7D32', fontWeight: 700 }}>2.</span>
-                <span>
-                  <strong>Refund Release:</strong> Authorizes refund of <strong>₹{(((inspectModalItem.item.price || 0) * inspectModalItem.item.quantity) / 100).toLocaleString('en-IN')}</strong> to buyer <strong>{inspectModalItem.userName}</strong>.
-                </span>
-              </div>
+            </div>
+
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#374151', textTransform: 'uppercase', marginBottom: '6px' }}>
+                Inspection Remarks
+              </label>
+              <textarea
+                rows={2}
+                value={sellerInspectionNotes}
+                onChange={(e) => setSellerInspectionNotes(e.target.value)}
+                placeholder="Condition observations, tags, packaging..."
+                style={{
+                  width: '100%',
+                  padding: '8px 10px',
+                  borderRadius: '6px',
+                  border: '1px solid #DDD6C8',
+                  fontSize: '12px',
+                  outline: 'none',
+                  boxSizing: 'border-box',
+                }}
+              />
             </div>
 
             <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
@@ -787,15 +833,15 @@ export default function SellerReturnsPage() {
                   padding: '10px 22px',
                   borderRadius: '6px',
                   border: 'none',
-                  backgroundColor: '#2E7D32',
+                  backgroundColor: sellerCondition === 'SELLABLE' ? '#2E7D32' : '#111827',
                   color: '#FFFFFF',
                   fontSize: '12px',
                   fontWeight: 600,
                   cursor: actionProcessing ? 'not-allowed' : 'pointer',
-                  boxShadow: '0 2px 8px rgba(46, 125, 50, 0.25)',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
                 }}
               >
-                {actionProcessing ? 'Restocking & Processing...' : 'Confirm Restock & Refund'}
+                {actionProcessing ? 'Processing Inspection...' : `Confirm Inspection (${sellerCondition})`}
               </button>
             </div>
           </div>

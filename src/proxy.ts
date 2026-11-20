@@ -69,16 +69,9 @@ export function proxy(request: NextRequest) {
     }
   }
 
-  // 5. Seller Portal Protection (/seller)
+  // 5. Seller Portal (Temporarily hidden for single-brand deployment; code preserved in repo)
   if (pathname.startsWith('/seller')) {
-    if (pathname === '/seller/login' || pathname === '/seller/register') {
-      return applySecurityHeaders(NextResponse.next());
-    }
-    if (!hasValidSession(request)) {
-      const loginUrl = new URL('/seller/login', request.url);
-      loginUrl.searchParams.set('callbackUrl', pathname);
-      return applySecurityHeaders(NextResponse.redirect(loginUrl));
-    }
+    return applySecurityHeaders(NextResponse.redirect(new URL('/', request.url)));
   }
 
   // 6. In-App Navigation Referrer Guard (preserves intentional store entry protection)

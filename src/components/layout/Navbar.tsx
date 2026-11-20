@@ -2,75 +2,116 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useUiStore } from '../../store/uiStore';
 import { useCartStore } from '../../store/cartStore';
 import { useWishlistStore } from '../../store/wishlistStore';
 import { useConfigStore } from '../../store/configStore';
 import { useSession, signOut } from 'next-auth/react';
-import { motion, useReducedMotion } from 'framer-motion';
+import { 
+  Search, 
+  ShoppingBag, 
+  Heart, 
+  User, 
+  Menu, 
+  X, 
+  ChevronDown, 
+  Sparkles,
+  ArrowRight,
+  Truck,
+  TrendingUp,
+  Tag
+} from 'lucide-react';
 import MegaMenu from './MegaMenu';
 
+const DEPARTMENTS = [
+  { id: '', label: 'All Departments' },
+  { id: 'western-wear', label: 'Western Wear' },
+  { id: 'ethnic-wear', label: 'Ethnic Wear' },
+  { id: 'indo-western', label: 'Indo-Western' },
+  { id: 'accessories', label: 'Accessories' }
+];
+
 export default function Navbar() {
-  const [hidden, setHidden] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
-  const [lastScrollY, setLastScrollY] = useState(0);
   const pathname = usePathname();
+  const router = useRouter();
   const { data: session } = useSession();
-  const { setSearchOpen, setMobileMenuOpen, announcementBarVisible } = useUiStore();
-  const { itemCount, openDrawer } = useCartStore();
+  const { setMobileMenuOpen, setSearchOpen } = useUiStore();
+  const { itemCount, getTotal, openDrawer } = useCartStore();
   const { productIds } = useWishlistStore();
   const { config } = useConfigStore();
-  const prefersReducedMotion = useReducedMotion();
 
   const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
-  const userDropdownRef = useRef<HTMLDivElement>(null);
+  const [selectedDept, setSelectedDept] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchFocused, setSearchFocused] = useState(false);
+  const [mobileSearchQuery, setMobileSearchQuery] = useState('');
 
-  // Close user dropdown on outside click or route change
+  const userDropdownRef = useRef<HTMLDivElement>(null);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
+  const leaveTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Close dropdowns on route change
   useEffect(() => {
     setUserDropdownOpen(false);
+    setSearchFocused(false);
+    setHoveredCategory(null);
   }, [pathname]);
 
+  // Click outside listener for dropdown & search suggestions
   useEffect(() => {
     const handleOutsideClick = (e: MouseEvent) => {
       if (userDropdownRef.current && !userDropdownRef.current.contains(e.target as Node)) {
         setUserDropdownOpen(false);
+      }
+      if (searchContainerRef.current && !searchContainerRef.current.contains(e.target as Node)) {
+        setSearchFocused(false);
       }
     };
     document.addEventListener('mousedown', handleOutsideClick);
     return () => document.removeEventListener('mousedown', handleOutsideClick);
   }, []);
 
-  useEffect(() => {
-    const handleScroll = () => {
-      const currentScrollY = window.scrollY;
-      
-      if (currentScrollY > 30) {
-        setScrolled(true);
-      } else {
-        setScrolled(false);
-      }
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      const params = new URLSearchParams();
+      params.set('q', searchQuery.trim());
+      if (selectedDept) params.set('category', selectedDept);
+      router.push(`/search?${params.toString()}`);
+      setSearchFocused(false);
+    }
+  };
 
-      if (currentScrollY > lastScrollY && currentScrollY > 80) {
-        setHidden(true);
-      } else {
-        setHidden(false);
-      }
-      setLastScrollY(currentScrollY);
-    };
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [lastScrollY]);
+  const handleMobileSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (mobileSearchQuery.trim()) {
+      router.push(`/search?q=${encodeURIComponent(mobileSearchQuery.trim())}`);
+    }
+  };
 
-  const links = [
-    { label: 'NEW IN', href: '/category/new-in' },
-    { label: 'WESTERN WEAR', href: '/category/western-wear' },
-    { label: 'ETHNIC WEAR', href: '/category/ethnic-wear' },
-    { label: 'INDO-WESTERN', href: '/category/indo-western' },
-    { label: 'ACCESSORIES', href: '/category/accessories' },
-  ];
+  const handleQuickKeyword = (kw: string) => {
+    setSearchQuery(kw);
+    router.push(`/search?q=${encodeURIComponent(kw)}`);
+    setSearchFocused(false);
+  };
 
+  const handleCategoryMouseEnter = (label: string) => {
+    if (leaveTimerRef.current) {
+      clearTimeout(leaveTimerRef.current);
+      leaveTimerRef.current = null;
+    }
+    setHoveredCategory(label);
+  };
+
+  const handleCategoryMouseLeave = () => {
+    leaveTimerRef.current = setTimeout(() => {
+      setHoveredCategory(null);
+    }, 180);
+  };
+
+  // Skip rendering on admin or seller routes
   if (
     pathname?.startsWith('/admin') ||
     pathname?.startsWith('/superadmin') ||
@@ -79,557 +120,1031 @@ export default function Navbar() {
     return null;
   }
 
-  const isHome = pathname === '/';
-  const hasAnnouncement = announcementBarVisible && Boolean(config?.announcementText);
-  const navClass = `zevro-nav ${isHome ? 'is-home' : ''} ${isHome && !scrolled ? 'is-transparent' : ''} ${scrolled ? 'is-glass' : ''} ${hasAnnouncement && !scrolled ? 'has-announcement' : ''}`;
+  const navCategories = [
+    { label: 'NEW IN', href: '/category/new-in' },
+    { label: 'WESTERN WEAR', href: '/category/western-wear' },
+    { label: 'ETHNIC WEAR', href: '/category/ethnic-wear' },
+    { label: 'INDO-WESTERN', href: '/category/indo-western' },
+    { label: 'ACCESSORIES', href: '/category/accessories' },
+    { label: 'ALL COLLECTIONS', href: '/products' },
+  ];
+
+  const popularKeywords = [
+    'Mulberry Silk',
+    'Anarkali Suits',
+    'Sarees & Drapes',
+    'Velvet Blazers',
+    'Co-ord Sets',
+    'Kundan Jewelry'
+  ];
+
+  const cartTotal = getTotal();
 
   return (
-    <>
-      <motion.header
-        className={navClass}
-        onMouseLeave={() => setHoveredCategory(null)}
-        initial={prefersReducedMotion ? false : { y: '-100%' }}
-        animate={{ y: hidden ? '-100%' : '0%' }}
-        transition={{ duration: 0.3, ease: 'easeOut' }}
-      >
-        <div className="nav-logo-wrap">
-          <Link href="/" className="nav-logo" aria-label="Zevro home">
-            <img
-              src="/logot.png"
-              alt="Zevro logo"
-              className="nav-logo-img"
-            />
-          </Link>
-        </div>
-
-        <nav className="nav-links">
-          {links.map(link => (
-            <div
-              key={link.label}
-              onMouseEnter={() => setHoveredCategory(link.label)}
-              className="nav-link-wrap"
-            >
-              <Link href={link.href} className="nav-link">
-                {link.label}
-              </Link>
-            </div>
-          ))}
-        </nav>
-
-        <div className="nav-icons">
-          <button onClick={() => setSearchOpen(true)} className="nav-icon-btn" aria-label="Search">
-            <span className="icon-svg"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
-          </button>
+    <header className="zevro-header" onMouseLeave={handleCategoryMouseLeave}>
+      {/* Tier 1: Main Header (Logo, Matched Luxury Search Bar, Actions) */}
+      <div className="header-primary-row">
+        <div className="container header-primary-inner">
           
-          <div className="nav-divider"></div>
+          {/* Left: Mobile Hamburger & Brand Logo */}
+          <div className="header-left-col">
+            <button
+              onClick={() => setMobileMenuOpen(true)}
+              className="header-hamburger-btn hide-desktop"
+              aria-label="Open navigation menu"
+            >
+              <Menu size={22} />
+            </button>
 
-          {/* User Profile / Logout Dropdown */}
-          {session?.user ? (
-            <div className="nav-user-dropdown-wrap hide-mobile" ref={userDropdownRef}>
+            <Link href="/" className="header-logo" aria-label="ZEVRO Home">
+              <img
+                src="/logot.png"
+                alt="ZEVRO"
+                className="header-logo-img"
+              />
+            </Link>
+          </div>
+
+          {/* Center: Matched Modern Luxury Search Bar */}
+          <div className="header-search-col hide-mobile" ref={searchContainerRef}>
+            <form onSubmit={handleSearchSubmit} className={`header-search-form ${searchFocused ? 'is-focused' : ''}`}>
+              <Search size={16} className="search-leading-icon" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onFocus={() => setSearchFocused(true)}
+                placeholder="Search luxury sarees, anarkalis, dresses, lehengas, jewellery..."
+                className="header-search-input"
+                aria-label="Search catalog"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  className="search-clear-btn"
+                  aria-label="Clear query"
+                >
+                  <X size={14} />
+                </button>
+              )}
+              <button type="submit" className="header-search-submit-icon" aria-label="Execute search">
+                <Search size={15} />
+              </button>
+            </form>
+
+            {/* Live Auto-Suggest Dropdown */}
+            {searchFocused && (
+              <div className="header-search-dropdown">
+                <div className="dropdown-section">
+                  <div className="dropdown-popular-heading">
+                    <Sparkles size={12} className="text-gold" />
+                    <span>POPULAR SEARCHES</span>
+                  </div>
+                  <div className="dropdown-popular-chips">
+                    {popularKeywords.map((kw) => (
+                      <button
+                        key={kw}
+                        type="button"
+                        onClick={() => handleQuickKeyword(kw)}
+                        className="popular-chip-btn"
+                      >
+                        <TrendingUp size={11} className="chip-icon" />
+                        <span>{kw}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="dropdown-dept-row">
+                  <span className="dropdown-sub-label">DEPARTMENTS:</span>
+                  <div className="dropdown-dept-links">
+                    <Link href="/category/western-wear" onClick={() => setSearchFocused(false)} className="dept-quick-link">Western Wear</Link>
+                    <span>•</span>
+                    <Link href="/category/ethnic-wear" onClick={() => setSearchFocused(false)} className="dept-quick-link">Ethnic Wear</Link>
+                    <span>•</span>
+                    <Link href="/category/indo-western" onClick={() => setSearchFocused(false)} className="dept-quick-link">Indo-Western</Link>
+                    <span>•</span>
+                    <Link href="/category/accessories" onClick={() => setSearchFocused(false)} className="dept-quick-link">Accessories</Link>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Right: Actions (Wishlist, Cart, Account) */}
+          <div className="header-actions-col">
+            
+            {/* Wishlist Button */}
+            <Link href="/wishlist" className="header-action-btn hide-mobile" aria-label="View Wishlist">
+              <span className="action-icon-box">
+                <Heart 
+                  size={19} 
+                  strokeWidth={1.6} 
+                  fill={productIds.length > 0 ? "var(--color-accent, #C5A869)" : "none"} 
+                  color={productIds.length > 0 ? "var(--color-accent, #C5A869)" : "var(--color-ink, #111827)"} 
+                />
+                {productIds.length > 0 && <span className="action-badge-dot">{productIds.length}</span>}
+              </span>
+              <span className="action-btn-label">Wishlist</span>
+            </Link>
+
+            {/* Cart Button */}
+            <button 
+              type="button" 
+              onClick={openDrawer} 
+              className="header-action-btn header-cart-action" 
+              aria-label="Shopping Bag"
+            >
+              <span className="action-icon-box">
+                <ShoppingBag size={19} strokeWidth={1.6} color="var(--color-ink, #111827)" />
+                {itemCount > 0 && <span className="action-badge-dot">{itemCount}</span>}
+              </span>
+              <div className="cart-action-details hide-mobile">
+                <span className="action-btn-label">Bag</span>
+                {itemCount > 0 && (
+                  <span className="cart-total-tag">₹{(cartTotal / 100).toLocaleString('en-IN')}</span>
+                )}
+              </div>
+            </button>
+
+            {/* User Account / Sign In */}
+            {session?.user ? (
+              <div className="nav-user-dropdown-wrap" ref={userDropdownRef}>
+                <button
+                  type="button"
+                  onClick={() => setUserDropdownOpen(!userDropdownOpen)}
+                  className="user-profile-trigger"
+                  aria-label="User account"
+                  aria-expanded={userDropdownOpen}
+                >
+                  <div className="user-avatar-circle">
+                    {(session.user.name || session.user.email || 'U').charAt(0).toUpperCase()}
+                  </div>
+                  <span className="user-name-text hide-mobile">
+                    {session.user.name?.split(' ')[0] || 'Account'}
+                  </span>
+                  <ChevronDown size={13} className={`chevron-indicator hide-mobile ${userDropdownOpen ? 'is-open' : ''}`} />
+                </button>
+
+                {userDropdownOpen && (
+                  <div className="nav-user-menu">
+                    <div className="user-menu-header">
+                      <div className="user-menu-avatar-large">
+                        {(session.user.name || session.user.email || 'U').charAt(0).toUpperCase()}
+                      </div>
+                      <div className="user-menu-info">
+                        <div className="user-menu-fullname">{session.user.name || 'Member'}</div>
+                        <div className="user-menu-email">{session.user.email}</div>
+                        <span className="user-menu-badge">
+                          {session.user.role === 'admin' ? '👑 Atelier Admin' : '✨ Privileged Client'}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="user-menu-links">
+                      <Link
+                        href="/account/settings"
+                        onClick={() => setUserDropdownOpen(false)}
+                        className="user-menu-item"
+                      >
+                        <span className="menu-item-icon">✏️</span>
+                        <div>
+                          <div className="menu-item-title">Profile Settings</div>
+                          <div className="menu-item-sub">Personal info & addresses</div>
+                        </div>
+                      </Link>
+
+                      <Link
+                        href="/account/orders"
+                        onClick={() => setUserDropdownOpen(false)}
+                        className="user-menu-item"
+                      >
+                        <span className="menu-item-icon">📦</span>
+                        <div>
+                          <div className="menu-item-title">My Orders</div>
+                          <div className="menu-item-sub">Tracking & status history</div>
+                        </div>
+                      </Link>
+
+                      {session.user.role === 'admin' && (
+                        <Link
+                          href="/admin"
+                          onClick={() => setUserDropdownOpen(false)}
+                          className="user-menu-item highlight-admin"
+                        >
+                          <span className="menu-item-icon">⚡</span>
+                          <div>
+                            <div className="menu-item-title">Admin Console</div>
+                            <div className="menu-item-sub">Catalog, inventory & orders</div>
+                          </div>
+                        </Link>
+                      )}
+                    </div>
+
+                    <div className="user-menu-footer">
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          setUserDropdownOpen(false);
+                          await signOut({ callbackUrl: '/' });
+                        }}
+                        className="user-menu-logout-btn"
+                      >
+                        <span>Sign Out</span>
+                        <ArrowRight size={13} />
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <Link href="/login" className="header-action-btn header-signin-action hide-mobile" aria-label="Sign In">
+                <span className="action-icon-box">
+                  <User size={19} strokeWidth={1.6} color="var(--color-ink, #111827)" />
+                </span>
+                <span className="action-btn-label">Sign In</span>
+              </Link>
+            )}
+
+          </div>
+
+        </div>
+      </div>
+
+      {/* Mobile Prominent Search Bar (Amazon/Flipkart Mobile Experience) */}
+      <div className="header-mobile-search-row hide-desktop">
+        <div className="container">
+          <form onSubmit={handleMobileSearchSubmit} className="mobile-search-form">
+            <Search size={15} className="mobile-search-icon" />
+            <input
+              type="text"
+              value={mobileSearchQuery}
+              onChange={(e) => setMobileSearchQuery(e.target.value)}
+              placeholder="Search sarees, anarkalis, dresses, silks..."
+              className="mobile-search-input"
+              aria-label="Search garments"
+            />
+            {mobileSearchQuery && (
               <button
                 type="button"
-                onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-                className="nav-user-pill-btn"
-                aria-label="User account menu"
-                aria-expanded={userDropdownOpen}
+                onClick={() => setMobileSearchQuery('')}
+                className="mobile-clear-btn"
+                aria-label="Clear search"
               >
-                <div className="nav-user-avatar">
-                  {(session.user.name || session.user.email || 'U').charAt(0).toUpperCase()}
-                </div>
-                <span className="nav-user-name">
-                  {session.user.name?.split(' ')[0] || 'My Account'}
-                </span>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ transform: userDropdownOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>
-                  <path d="M6 9l6 6 6-6"/>
-                </svg>
+                <X size={13} />
               </button>
-
-              {userDropdownOpen && (
-                <div className="nav-user-menu">
-                  {/* Profile Header */}
-                  <div className="user-menu-header">
-                    <div className="user-menu-avatar-large">
-                      {(session.user.name || session.user.email || 'U').charAt(0).toUpperCase()}
-                    </div>
-                    <div className="user-menu-info">
-                      <div className="user-menu-fullname">{session.user.name || 'Member'}</div>
-                      <div className="user-menu-email">{session.user.email}</div>
-                      <span className="user-menu-badge">
-                        {session.user.role === 'seller' ? '🏷️ Verified Seller' : session.user.role === 'admin' ? '👑 Admin' : '✨ Member'}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Menu Links */}
-                  <div className="user-menu-links">
-                    <Link
-                      href="/account/settings"
-                      onClick={() => setUserDropdownOpen(false)}
-                      className="user-menu-item"
-                    >
-                      <span className="menu-item-icon">✏️</span>
-                      <div>
-                        <div className="menu-item-title">Edit Profile Details</div>
-                        <div className="menu-item-sub">View & update account details</div>
-                      </div>
-                    </Link>
-
-                    <Link
-                      href="/account/orders"
-                      onClick={() => setUserDropdownOpen(false)}
-                      className="user-menu-item"
-                    >
-                      <span className="menu-item-icon">📦</span>
-                      <div>
-                        <div className="menu-item-title">My Orders</div>
-                        <div className="menu-item-sub">Track order dispatches</div>
-                      </div>
-                    </Link>
-
-                    {session.user.role === 'seller' && (
-                      <Link
-                        href="/seller"
-                        onClick={() => setUserDropdownOpen(false)}
-                        className="user-menu-item highlight-seller"
-                      >
-                        <span className="menu-item-icon">🏪</span>
-                        <div>
-                          <div className="menu-item-title">Seller Hub / Store</div>
-                          <div className="menu-item-sub">Catalog, inventory & payouts</div>
-                        </div>
-                      </Link>
-                    )}
-
-                    {session.user.role === 'admin' && (
-                      <Link
-                        href="/admin"
-                        onClick={() => setUserDropdownOpen(false)}
-                        className="user-menu-item highlight-admin"
-                      >
-                        <span className="menu-item-icon">⚡</span>
-                        <div>
-                          <div className="menu-item-title">Admin Atelier</div>
-                          <div className="menu-item-sub">Store management & builder</div>
-                        </div>
-                      </Link>
-                    )}
-                  </div>
-
-                  {/* Footer Logout Button */}
-                  <div className="user-menu-footer">
-                    <button
-                      type="button"
-                      onClick={async () => {
-                        setUserDropdownOpen(false);
-                        await signOut({ callbackUrl: '/' });
-                      }}
-                      className="user-menu-logout-btn"
-                    >
-                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-                        <polyline points="16 17 21 12 16 7"/>
-                        <line x1="21" y1="12" x2="9" y2="12"/>
-                      </svg>
-                      <span>Sign Out / Logout</span>
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          ) : (
-            <Link href="/login" className="nav-login-btn hide-mobile" aria-label="Sign In">
-              <span className="icon-svg">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
-                </svg>
-              </span>
-              <span>Sign In</span>
-            </Link>
-          )}
-          <Link href="/wishlist" className="nav-icon-btn hide-mobile" aria-label="Wishlist">
-            <span className="icon-svg">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill={productIds.length > 0 ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.5">
-                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-              </svg>
-              {productIds.length > 0 && <span className="mobile-badge">{productIds.length}</span>}
-            </span>
-          </Link>
-          <button onClick={openDrawer} className="nav-icon-btn" aria-label="Cart">
-            <span className="icon-svg"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>{itemCount > 0 && <span className="mobile-badge">{itemCount}</span>}</span>
-          </button>
-          <button
-            onClick={() => setMobileMenuOpen(true)}
-            className="nav-hamburger"
-            aria-label="Open menu"
-          >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-              <line x1="3" y1="12" x2="21" y2="12" />
-              <line x1="3" y1="6" x2="21" y2="6" />
-              <line x1="3" y1="18" x2="21" y2="18" />
-            </svg>
-          </button>
+            )}
+            <button type="submit" className="mobile-search-btn">
+              SEARCH
+            </button>
+          </form>
         </div>
+      </div>
 
-        {hoveredCategory && ['WESTERN WEAR', 'ETHNIC WEAR', 'INDO-WESTERN', 'ACCESSORIES'].includes(hoveredCategory) && (
-          <div className="mega-menu-panel">
-            <MegaMenu category={hoveredCategory} close={() => setHoveredCategory(null)} />
-          </div>
-        )}
-      </motion.header>
+      {/* Tier 2: Category Navigation Strip (With Theme-Reactive Hover States) */}
+      <div className="header-secondary-row hide-mobile">
+        <div className="container header-secondary-inner">
+          <nav className="header-cat-nav" aria-label="Department navigation">
+            {navCategories.map((item) => {
+              const isHovered = hoveredCategory === item.label;
+              const hasDropdown = ['NEW IN', 'WESTERN WEAR', 'ETHNIC WEAR', 'INDO-WESTERN', 'ACCESSORIES'].includes(item.label);
+              return (
+                <div 
+                  key={item.label}
+                  onMouseEnter={() => handleCategoryMouseEnter(item.label)}
+                  onMouseLeave={handleCategoryMouseLeave}
+                  className={`header-cat-item-wrap ${isHovered ? 'is-active' : ''}`}
+                >
+                  <Link href={item.href} className="header-cat-link">
+                    <span>{item.label}</span>
+                    {hasDropdown && (
+                      <ChevronDown size={11} className={`cat-arrow-icon ${isHovered ? 'is-rotated' : ''}`} />
+                    )}
+                  </Link>
 
-      <style dangerouslySetInnerHTML={{__html: `
-        .zevro-nav {
+                  {/* Option A: Sleek Single-Column Flyout Anchored Directly Under Hovered Tab */}
+                  {isHovered && hasDropdown && (
+                    <div 
+                      className="cat-flyout-anchor"
+                      onMouseEnter={() => handleCategoryMouseEnter(item.label)}
+                      onMouseLeave={handleCategoryMouseLeave}
+                    >
+                      <MegaMenu category={item.label} close={() => setHoveredCategory(null)} />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </nav>
+        </div>
+      </div>
+
+      {/* Styles */}
+      <style dangerouslySetInnerHTML={{ __html: `
+        .zevro-header {
           position: sticky;
           top: 0;
           left: 0;
           right: 0;
           z-index: 1000;
-          height: 64px;
-          background: var(--color-bg);
-          color: var(--color-ink);
-          display: grid;
-          grid-template-columns: auto 1fr auto;
+          background: #FFFFFF;
+          border-bottom: 1px solid var(--color-stone, #E5E7EB);
+          transition: box-shadow 0.25s ease;
+        }
+
+        .text-gold {
+          color: var(--color-accent, #C5A869);
+        }
+
+        /* Tier 1 Primary Row */
+        .header-primary-row {
+          padding: 12px 0;
+          background: #FFFFFF;
+          border-bottom: 1px solid var(--color-stone, #E5E7EB);
+        }
+
+        .header-primary-inner {
+          display: flex;
           align-items: center;
-          padding: 0 var(--container-gutter);
-          border-bottom: none;
-          transition: background-color 0.3s ease, color 0.3s ease, backdrop-filter 0.3s ease, box-shadow 0.3s ease, top 0.3s ease;
+          justify-content: space-between;
+          gap: 20px;
         }
-        .zevro-nav.is-home {
-          position: fixed;
-          top: 0;
+
+        .header-left-col {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          flex-shrink: 0;
         }
-        .zevro-nav.is-home.has-announcement {
-          top: 38px;
-        }
-        .zevro-nav.is-transparent {
-          background: transparent;
-          color: #FFF;
-        }
-        .zevro-nav.is-transparent .nav-logo-img {
-          filter: brightness(0) invert(1);
-        }
-        .zevro-nav.is-glass {
-          top: 0 !important;
-          background: rgba(245, 241, 232, 0.95);
-          backdrop-filter: blur(16px);
-          -webkit-backdrop-filter: blur(16px);
-          border-bottom: 1px solid rgba(28, 28, 26, 0.08);
-          box-shadow: 0 4px 24px rgba(28, 28, 26, 0.04);
-          color: var(--color-ink);
-        }
-        .zevro-nav.is-glass .nav-logo-img {
-          filter: none;
-        }
-        .nav-logo-wrap {
-          text-align: left;
-        }
-        .nav-logo {
+
+        .header-logo {
           display: inline-flex;
           align-items: center;
           text-decoration: none;
         }
-        .nav-logo-img {
-          height: 36px;
+
+        .header-logo-img {
+          height: 32px;
           width: auto;
           display: block;
-          transition: filter 0.4s ease;
         }
-        .nav-links {
-          display: flex;
-          justify-content: center;
-          gap: var(--space-8);
-        }
-        .nav-link-wrap {
-          display: flex;
-          align-items: center;
-        }
-        .nav-link {
-          font-family: var(--font-ui);
-          font-size: 11px;
-          letter-spacing: 0.1em;
-          text-transform: uppercase;
-        }
-        .nav-icons {
-          display: flex;
-          justify-content: flex-end;
-          align-items: center;
-          gap: var(--space-6);
-        }
-        .nav-icon-btn {
-          font-family: var(--font-ui);
-          font-size: 11px;
-          letter-spacing: 0.1em;
-          text-transform: uppercase;
-          color: inherit;
-          display: flex;
-          align-items: center;
+
+        .header-hamburger-btn {
           background: none;
           border: none;
+          color: var(--color-ink, #141412);
           cursor: pointer;
-          padding: 0;
-        }
-        .icon-svg {
-          display: block;
-          position: relative;
-        }
-        .nav-divider {
-          width: 1px;
-          height: 16px;
-          background: currentColor;
-          opacity: 0.3;
-          margin: 0 4px;
-        }
-        .mobile-badge {
-          position: absolute;
-          top: -4px;
-          right: -4px;
-          background: var(--color-ink);
-          color: var(--color-white);
-          font-size: 9px;
-          width: 14px;
-          height: 14px;
-          border-radius: 50%;
+          padding: 6px;
           display: flex;
           align-items: center;
           justify-content: center;
         }
-        .zevro-nav.is-transparent .mobile-badge {
-          background: #FFF;
-          color: var(--color-ink);
-        }
-        .nav-hamburger {
-          display: none;
-          background: none;
-          border: none;
-          color: inherit;
-          cursor: pointer;
-          padding: 0;
-        }
-        .mega-menu-panel {
-          position: absolute;
-          top: calc(100% + 6px);
-          left: 50%;
-          transform: translateX(-50%);
-          z-index: 1100;
-          background: transparent;
-          border: none;
-          color: inherit;
-        }
-        /* User Dropdown Pill & Menu */
-        .nav-user-dropdown-wrap {
+
+        /* Search Bar (Amazon / Luxury Commerce Matched Design) */
+        .header-search-col {
+          flex: 1;
+          max-width: 780px;
           position: relative;
+          margin: 0 16px;
         }
-        .nav-user-pill-btn {
+
+        .header-search-form {
           display: flex;
           align-items: center;
-          gap: 7px;
-          background: rgba(28, 28, 26, 0.05);
-          border: 1px solid rgba(28, 28, 26, 0.12);
-          border-radius: 20px;
-          padding: 3px 10px 3px 4px;
-          color: inherit;
-          cursor: pointer;
-          font-family: var(--font-ui, sans-serif);
-          font-size: 11px;
-          font-weight: 600;
-          letter-spacing: 0.04em;
+          height: 40px;
+          background: #FFFFFF;
+          border: 1px solid var(--color-stone, #E5E7EB);
+          border-radius: var(--radius-full, 9999px);
+          padding: 0 4px 0 14px;
           transition: all 0.2s ease;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
         }
-        .nav-user-pill-btn:hover {
-          background: rgba(28, 28, 26, 0.1);
-          border-color: #B49A68;
+
+        .header-search-form:hover,
+        .header-search-form.is-focused {
+          border-color: var(--color-ink, #111827);
+          box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
         }
-        .zevro-nav.is-transparent .nav-user-pill-btn {
-          background: rgba(255, 255, 255, 0.15);
-          border-color: rgba(255, 255, 255, 0.3);
-          color: #FFFFFF;
+
+        .search-leading-icon {
+          color: var(--color-ink-muted, #595F69);
+          flex-shrink: 0;
+          margin-right: 10px;
         }
-        .nav-user-avatar {
-          width: 22px;
-          height: 22px;
-          border-radius: 50%;
-          background: #1C1C1A;
-          color: #FAF8F5;
+
+        .header-search-input {
+          flex: 1;
+          border: none;
+          background: transparent;
+          font-family: var(--font-body, sans-serif);
+          font-size: 13px;
+          color: var(--color-ink, #111827);
+          outline: none;
+          padding: 0;
+          min-width: 0;
+        }
+
+        .header-search-input::placeholder {
+          color: var(--color-ink-muted, #595F69);
+          font-size: 12.5px;
+        }
+
+        .search-clear-btn {
+          background: none;
+          border: none;
+          color: var(--color-ink-muted, #595F69);
+          cursor: pointer;
+          padding: 4px;
           display: flex;
           align-items: center;
           justify-content: center;
-          font-size: 11px;
-          font-weight: 700;
+          flex-shrink: 0;
+          margin-right: 4px;
         }
-        .zevro-nav.is-transparent .nav-user-avatar {
-          background: #FAF8F5;
-          color: #1C1C1A;
+
+        .search-clear-btn:hover {
+          color: var(--color-ink, #111827);
         }
-        .nav-user-name {
-          max-width: 90px;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
+
+        .header-search-submit-icon {
+          width: 32px;
+          height: 32px;
+          border-radius: 50%;
+          background: var(--color-ink, #111827);
+          color: #FFFFFF;
+          border: none;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          flex-shrink: 0;
         }
-        .nav-login-btn {
+
+        .header-search-submit-icon:hover {
+          background: var(--color-accent, #C5A869);
+          transform: scale(1.05);
+        }
+
+        /* Search Dropdown */
+        .header-search-dropdown {
+          position: absolute;
+          top: calc(100% + 8px);
+          left: 0;
+          right: 0;
+          background: #FFFFFF;
+          border: 1px solid var(--color-stone, #E5E7EB);
+          border-radius: var(--radius-md, 8px);
+          padding: 16px 18px;
+          box-shadow: 0 16px 40px rgba(0, 0, 0, 0.12);
+          z-index: 1050;
+        }
+          background: var(--color-surface, #FAF7F2);
+          border: 1px solid var(--color-stone, #DFD8CC);
+          border-radius: var(--radius-md, 8px);
+          padding: 18px 20px;
+          box-shadow: 0 16px 40px rgba(20, 20, 18, 0.15);
+          z-index: 1050;
+        }
+
+        .dropdown-popular-heading {
           display: flex;
           align-items: center;
           gap: 6px;
-          text-decoration: none;
-          color: inherit;
-          font-family: var(--font-ui, sans-serif);
-          font-size: 11px;
-          font-weight: 600;
-          letter-spacing: 0.08em;
+          font-family: var(--font-ui);
+          font-size: 10px;
+          font-weight: 700;
+          letter-spacing: 0.18em;
+          color: var(--color-accent, #C5A869);
+          margin-bottom: 12px;
           text-transform: uppercase;
-          padding: 4px 10px;
-          border-radius: 4px;
-          transition: all 0.2s;
         }
-        .nav-login-btn:hover {
-          color: #B49A68;
+
+        .dropdown-popular-chips {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+          margin-bottom: 14px;
         }
-        .nav-user-menu {
-          position: absolute;
-          top: calc(100% + 12px);
-          right: 0;
-          width: 280px;
-          background: #FFFFFF;
-          border: 1px solid #E8E2D6;
-          border-radius: 10px;
-          box-shadow: 0 16px 40px rgba(0, 0, 0, 0.12);
-          overflow: hidden;
-          z-index: 1200;
-          animation: userMenuFade 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-          color: #1C1C1A;
+
+        .popular-chip-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 5px;
+          background: var(--color-bg, #FAF7F2);
+          border: 1px solid var(--color-stone, #DFD8CC);
+          border-radius: var(--radius-full, 9999px);
+          padding: 5px 12px;
+          font-size: 12px;
+          color: var(--color-ink, #141412);
+          cursor: pointer;
+          transition: all 0.15s ease;
         }
-        @keyframes userMenuFade {
-          from { opacity: 0; transform: translateY(-6px); }
-          to { opacity: 1; transform: translateY(0); }
+
+        .chip-icon {
+          color: var(--color-accent, #C5A869);
         }
-        .user-menu-header {
-          padding: 16px;
-          background: #F8F6F0;
-          border-bottom: 1px solid #E8E2D6;
+
+        .popular-chip-btn:hover {
+          background: var(--color-ink, #141412);
+          color: #FAF7F2;
+          border-color: var(--color-ink, #141412);
+        }
+
+        .popular-chip-btn:hover .chip-icon {
+          color: var(--color-accent, #C5A869);
+        }
+
+        .dropdown-dept-row {
           display: flex;
           align-items: center;
-          gap: 12px;
+          gap: 8px;
+          padding-top: 10px;
+          border-top: 1px dashed var(--color-stone, #DFD8CC);
+          font-size: 11px;
         }
-        .user-menu-avatar-large {
-          width: 40px;
-          height: 40px;
-          border-radius: 50%;
-          background: #1C1C1A;
-          color: #FAF8F5;
+
+        .dropdown-sub-label {
+          font-family: var(--font-ui);
+          font-size: 9.5px;
+          font-weight: 700;
+          color: var(--color-ink-muted, #6E6A62);
+          letter-spacing: 0.1em;
+        }
+
+        .dropdown-dept-links {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          flex-wrap: wrap;
+        }
+
+        .dept-quick-link {
+          color: var(--color-ink, #141412);
+          text-decoration: none;
+          font-weight: 500;
+        }
+
+        .dept-quick-link:hover {
+          color: var(--color-accent, #C5A869);
+        }
+
+        /* Mobile Search Bar Row */
+        .header-mobile-search-row {
+          padding: 8px 0;
+          background: var(--color-surface, #FAF7F2);
+          border-bottom: 1px solid var(--color-stone, #DFD8CC);
+        }
+
+        .mobile-search-form {
+          display: flex;
+          align-items: center;
+          background: var(--color-bg, #FAF7F2);
+          border: 1px solid var(--color-stone, #DFD8CC);
+          border-radius: var(--radius-full, 9999px);
+          padding: 2px 2px 2px 12px;
+        }
+
+        .mobile-search-icon {
+          color: var(--color-accent, #C5A869);
+          margin-right: 8px;
+          flex-shrink: 0;
+        }
+
+        .mobile-search-input {
+          flex: 1;
+          border: none;
+          background: transparent;
+          font-size: 12.5px;
+          color: var(--color-ink, #141412);
+          outline: none;
+          min-width: 0;
+        }
+
+        .mobile-clear-btn {
+          background: none;
+          border: none;
+          color: var(--color-ink-muted, #6E6A62);
+          padding: 4px;
+        }
+
+        .mobile-search-btn {
+          background: var(--color-accent, #C5A869);
+          color: var(--color-dark, #141412);
+          border: none;
+          border-radius: var(--radius-full, 9999px);
+          padding: 6px 14px;
+          font-family: var(--font-ui);
+          font-size: 10px;
+          font-weight: 700;
+          letter-spacing: 0.1em;
+        }
+
+        /* Right Actions - Sleek Luxury Fashion Navigation */
+        .header-actions-col {
+          display: flex;
+          align-items: center;
+          gap: 16px;
+          flex-shrink: 0;
+        }
+
+        .header-action-btn {
+          display: inline-flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 2px;
+          text-decoration: none;
+          color: var(--color-ink, #111827);
+          cursor: pointer;
+          background: none;
+          border: none;
+          padding: 2px 4px;
+          transition: color 0.15s ease, transform 0.15s ease;
+        }
+
+        .header-action-btn:hover {
+          color: var(--color-accent, #C5A869);
+        }
+
+        .action-icon-box {
+          position: relative;
           display: flex;
           align-items: center;
           justify-content: center;
-          font-size: 16px;
+          width: 24px;
+          height: 24px;
+        }
+
+        .action-badge-dot {
+          position: absolute;
+          top: -4px;
+          right: -8px;
+          background: var(--color-ink, #111827);
+          color: #FFFFFF;
+          font-family: var(--font-ui, sans-serif);
+          font-size: 9px;
           font-weight: 700;
-          flex-shrink: 0;
+          min-width: 16px;
+          height: 16px;
+          border-radius: 9999px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 0 4px;
+          line-height: 1;
         }
-        .user-menu-info {
-          min-width: 0;
-          flex: 1;
+
+        .action-btn-label {
+          font-family: var(--font-ui, sans-serif);
+          font-size: 10px;
+          font-weight: 600;
+          letter-spacing: 0.04em;
+          color: var(--color-ink, #111827);
         }
+
+        .header-cart-action {
+          display: inline-flex;
+          flex-direction: row;
+          align-items: center;
+          gap: 7px;
+          padding: 6px 14px;
+          background: var(--color-surface, #F8F9FA);
+          border: 1px solid var(--color-stone, #E5E7EB);
+          border-radius: 9999px;
+          transition: all 0.2s ease;
+        }
+
+        .header-cart-action:hover {
+          border-color: var(--color-ink, #111827);
+          background: #FFFFFF;
+        }
+
+        .cart-action-details {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+        }
+
+        .cart-total-tag {
+          font-family: var(--font-body, sans-serif);
+          font-size: 11px;
+          font-weight: 700;
+          color: var(--color-ink, #111827);
+        }
+
+        .header-signin-action {
+          display: inline-flex;
+          flex-direction: row;
+          align-items: center;
+          gap: 6px;
+          padding: 6px 14px;
+          border: 1px solid var(--color-stone, #E5E7EB);
+          border-radius: 9999px;
+          font-family: var(--font-ui, sans-serif);
+          font-size: 11.5px;
+          font-weight: 600;
+          color: var(--color-ink, #111827);
+          transition: all 0.2s ease;
+        }
+
+        .header-signin-action:hover {
+          border-color: var(--color-ink, #111827);
+          background: var(--color-surface, #F8F9FA);
+        }
+
+        .user-profile-trigger {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          background: var(--color-surface, #F8F9FA);
+          border: 1px solid var(--color-stone, #E5E7EB);
+          border-radius: var(--radius-full, 9999px);
+          padding: 4px 10px 4px 6px;
+          color: var(--color-ink, #111827);
+          cursor: pointer;
+        }
+
+        .user-avatar-circle {
+          width: 26px;
+          height: 26px;
+          border-radius: 50%;
+          background: var(--color-accent, #C5A869);
+          color: #FFFFFF;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 11px;
+          font-weight: 700;
+        }
+
+        .user-name-text {
+          font-size: 12px;
+          font-weight: 600;
+        }
+
+        .chevron-indicator {
+          transition: transform 0.2s ease;
+          color: var(--color-ink-muted, #595F69);
+        }
+
+        .chevron-indicator.is-open {
+          transform: rotate(180deg);
+        }
+
+        /* Tier 2: Category Bar (Centered, Clean Luxury Navigation) */
+        .header-secondary-row {
+          background: #FFFFFF;
+          padding: 9px 0;
+          border-bottom: 1px solid var(--color-stone, #E5E7EB);
+        }
+
+        .header-secondary-inner {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .header-cat-nav {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 32px;
+        }
+
+        .header-cat-item-wrap {
+          position: relative;
+          padding: 2px 8px;
+          border-radius: 4px;
+          transition: background-color 0.2s ease;
+        }
+
+        .header-cat-item-wrap.is-active,
+        .header-cat-item-wrap:hover {
+          background: color-mix(in srgb, var(--color-accent, #C5A869) 12%, transparent);
+        }
+
+        .header-cat-link {
+          font-family: var(--font-ui);
+          font-size: 11.5px;
+          font-weight: 600;
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
+          color: var(--color-ink, #141412);
+          text-decoration: none;
+          padding: 4px 0;
+          position: relative;
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          transition: color 0.15s ease;
+        }
+
+        .header-cat-link:hover,
+        .header-cat-item-wrap.is-active .header-cat-link {
+          color: var(--color-accent, #C5A869) !important;
+        }
+
+        .header-cat-link::after {
+          content: '';
+          position: absolute;
+          bottom: -2px;
+          left: 0;
+          right: 0;
+          height: 2px;
+          background: var(--color-accent, #C5A869);
+          transform: scaleX(0);
+          transition: transform 0.2s ease;
+        }
+
+        .header-cat-link:hover::after,
+        .header-cat-item-wrap.is-active .header-cat-link::after {
+          transform: scaleX(1);
+        }
+
+        .cat-arrow-icon {
+          color: var(--color-ink-muted, #6E6A62);
+          transition: transform 0.2s ease, color 0.2s ease;
+        }
+
+        .header-cat-item-wrap.is-active .cat-arrow-icon,
+        .header-cat-link:hover .cat-arrow-icon {
+          color: var(--color-accent, #C5A869);
+        }
+
+        .cat-arrow-icon.is-rotated {
+          transform: rotate(180deg);
+        }
+
+        .header-perk-badge {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 11px;
+          color: var(--color-ink-muted, #6E6A62);
+          font-weight: 500;
+        }
+
+        /* Option A: Compact Single-Column Flyout Menu Anchored Below Tab */
+        .cat-flyout-anchor {
+          position: absolute;
+          top: calc(100% + 4px);
+          left: 0;
+          z-index: 1200;
+          pointer-events: auto;
+        }
+
+        /* Invisible bridge to prevent cursor dropout */
+        .cat-flyout-anchor::before {
+          content: '';
+          position: absolute;
+          top: -10px;
+          left: 0;
+          right: 0;
+          height: 12px;
+        }
+
+        /* User Menu Dropdown */
+        .nav-user-dropdown-wrap {
+          position: relative;
+        }
+
+        .nav-user-menu {
+          position: absolute;
+          top: calc(100% + 8px);
+          right: 0;
+          width: 260px;
+          background: var(--color-surface, #FAF7F2);
+          border: 1px solid var(--color-stone, #DFD8CC);
+          border-radius: var(--radius-md, 8px);
+          box-shadow: 0 16px 40px rgba(20, 20, 18, 0.15);
+          padding: 12px;
+          z-index: 1050;
+        }
+
+        .user-menu-header {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          padding-bottom: 12px;
+          border-bottom: 1px solid var(--color-stone, #DFD8CC);
+          margin-bottom: 8px;
+        }
+
+        .user-menu-avatar-large {
+          width: 36px;
+          height: 36px;
+          border-radius: 50%;
+          background: var(--color-accent, #C5A869);
+          color: var(--color-dark, #141412);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 14px;
+          font-weight: 700;
+        }
+
         .user-menu-fullname {
           font-size: 13px;
-          font-weight: 700;
-          color: #1C1C1A;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
+          font-weight: 600;
+          color: var(--color-ink, #141412);
         }
+
         .user-menu-email {
           font-size: 11px;
-          color: #68645C;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-          margin-bottom: 4px;
+          color: var(--color-ink-muted, #6E6A62);
+          word-break: break-all;
         }
+
         .user-menu-badge {
           display: inline-block;
           font-size: 10px;
-          font-weight: 600;
-          background: rgba(180, 154, 104, 0.15);
-          color: #8A704C;
-          padding: 2px 6px;
-          border-radius: 4px;
+          font-weight: 700;
+          color: var(--color-accent, #C5A869);
+          margin-top: 2px;
         }
+
         .user-menu-links {
-          padding: 8px;
           display: flex;
           flex-direction: column;
-          gap: 2px;
+          gap: 4px;
         }
+
         .user-menu-item {
           display: flex;
           align-items: center;
-          gap: 12px;
-          padding: 9px 12px;
-          border-radius: 6px;
+          gap: 10px;
+          padding: 8px 10px;
+          border-radius: var(--radius-xs, 4px);
           text-decoration: none;
-          color: #1C1C1A;
+          color: var(--color-ink, #141412);
           transition: background 0.15s ease;
         }
+
         .user-menu-item:hover {
-          background: #F5F1E8;
+          background: var(--color-bg, #FAF7F2);
+          color: var(--color-accent, #C5A869);
         }
-        .user-menu-item.highlight-seller {
-          background: #FAF6ED;
-          border: 1px solid #EAE0CE;
-        }
-        .user-menu-item.highlight-admin {
-          background: #F4F1EA;
-          border: 1px solid #DDD6C8;
-        }
-        .menu-item-icon {
-          font-size: 15px;
-          flex-shrink: 0;
-        }
+
         .menu-item-title {
           font-size: 12px;
           font-weight: 600;
-          color: #1C1C1A;
         }
+
         .menu-item-sub {
-          font-size: 10px;
-          color: #68645C;
+          font-size: 10.5px;
+          color: var(--color-ink-muted, #6E6A62);
         }
+
         .user-menu-footer {
-          padding: 8px;
-          border-top: 1px solid #E8E2D6;
-          background: #FAF8F5;
+          margin-top: 8px;
+          padding-top: 8px;
+          border-top: 1px solid var(--color-stone, #DFD8CC);
         }
+
         .user-menu-logout-btn {
           width: 100%;
           display: flex;
           align-items: center;
-          justify-content: center;
-          gap: 8px;
-          padding: 9px 14px;
-          border-radius: 6px;
-          background: #FFF0F0;
-          color: #B91C1C;
-          border: 1px solid #FECACA;
+          justify-content: space-between;
+          padding: 8px 10px;
           font-size: 12px;
           font-weight: 600;
-          cursor: pointer;
-          transition: all 0.2s;
-        }
-        .user-menu-logout-btn:hover {
-          background: #FEE2E2;
           color: #991B1B;
+          background: none;
+          border: none;
+          border-radius: var(--radius-xs, 4px);
+          cursor: pointer;
         }
 
-        @media (max-width: 1024px) {
-          .zevro-nav {
-            grid-template-columns: auto 1fr auto;
-            height: 56px;
+        .user-menu-logout-btn:hover {
+          background: #FEF2F2;
+        }
+
+        /* Responsive */
+        .hide-mobile {
+          display: flex;
+        }
+
+        .hide-desktop {
+          display: none;
+        }
+
+        @media (max-width: 860px) {
+          .hide-mobile {
+            display: none !important;
           }
-          .nav-links { display: none; }
-          .nav-hamburger { display: block; margin-left: var(--space-4); }
-          .nav-icons .hide-mobile { display: none; }
-          .nav-divider { display: none; }
-          .nav-logo-img { height: 28px; }
+
+          .hide-desktop {
+            display: flex !important;
+          }
+
+          .header-primary-row {
+            padding: 8px 0;
+            border-bottom: none;
+          }
         }
       `}} />
-    </>
+    </header>
   );
 }

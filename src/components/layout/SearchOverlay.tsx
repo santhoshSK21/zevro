@@ -119,35 +119,37 @@ export default function SearchOverlay() {
           width: 100%;
           maxWidth: 680px;
           margin: 0 16px;
-          background: rgba(250, 248, 245, 0.96);
+          background: var(--color-surface, #FAF7F2);
           backdrop-filter: blur(24px);
           -webkit-backdrop-filter: blur(24px);
-          border: 1px solid rgba(212, 175, 55, 0.35);
-          border-radius: 12px;
-          padding: 16px 20px;
-          box-shadow: 0 20px 48px rgba(0, 0, 0, 0.2), 0 4px 12px rgba(0, 0, 0, 0.08);
+          border: 1px solid var(--color-stone, #DFD8CC);
+          border-top: 2px solid var(--color-accent, #C5A869);
+          border-radius: var(--radius-md, 12px);
+          padding: 18px 22px;
+          box-shadow: 0 24px 56px rgba(20, 20, 18, 0.2), 0 0 0 1px rgba(197, 168, 105, 0.2);
           animation: searchSlideDown 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-          color: #1A1816;
+          color: var(--color-ink, #141412);
         }
 
         .search-input-wrap {
           display: flex;
           align-items: center;
           gap: 12px;
-          background: #FFFFFF;
-          border: 1px solid rgba(0, 0, 0, 0.12);
-          border-radius: 8px;
-          padding: 8px 14px;
+          background: var(--color-bg, #FAF7F2);
+          border: 1.5px solid var(--color-stone, #DFD8CC);
+          border-radius: var(--radius-full, 9999px);
+          padding: 8px 16px;
           transition: border-color 0.2s ease, box-shadow 0.2s ease;
         }
 
         .search-input-wrap:focus-within {
-          border-color: #D4AF37;
-          box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15);
+          border-color: var(--color-accent, #C5A869);
+          box-shadow: 0 0 0 3px rgba(197, 168, 105, 0.18);
+          background: #FFFFFF;
         }
 
         .search-icon {
-          color: #9E978E;
+          color: var(--color-accent, #C5A869);
           flex-shrink: 0;
         }
 
@@ -156,20 +158,20 @@ export default function SearchOverlay() {
           border: none;
           background: transparent;
           font-family: var(--font-body, sans-serif);
-          font-size: 15px;
-          color: #1A1816;
+          font-size: 14.5px;
+          color: var(--color-ink, #141412);
           outline: none;
         }
 
         .search-input-field::placeholder {
-          color: #A0988E;
-          font-size: 14px;
+          color: var(--color-ink-muted, #6E6A62);
+          font-size: 13.5px;
         }
 
         .search-clear-btn {
           background: transparent;
           border: none;
-          color: #888;
+          color: var(--color-ink-muted, #6E6A62);
           cursor: pointer;
           font-size: 12px;
           padding: 4px;
@@ -177,14 +179,14 @@ export default function SearchOverlay() {
         }
 
         .search-submit-btn {
-          background: #1A1816;
-          color: #FAF8F5;
+          background: var(--color-accent, #C5A869);
+          color: var(--color-dark, #141412);
           border: none;
-          border-radius: 6px;
-          padding: 8px 16px;
+          border-radius: var(--radius-full, 9999px);
+          padding: 8px 18px;
           font-family: var(--font-ui, sans-serif);
           font-size: 11px;
-          font-weight: 600;
+          font-weight: 700;
           letter-spacing: 0.1em;
           text-transform: uppercase;
           cursor: pointer;
@@ -192,14 +194,14 @@ export default function SearchOverlay() {
         }
 
         .search-submit-btn:hover {
-          background: #D4AF37;
-          color: #1A1816;
+          background: var(--color-ink, #141412);
+          color: #FAF7F2;
         }
 
         .search-close-btn {
           background: transparent;
           border: none;
-          color: #666;
+          color: var(--color-ink-muted, #6E6A62);
           font-size: 16px;
           cursor: pointer;
           padding: 4px 6px;
@@ -207,8 +209,7 @@ export default function SearchOverlay() {
           transition: background 0.2s;
         }
         .search-close-btn:hover {
-          background: rgba(0,0,0,0.06);
-          color: #000;
+          color: var(--color-ink, #141412);
         }
 
         .search-suggestions {
@@ -217,17 +218,17 @@ export default function SearchOverlay() {
           gap: 12px;
           margin-top: 14px;
           padding-top: 12px;
-          border-top: 1px solid rgba(0, 0, 0, 0.05);
+          border-top: 1px solid var(--color-stone, #DFD8CC);
           flex-wrap: wrap;
         }
 
         .suggestions-label {
           font-family: var(--font-ui, sans-serif);
-          font-size: 11px;
-          font-weight: 600;
-          letter-spacing: 0.08em;
+          font-size: 10px;
+          font-weight: 700;
+          letter-spacing: 0.14em;
           text-transform: uppercase;
-          color: #7A7268;
+          color: var(--color-accent, #C5A869);
         }
 
         .suggestions-pills {
@@ -237,21 +238,21 @@ export default function SearchOverlay() {
         }
 
         .suggestion-pill {
-          background: rgba(0, 0, 0, 0.04);
-          border: 1px solid rgba(0, 0, 0, 0.08);
+          background: var(--color-bg, #FAF7F2);
+          border: 1px solid var(--color-stone, #DFD8CC);
           border-radius: 20px;
           padding: 4px 12px;
           font-family: var(--font-body, sans-serif);
           font-size: 12px;
-          color: #2D2A26;
+          color: var(--color-ink, #141412);
           cursor: pointer;
           transition: all 0.2s ease;
         }
 
         .suggestion-pill:hover {
-          background: rgba(212, 175, 55, 0.15);
-          border-color: rgba(212, 175, 55, 0.4);
-          color: #000;
+          background: var(--color-ink, #141412);
+          border-color: var(--color-ink, #141412);
+          color: #FAF7F2;
           transform: translateY(-1px);
         }
 

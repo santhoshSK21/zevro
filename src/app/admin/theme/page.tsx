@@ -24,19 +24,19 @@ interface ThemePreset {
 const PRESET_THEMES: ThemePreset[] = [
   {
     id: 'royal-ivory',
-    name: 'Royal Ivory & Champagne Gold',
-    description: 'Zevro Signature Warm Editorial Aesthetic',
+    name: 'Modern Pure Luxury & Champagne',
+    description: 'Crisp High-Contrast Editorial Canvas with Gold Accents',
     colors: {
-      bg: '#F5F1E8',
-      surface: '#EAE4D8',
-      ink: '#1C1C1A',
-      inkMuted: '#68645C',
-      accent: '#B49A68',
-      stone: '#DDD6C8',
-      dark: '#1B1B19'
+      bg: '#FFFFFF',
+      surface: '#F8F9FA',
+      ink: '#111827',
+      inkMuted: '#595F69',
+      accent: '#C5A869',
+      stone: '#E5E7EB',
+      dark: '#111827'
     },
-    fontDisplay: 'Playfair Display, serif',
-    fontBody: 'Inter, sans-serif'
+    fontDisplay: "'Playfair Display', serif",
+    fontBody: "'Plus Jakarta Sans', sans-serif"
   },
   {
     id: 'midnight-noir',
@@ -51,8 +51,8 @@ const PRESET_THEMES: ThemePreset[] = [
       stone: '#33322E',
       dark: '#0C0C0B'
     },
-    fontDisplay: 'Cinzel, serif',
-    fontBody: 'Inter, sans-serif'
+    fontDisplay: "'Cinzel', serif",
+    fontBody: "'Plus Jakarta Sans', sans-serif"
   },
   {
     id: 'minimalist-monochrome',
@@ -67,8 +67,8 @@ const PRESET_THEMES: ThemePreset[] = [
       stone: '#E0E0E0',
       dark: '#111111'
     },
-    fontDisplay: 'Montserrat, sans-serif',
-    fontBody: 'Inter, sans-serif'
+    fontDisplay: "'Plus Jakarta Sans', sans-serif",
+    fontBody: "'Plus Jakarta Sans', sans-serif"
   },
   {
     id: 'rose-silk',
@@ -83,24 +83,24 @@ const PRESET_THEMES: ThemePreset[] = [
       stone: '#E5D6D0',
       dark: '#211515'
     },
-    fontDisplay: 'Cormorant Garamond, serif',
-    fontBody: 'Plus Jakarta Sans, sans-serif'
+    fontDisplay: "'Cormorant Garamond', serif",
+    fontBody: "'Plus Jakarta Sans', sans-serif"
   },
   {
     id: 'emerald-heritage',
     name: 'Emerald Heritage Velvet',
     description: 'Regal Traditional Indian Aristocracy Aesthetic',
     colors: {
-      bg: '#F3F6F3',
-      surface: '#E2EBE2',
+      bg: '#FFFFFF',
+      surface: '#F4F7F4',
       ink: '#0F2418',
       inkMuted: '#4F6659',
       accent: '#B38E42',
-      stone: '#CFDBCF',
+      stone: '#E2E8E2',
       dark: '#0A1A11'
     },
-    fontDisplay: 'Bodoni Moda, serif',
-    fontBody: 'Inter, sans-serif'
+    fontDisplay: "'Bodoni Moda', 'Cormorant Garamond', serif",
+    fontBody: "'Plus Jakarta Sans', sans-serif"
   }
 ];
 

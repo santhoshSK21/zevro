@@ -131,7 +131,7 @@ export default function AccountSettingsPage() {
     );
   }
 
-  const roleLabel = profile.role === 'seller' ? 'Merchant Seller' : profile.role === 'admin' ? 'Administrator' : 'Verified Customer';
+  const roleLabel = profile.role === 'admin' ? 'Administrator' : 'Verified Customer';
 
   return (
     <div style={{ maxWidth: '800px' }}>
@@ -203,28 +203,7 @@ export default function AccountSettingsPage() {
             </p>
           </div>
 
-          {seller && (
-            <Link
-              href="/seller"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '8px',
-                padding: '10px 16px',
-                backgroundColor: '#1C1C1A',
-                color: '#FAF8F5',
-                borderRadius: '6px',
-                fontSize: '12px',
-                fontWeight: 600,
-                textDecoration: 'none',
-                letterSpacing: '0.05em',
-              }}
-            >
-              <Store size={14} color="#C5A880" />
-              <span>Go to Seller Hub</span>
-              <ExternalLink size={12} />
-            </Link>
-          )}
+          {/* Seller hub link hidden for single-brand deployment */}
         </div>
       </div>
 
@@ -293,24 +272,7 @@ export default function AccountSettingsPage() {
             </div>
           </div>
 
-          {/* If user is seller, allow editing store name */}
-          {seller && (
-            <div style={{ marginTop: '10px', paddingTop: '18px', borderTop: '1px dashed #DDD6C8' }}>
-              <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#1C1C1A', marginBottom: '8px' }}>
-                Store Brand Name
-              </label>
-              <input
-                type="text"
-                value={storeName}
-                onChange={(e) => setStoreName(e.target.value)}
-                placeholder="e.g. Royal Silks Boutique"
-                style={{ width: '100%', padding: '12px 14px', border: '1px solid #DDD6C8', borderRadius: '6px', fontSize: '13px', backgroundColor: '#FAF9F6', color: '#1C1C1A', outline: 'none', boxSizing: 'border-box' }}
-              />
-              <span style={{ fontSize: '11px', color: '#8A704C', marginTop: '4px', display: 'block' }}>
-                Displays publicly on product listings and your seller storefront.
-              </span>
-            </div>
-          )}
+          {/* Store Brand Name hidden for single-brand deployment */}
 
           <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '12px' }}>
             <button

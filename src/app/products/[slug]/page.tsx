@@ -95,7 +95,7 @@ export default function ProductDetailPage() {
   }
 
   return (
-    <div style={{ backgroundColor: 'var(--color-bg)', minHeight: '100vh', paddingTop: '80px', paddingBottom: '80px' }}>
+    <div style={{ backgroundColor: 'var(--color-bg)', minHeight: '100vh', paddingTop: 'clamp(20px, 3vw, 36px)', paddingBottom: 'clamp(80px, 10vw, 120px)' }}>
 
       {/* Breadcrumb */}
       <div className="container" style={{ padding: '0 20px', marginBottom: '24px', fontSize: '11px', letterSpacing: '0.1em', textTransform: 'uppercase', fontFamily: 'var(--font-ui)', overflowX: 'auto', whiteSpace: 'nowrap' }}>

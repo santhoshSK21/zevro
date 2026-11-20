@@ -16,6 +16,7 @@ interface FilterState {
   
   setFilter: (key: keyof FilterState, value: any) => void
   clearAll: () => void
+  clearFiltersOnly: () => void
 }
 
 const initialState = {
@@ -36,5 +37,16 @@ const initialState = {
 export const useFilterStore = create<FilterState>()((set) => ({
   ...initialState,
   setFilter: (key, value) => set({ [key]: value }),
-  clearAll: () => set(initialState)
+  clearAll: () => set(initialState),
+  clearFiltersOnly: () => set((state) => ({
+    minPrice: 0,
+    maxPrice: 50000,
+    sizes: [],
+    colors: [],
+    fabric: [],
+    occasion: [],
+    rating: 0,
+    offers: [],
+    page: 1
+  }))
 }))
